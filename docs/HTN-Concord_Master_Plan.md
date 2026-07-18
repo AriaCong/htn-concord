@@ -319,7 +319,8 @@ feasibility, HC-14 OMR BP parser, HC-8 derive.py correctness fixes.)*
    before the commit. **The baseline is post-audit-fix** — the HC-8 corrections predate the repository, so
    no pre-fix referent exists and none was fabricated. **Now unblocked: HC-4 (CI), HC-9 (run manifest),
    HC-90 (release)** — and the "verified against commit `<sha>` on `<date>`" convention is finally checkable.
-   *Do the CI workflow next (HC-4); it is what stops the drift from restarting.*
+   *(CI workflow HC-4 authored 2026-07-18, commit `e7081d1` — but 🟡 **never executed**: no GitHub remote
+   exists yet. Create the remote, push `main`, confirm the first run is green, then fix the README badge URL.)*
 2. **Safety and label-validity fixes before any new rule lands:** HC-24 (wire `DEMO_J.RIDEXPRG`; 45 pregnant
    respondents currently carry an empty contraindication list — once HC-36 lands the engine could emit
    "initiate ACEI/ARB" for a pregnant patient *as ground truth*), HC-25 (`MCQ_J` → `clinical_cvd`, null for

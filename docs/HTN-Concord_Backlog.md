@@ -28,7 +28,7 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 | HC-1 | `patient_profile.schema.json` contract | schema exists; covers every data-dictionary §6 field; enums for stage/sex/context | — | S | ✅ |
 | HC-2 | In-pipeline schema validation | every emitted row validated before write; fails loudly | HC-1 | S | ✅ |
 | HC-3 | **Shared controlled-vocab module** | one importable module for med classes / comorbidity / contraindication / ICD anchor sets; NHANES pipeline + engine both import it (kills drift before MIMIC) | — | M | ✅ |
-| HC-4 | Test harness + CI | `pytest` green locally (run `pytest -q` — **do not hardcode a count here**); add CI workflow on push, with a coverage/test badge replacing hand-synced numbers. **CI must fail the build on pytest *collection* errors** — a committed test importing a not-yet-written module aborts the whole suite, making "tests pass" unverifiable everywhere else | — | S | 🟡 |
+| HC-4 | Test harness + CI | `pytest` green locally (run `pytest -q` — **do not hardcode a count here**). **Workflow authored 2026-07-18** (`.github/workflows/ci.yml`, commit `e7081d1`): pytest on push/PR, pinned Python 3.12, collection-integrity gate + `--strict-markers --strict-config` + collected-count published to the run summary. **Still 🟡 — it has never executed**, because no GitHub remote exists; the badge is an `OWNER/REPO` placeholder. Locally verified ≠ CI verified. **CI must fail the build on pytest *collection* errors** — a committed test importing a not-yet-written module aborts the whole suite, making "tests pass" unverifiable everywhere else | — | S | 🟡 |
 | HC-5 | `llm_output.schema.json` (ModelRecommendation) | structured fields enabling deterministic trace scoring; validates a hand example | — | S | ⬜ |
 | HC-6 | Repo hygiene | pinned deps (✅), lockfile, `pyproject`, raw-input SHA256 manifest | — | S | 🟡 |
 
@@ -108,7 +108,9 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 ### Immediate sprint (rewritten 2026-07-18 — the previous list was five completed tickets)
 1. **HC-7** `git init` + `.gitignore` + tagged baseline. No VCS exists; this blocks CI, manifests, release,
    and every stale-claim audit.
-2. **HC-4a** CI workflow (pytest on push; collection errors fail the build).
+2. ~~**HC-4** CI workflow (pytest on push; collection errors fail the build)~~ — 🟡 **authored 2026-07-18,
+   never executed.** Only remaining step: create a GitHub remote, push `main`, confirm the first run is
+   green, and replace `OWNER/REPO` in the README badge. Needs an owner/visibility decision.
 3. **HC-9** run manifest (git SHA + input/output SHA256 + resolved config) on both pipelines.
 4. **HC-42** `DecisionBuilder` refactor — do this **before** HC-34, or the accumulate-then-freeze pattern
    gets duplicated across six rule modules.
