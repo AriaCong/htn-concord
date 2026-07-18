@@ -1,5 +1,6 @@
-<!-- CI badge: replace OWNER/REPO once a GitHub remote exists (see "CI" below). -->
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+<!-- Repo is private: this badge renders for authenticated collaborators only.
+     Anonymous viewers see nothing until the repo goes public at HC-90. -->
+[![CI](https://github.com/AriaCong/htn-concord/actions/workflows/ci.yml/badge.svg)](https://github.com/AriaCong/htn-concord/actions/workflows/ci.yml)
 
 # HTN-Concord
 
@@ -69,14 +70,26 @@ The Khan 2024 PREVENT paper and supplements are likewise not committed (copyrigh
 transcribed from Supplemental Table S12A stay verifiable without them: the transcription is unit-tested
 against the paper's published worked example (women 14.684%, men 16.317%).
 
+> 🚨 **Open blocker for HC-90 (making this repo public) — ticket HC-56.**
+> `tests/test_mimic_omr_bp.py` contains a fixture row that is a **verbatim record from the credentialed
+> MIMIC-IV `omr` table**: `10000032,2180-04-27,1,Blood Pressure,110/65`, confirmed present in `omr.csv.gz`
+> (that subject has 41 real rows). The neighbouring `10000099` rows are synthetic.
+> This is contained while the repo is private, but PhysioNet's DUA forbids redistributing MIMIC data, so it
+> **must be resolved before the repo goes public.** Either confirm the row comes from the ODbL-licensed
+> MIMIC-IV *demo* subset — which is redistributable, and `10000032` is plausibly a demo patient — and record
+> that determination here, or replace the fixture with synthetic values. Do not make the repo public on the
+> assumption that a single row is de minimis.
+
 ## CI
 
 `.github/workflows/ci.yml` runs the suite on every push and pull request against pinned Python 3.12.
 
-> **Not yet active.** This repository has no GitHub remote, so the workflow has never executed and the badge
-> above points at a placeholder. To activate: create the remote, `git push -u origin main`, then replace
-> `OWNER/REPO` in the badge URL. Every step was dry-run locally and verified to pass, and the collection gate
-> was verified to fail on a deliberately broken import — but *verified locally* is not *verified in CI*.
+**Active and green.** First run: [`29642244912`](https://github.com/AriaCong/htn-concord/actions/runs/29642244912)
+— all 8 steps succeeded, 123 collected / 123 passed on Python 3.12.13, pytest 9.0.2, matching local exactly.
+
+> **Repository visibility: private.** The badge therefore renders only for authenticated collaborators;
+> anonymous viewers see nothing until the repo is made public at HC-90. See "Data" below for why private is
+> the correct default here, and `docs/` for the open-sourcing plan.
 
 Two guards exist because "tests pass" was previously unverifiable:
 
