@@ -118,7 +118,7 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 ### New tickets opened by the 2026-07-18 three-reviewer audit
 | ID | Ticket | Why | Priority |
 |---|---|---|---|
-| HC-7 | `git init` + baseline commit | no version control exists at all | P0 |
+| HC-7 | `git init` + baseline commit | ✅ **done 2026-07-18** — commit `d94b5d9` on `main`, tagged `baseline-2026-07-18`; 51 files / 408 KB; `Data/` (~60 GB credentialed) and the copyrighted PREVENT paper excluded and verified staged-clean. **Baseline is post-audit-fix**: the HC-8 corrections predate the repo, so no pre-fix referent exists to commit and none was fabricated | P0 |
 | HC-8 | Fix `derive.py` correctness bugs — **both** the `ckd_albuminuria` NA-coercion (unknown→False defeated the ABSTAIN contract; unknown 0 → 266) **and** the `bp_stage` `between()` boundary bug (voided 56/4,806 valid non-integer BPs; the profile column silently disagreed with the engine) | ✅ **done** — nulls 56 → 0, profiles re-emitted with `clinical_cvd` (30 → 31 cols), plus a boundary-grid test asserting `derive` and `vocab` staging can never diverge. *(There is no separate "HC-8b" ticket — both bugs live under HC-8 in Linear and Notion.)* | P0 |
 | HC-9 | Run-manifest emitter | artifacts had drifted from the code that produced them | P0 |
 | HC-23 | Implement the decided **median** BP harmonization | every doc says median was harmonized 2026-07-18; `clean.py` still uses `mean()`, so the shipped substrate is a mean-based artifact and every quoted stage/label figure describes the mean pipeline. Benchmark-freeze action: change, re-run, re-quote in one pass | P1 |

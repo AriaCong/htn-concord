@@ -313,10 +313,13 @@ P1 schema/vocab ──┬─> P2 data pipelines ──┐
 *(Done since the original list: HC-3 vocab, HC-31 PREVENT, HC-32/33 staging + initiation, HC-13 MIMIC
 feasibility, HC-14 OMR BP parser, HC-8 derive.py correctness fixes.)*
 
-1. **HC-7 — `git init` + `.gitignore` + tagged baseline. P0, do this first.** No version control exists
-   anywhere in a project whose contribution #1 is a *reproducible open-source engine*. It blocks CI (HC-4),
-   run manifests (HC-9), release (HC-90), and every stale-claim audit — each doc-drift finding in the
-   2026-07-18 audit exists precisely *because* there is no history to check against.
+1. ~~**HC-7 — `git init` + `.gitignore` + tagged baseline**~~ — ✅ **done 2026-07-18.** Commit `d94b5d9` on
+   `main`, tagged `baseline-2026-07-18`; 51 files / 408 KB (source, docs, tests, schema). `Data/` (~60 GB
+   credentialed PhysioNet) and the copyrighted PREVENT paper are gitignored and were verified staged-clean
+   before the commit. **The baseline is post-audit-fix** — the HC-8 corrections predate the repository, so
+   no pre-fix referent exists and none was fabricated. **Now unblocked: HC-4 (CI), HC-9 (run manifest),
+   HC-90 (release)** — and the "verified against commit `<sha>` on `<date>`" convention is finally checkable.
+   *Do the CI workflow next (HC-4); it is what stops the drift from restarting.*
 2. **Safety and label-validity fixes before any new rule lands:** HC-24 (wire `DEMO_J.RIDEXPRG`; 45 pregnant
    respondents currently carry an empty contraindication list — once HC-36 lands the engine could emit
    "initiate ACEI/ARB" for a pregnant patient *as ground truth*), HC-25 (`MCQ_J` → `clinical_cvd`, null for
