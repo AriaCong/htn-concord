@@ -10,7 +10,7 @@
 >
 > **追踪源对账（2026-07-18）。** 三个追踪源现已装载同一套工单。此前的状况是：HC-9/27/44/45 在 Notion 有而 Linear 没有；HC-23/29/43/46/47/48 只存在于本文件。**HC-8b 不是独立工单** —— derive.py 的两个 bug 都归在 HC-8 下。**HC-4a/HC-4b 是 HC-4 的子部分**，不是独立编号。
 
-**关键路径（2026-07-18 修订）：** HC-7（git）→ HC-8（CKD 修复 ✅）→ HC-42（DecisionBuilder 重构，在 HC-34 *之前*）→ HC-34..39（引擎）+ HC-15..19（MIMIC，并行）→ HC-5/HC-39（联合设计）→ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80（pilot/kill 门）**。
+**关键路径（2026-07-18 修订）：** ~~HC-7（git ✅）~~ → HC-8（CKD 修复 ✅）→ HC-42（DecisionBuilder 重构，在 HC-34 *之前*）→ HC-34..39（引擎）+ HC-15..19（MIMIC，并行）→ HC-5/HC-39（联合设计）→ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80（pilot/kill 门）**。
 
 ---
 
@@ -126,7 +126,7 @@
 
 ### 即刻冲刺（2026-07-18 重写 —— 此前那份列表里全是已完成的工单）
 
-1. **HC-7** `git init` + `.gitignore` + 打标签的基线。目前完全没有版本控制；它卡住 CI、manifest、发布，以及每一次陈旧声明的审计。
+1. ~~**HC-7** `git init` + `.gitignore` + 打标签的基线~~ —— ✅ **2026-07-18 完成。** 基线 `d94b5d9`，tag `baseline-2026-07-18`，分支 `main`，已推送至私有仓库 `AriaCong/htn-concord`。已解锁 CI（HC-4 ✅）、运行 manifest（HC-9）与发布（HC-90）。
 2. ~~**HC-4** CI workflow + 测试徽章~~ —— ✅ **2026-07-18 完成。** 已在 `AriaCong/htn-concord`（私有）上线并全绿，连续两次运行成功，123/123（Python 3.12.13）。
 3. **HC-9** 运行 manifest（git SHA + 输入/输出 SHA256 + 解析后配置），两条 pipeline 都要。
 4. **HC-42** `DecisionBuilder` 重构 —— 必须在 **HC-34 之前**，否则「先累积再冻结」的模式会在六个规则模块里各复制一遍。与 **HC-43** 配对做。
