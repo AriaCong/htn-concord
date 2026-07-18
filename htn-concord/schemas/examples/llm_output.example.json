@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "bp_stage": "stage2",
+  "decision": "intensify_pharmacotherapy",
+  "abstain_reason": null,
+  "extracted": {
+    "age": 68,
+    "sex": "female",
+    "sbp": 154,
+    "dbp": 91,
+    "on_bp_meds": true,
+    "med_classes": ["dhp_ccb"],
+    "diabetes": true,
+    "ckd_albuminuria": true,
+    "clinical_cvd": null,
+    "egfr": 42,
+    "potassium": 4.8,
+    "contraindications": []
+  },
+  "recommendation": {
+    "drug_classes": ["acei"],
+    "rationale": "BP 154/91 on amlodipine alone is above the <130/80 goal, so therapy should be intensified. With CKD (eGFR 42) an ACE inhibitor (or ARB) is the preferred addition; potassium 4.8 is below the 5.5 threshold and she is not pregnant and has no angioedema history, so no contraindication applies."
+  },
+  "citations": [
+    "AHA-ACC-2025:bp-categories",
+    "AHA-ACC-2025:bp-goal-130-80"
+  ],
+  "trace": [
+    {
+      "rule": "bp_staging",
+      "detail": "Readings 156/92 and 152/90 summarize to 154/91, at or above 140/90 -> stage 2.",
+      "citation": "AHA-ACC-2025:bp-categories"
+    },
+    {
+      "rule": "initiation_intensification",
+      "detail": "Already on one antihypertensive (amlodipine) with BP above the <130/80 goal -> intensify pharmacotherapy.",
+      "citation": "AHA-ACC-2025:bp-goal-130-80"
+    },
+    {
+      "rule": "comorbidity_modifier",
+      "detail": "CKD (eGFR 42 < 60) makes ACEI or ARB the preferred class to add.",
+      "citation": null
+    },
+    {
+      "rule": "contraindication_screen",
+      "detail": "Potassium 4.8 < 5.5, not pregnant, no angioedema history -> no contraindication to ACEI/ARB.",
+      "citation": null
+    }
+  ]
+}

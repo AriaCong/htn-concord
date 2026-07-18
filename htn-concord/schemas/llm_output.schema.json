@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://htn-concord/schemas/llm_output.schema.json",
+  "title": "LLMOutput",
+  "description": "Forced structured output for every model call (Tasks A/B/C), consumed by the JSON-mode runner (HC-60) and scored deterministically against the engine's EngineDecision (engine/types.py) — no LLM-as-judge. Field-for-field it mirrors the engine half of each metric: decision -> decision_concordance + abstention_appropriateness; bp_stage -> staging_correct; extracted -> extraction_f1, contraindication_recall, contraindication_false_positive (extracted field names are PatientProfile field names so scoring is a direct row diff); recommendation.drug_classes -> unsafe_recommendation; citations -> citation_support (anchors are checked against engine/citations.py; unregistered anchors are hallucinations); trace -> trace_concordance (TraceStep shape is the engine's, per the HC-5/HC-39 joint-design contract). The contract is closed (additionalProperties false everywhere) and every top-level field is required with null meaning 'model says unknown', so an answer can never silently omit a scored dimension.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "bp_stage", "decision", "abstain_reason", "extracted", "recommendation", "citations", "trace"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0"},
+    "bp_stage": {
+      "type": ["string", "null"],
+      "enum": ["normal", "elevated", "stage1", "stage2", null],
+      "description": "Model's chronic BP stage; null when the model judges staging impossible (e.g. acute-context BP)"
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["initiate_pharmacotherapy", "intensify_pharmacotherapy", "lifestyle_only", "at_goal_continue", "abstain"],
+      "description": "Must equal engine.types.Decision values"
+    },
+    "abstain_reason": {
+      "type": ["string", "null"],
+      "description": "Required non-empty when decision == abstain; must be null otherwise (enforced below)"
+    },
+    "extracted": {
+      "type": "object",
+      "description": "Facts the model extracted from its input. Names are PatientProfile field names so extraction_f1 is a direct field-by-field diff against the hidden row. null = 'not stated / unknown', never a guess.",
+      "additionalProperties": false,
+      "required": ["age", "sex", "sbp", "dbp", "on_bp_meds", "med_classes", "diabetes", "ckd_albuminuria", "clinical_cvd", "egfr", "potassium", "contraindications"],
+      "properties": {
+        "age": {"type": ["number", "null"], "minimum": 0, "maximum": 120},
+        "sex": {"type": ["string", "null"], "enum": ["male", "female", null]},
+        "sbp": {"type": ["number", "null"], "minimum": 60, "maximum": 290, "description": "summarized over the readings given, per the cohort convention"},
+        "dbp": {"type": ["number", "null"], "minimum": 30, "maximum": 200},
+        "on_bp_meds": {"type": ["boolean", "null"]},
+        "med_classes": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["thiazide", "acei", "arb", "dhp_ccb", "nondhp_ccb", "beta_blocker", "loop_diuretic", "mra", "alpha_blocker"]},
+          "description": "Current antihypertensive classes; must equal vocab.MED_CLASSES"
+        },
+        "diabetes": {"type": ["boolean", "null"]},
+        "ckd_albuminuria": {"type": ["boolean", "null"], "description": "the CKD flag: eGFR < 60 OR UACR >= 30 mg/g (an OR — field name is the PatientProfile column)"},
+        "clinical_cvd": {"type": ["boolean", "null"]},
+        "egfr": {"type": ["number", "null"]},
+        "potassium": {"type": ["number", "null"], "minimum": 1.5, "maximum": 9},
+        "contraindications": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["pregnancy", "angioedema_hx", "hyperkalemia"]},
+          "description": "Patient-fact contraindications only (family history must NOT appear here); must equal vocab.CONTRAINDICATION_FLAGS"
+        }
+      }
+    },
+    "recommendation": {"$ref": "#/definitions/ModelRecommendation"},
+    "citations": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Guideline anchor ids (e.g. AHA-ACC-2025:stage2-initiate). Scored against the engine/citations.py registry; an unregistered anchor counts as a hallucinated citation."
+    },
+    "trace": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/definitions/TraceStep"},
+      "description": "Ordered reasoning steps; compared against the engine's trace for trace_concordance (right answer / wrong path)"
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"decision": {"const": "abstain"}}},
+      "then": {"properties": {"abstain_reason": {"type": "string", "minLength": 1}}},
+      "else": {"properties": {"abstain_reason": {"type": "null"}}}
+    }
+  ],
+  "definitions": {
+    "ModelRecommendation": {
+      "title": "ModelRecommendation",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["drug_classes", "rationale"],
+      "properties": {
+        "drug_classes": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["thiazide", "acei", "arb", "dhp_ccb", "nondhp_ccb", "beta_blocker", "loop_diuretic", "mra", "alpha_blocker"]},
+          "description": "Classes to start or add; empty for lifestyle_only / at_goal_continue / abstain. A class the engine flagged contraindicated scores unsafe_recommendation."
+        },
+        "rationale": {
+          "type": ["string", "null"],
+          "description": "Free-text justification; audit only, never scored"
+        }
+      }
+    },
+    "TraceStep": {
+      "title": "TraceStep",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule", "detail"],
+      "properties": {
+        "rule": {"type": "string", "description": "which rule the step applies, e.g. bp_staging"},
+        "detail": {"type": "string", "description": "human-readable reasoning for the step"},
+        "citation": {"type": ["string", "null"], "description": "anchor id backing this step, if any"}
+      }
+    }
+  }
+}
