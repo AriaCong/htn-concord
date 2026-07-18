@@ -16,7 +16,7 @@ IDs are stable (`HC-n`).
 > **not** a separate ticket — both derive.py bugs are folded into HC-8. HC-4a/HC-4b are sub-parts of HC-4,
 > not standalone IDs.
 
-**Critical path (revised 2026-07-18):** HC-7 (git) → HC-8 (CKD fix ✅) → HC-42 (DecisionBuilder refactor,
+**Critical path (revised 2026-07-18):** ~~HC-7 (git ✅)~~ → HC-8 (CKD fix ✅) → HC-42 (DecisionBuilder refactor,
 *before* HC-34) → HC-34..39 (engine) + HC-14..19 (MIMIC, parallel) → HC-5/HC-39 (designed jointly) →
 HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 
@@ -110,8 +110,9 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 ---
 
 ### Immediate sprint (rewritten 2026-07-18 — the previous list was five completed tickets)
-1. **HC-7** `git init` + `.gitignore` + tagged baseline. No VCS exists; this blocks CI, manifests, release,
-   and every stale-claim audit.
+1. ~~**HC-7** `git init` + `.gitignore` + tagged baseline~~ — ✅ **done 2026-07-18.** Baseline `d94b5d9`,
+   tag `baseline-2026-07-18`, branch `main`, pushed to private `AriaCong/htn-concord`. Unblocked CI (HC-4 ✅),
+   run manifests (HC-9), and release (HC-90).
 2. ~~**HC-4** CI workflow~~ — ✅ **done 2026-07-18.** Live and green on `AriaCong/htn-concord` (private);
    two consecutive successful runs, 123/123 on Python 3.12.13.
 3. **HC-9** run manifest (git SHA + input/output SHA256 + resolved config) on both pipelines.

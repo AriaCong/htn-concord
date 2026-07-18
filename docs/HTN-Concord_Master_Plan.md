@@ -42,7 +42,7 @@ Status legend: ✅ done · 🟡 in progress · ⬜ not started · 🔒 blocked o
 |---|---|---|
 | `schemas/patient_profile.schema.json` | ✅ (HC-1) | verified present in the working tree 2026-07-18; the hidden-label row |
 | `schemas/llm_output.schema.json` | ⬜ (HC-5, not started) | structured fields → deterministic trace scoring; file does NOT exist yet — gates the Phase-5 runner. *(Notion pilot note wrongly marked this done; corrected 2026-07-18.)* **Re-sized S → M and made dependent on HC-39:** it defines one half of every metric comparison, so authoring it before the reasoning-trace format means guessing the trace shape and rewriting it after transcripts exist |
-| Repo layout + `requirements.txt` + env conventions | 🟡 | `htn-concord/` exists; pin versions, add `pyproject`/lockfile. **No version control exists at all (HC-7, P0)** — no `.git` anywhere |
+| Repo layout + `requirements.txt` + env conventions | 🟡 | `htn-concord/` exists; pin versions, add `pyproject`/lockfile. **Version control is in place (HC-7 ✅ 2026-07-18)** — baseline `d94b5d9`, tag `baseline-2026-07-18`, remote `AriaCong/htn-concord` (private). Remaining amber: version pinning / lockfile |
 | `docs/` data dictionary + this plan | ✅ | maintained in English *and* Chinese (`*_zh.md`); update both together |
 | Controlled vocabularies (engine med classes, comorbidity flags, contraindication flags, ICD sets) | ✅ (HC-3) | `htn-concord/vocab.py` — pipelines and engine both import it. *(This row said ⬜ until 2026-07-18 while Linear and Notion both had HC-3 Done.)* |
 
@@ -252,7 +252,7 @@ P1 schema/vocab ──┬─> P2 data pipelines ──┐
                   └─> P3 engine rules ─────┼─> P4 tasks ─> P5 runner ─> P6 eval ─> P7 experiments ─> P8 writing
    PREVENT (P3) ──────> Stage-1 labels ────┘
 ```
-- **Critical path right now (2026-07-18):** HC-7 (git) → HC-42 (DecisionBuilder, *before* HC-34) →
+- **Critical path right now (2026-07-18):** ~~HC-7 (git ✅)~~ → HC-42 (DecisionBuilder, *before* HC-34) →
   HC-34..39 engine rules (HC-38 gated on HC-44) + HC-15..19 MIMIC cohort in parallel → HC-45 integration run →
   HC-5/HC-39 designed jointly → HC-50 renderer → HC-53 Task B → HC-60 runner → HC-70 metrics, converging at the
   HC-80 pilot/kill-gate. *(PREVENT/staging/HC-32/33/HC-14 are done — no longer the blockers.)* HC-49
@@ -319,8 +319,9 @@ feasibility, HC-14 OMR BP parser, HC-8 derive.py correctness fixes.)*
    before the commit. **The baseline is post-audit-fix** — the HC-8 corrections predate the repository, so
    no pre-fix referent exists and none was fabricated. **Now unblocked: HC-4 (CI), HC-9 (run manifest),
    HC-90 (release)** — and the "verified against commit `<sha>` on `<date>`" convention is finally checkable.
-   *(CI workflow HC-4 authored 2026-07-18, commit `e7081d1` — but 🟡 **never executed**: no GitHub remote
-   exists yet. Create the remote, push `main`, confirm the first run is green, then fix the README badge URL.)*
+   *(CI workflow HC-4, commit `e7081d1` — ✅ **now live and verified green** on the private remote
+   `AriaCong/htn-concord`; badge repointed in `0a3aeb8`. The earlier "never executed / no remote exists yet"
+   note is superseded.)*
 2. **Safety and label-validity fixes before any new rule lands:** HC-24 (wire `DEMO_J.RIDEXPRG`; 45 pregnant
    respondents currently carry an empty contraindication list — once HC-36 lands the engine could emit
    "initiate ACEI/ARB" for a pregnant patient *as ground truth*), HC-25 (`MCQ_J` → `clinical_cvd`, null for

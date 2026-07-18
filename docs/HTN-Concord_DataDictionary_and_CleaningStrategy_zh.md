@@ -9,6 +9,11 @@
 
 编写于 2026-07-08。与 Notion 的《🇬🇧 HTN-Concord — Master Plan (English)》主页（即原先题为 "Consolidated Plan" 的那一页）以及 2025 AHA/ACC 指南（DOI 10.1161/HYP.0000000000000249）保持一致。
 
+> 📘 **配套文档。** 本文件是**参考手册** —— 覆盖五个数据集的每一张表，并保留更正历史。
+> 若需要单一底料的**走查**（每一列为何被选中、三层数据类型契约、缺失数据策略及为何不做填补、
+> NHANES 逐步执行顺序），请见 `HTN-Concord_DataProcessing_Walkthrough_zh.md`
+> （英文版：`..._Walkthrough.md`）。
+
 ---
 
 ## 0. 数据现状（请先读这一节）
