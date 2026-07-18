@@ -1,0 +1,9 @@
+# Pinned for reproducibility (verified installed set). Bump deliberately.
+pandas==2.3.3
+numpy==2.4.2
+jsonschema==4.23.0   # required: PatientProfile contract validation
+pytest==9.0.2        # tests (a branch without a test does not ship)
+
+# Optional: faster columnar output that preserves list dtype natively. The CSV
+# output is already lossless (list columns JSON-encoded), so this is not required.
+# pyarrow>=15,<23

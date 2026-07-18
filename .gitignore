@@ -1,0 +1,66 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# HTN-Concord — .gitignore
+#
+# Contribution #1 of this project is a reproducible, open-source guideline
+# engine. That means this repo must be safe to publish. Two categories must
+# NEVER be committed:
+#
+#   1. Credentialed data (MIMIC-IV, MIMIC-IV-ED, MIMIC-IV-Note, eICU-CRD,
+#      Zigong HF). PhysioNet credentialing forbids redistribution. ~60 GB.
+#   2. Copyrighted publisher materials (the PREVENT paper and its supplements).
+#
+# Derived artifacts are excluded too: they are reproducible from the pipelines,
+# and NHANES/MIMIC-derived profiles are patient-level rows regardless of the
+# public status of the upstream survey.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── 1. Credentialed source data (NEVER commit) ───────────────────────────────
+Data/
+data/raw/
+
+# ── 2. Copyrighted reference material (NEVER commit) ─────────────────────────
+# Khan 2024 PREVENT paper + supplements. The PREVENT coefficients in
+# pipelines/nhanes/prevent.py were transcribed from Supplemental Table S12A;
+# the transcription is unit-tested against the paper's published worked example
+# (women 14.684% / men 16.317%), so correctness is verifiable without shipping
+# the source document. Acquire it separately: Circulation 2024;149:430-449.
+*.pdf
+*.docx
+*.xlsx
+htn-concord/references/
+
+# ── 3. Derived data artifacts (reproducible; may contain patient-level rows) ──
+# Regenerate with the pipelines. Provenance comes from the HC-9 run manifest,
+# not from committing outputs. NB: this also excludes the per-source QA reports
+# (data/*/qa/) per the documented convention — revisit if you decide QA reports
+# should be versioned as review evidence.
+htn-concord/data/
+
+# ── 4. Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ── 5. Secrets & local config ────────────────────────────────────────────────
+# Model API keys will be needed from HC-60 (the runner) onward.
+.env
+.env.*
+!.env.example
+*.key
+credentials.json
+.claude/settings.local.json
+
+# ── 6. OS / editor noise ─────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
