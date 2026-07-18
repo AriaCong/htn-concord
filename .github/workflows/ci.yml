@@ -1,0 +1,107 @@
+# HTN-Concord CI (HC-4)
+#
+# The engine's output is the ground truth for every result in the paper, so a
+# green suite has to actually mean something. Two guards below exist because
+# "tests pass" was unverifiable before this workflow:
+#
+#   1. Collection integrity — a test importing a not-yet-written module aborts
+#      collection, so the rest of the suite never runs. `pytest -q` does exit
+#      non-zero here (verified: exit code 2), but it fails as "Interrupted",
+#      which reads like an infrastructure blip. The explicit gate below names
+#      it. Never add --continue-on-collection-errors to "unblock" CI: it
+#      downgrades a structural break to an ordinary failure.
+#
+#   2. Silent test-count collapse — the failure no exit code catches. A
+#      module-level try/except ImportError or a stray importorskip makes tests
+#      vanish rather than fail, and the suite goes green with fewer tests. The
+#      count is published to the run summary so a collapse is visible in the
+#      diff between runs.
+#
+# Docs must never quote a test count in prose (nine stale numbers have
+# circulated: 9/23/28/37/46/83/84/113/123). The badge and this job are the
+# answer to "how many tests pass".
+name: CI
+
+on:
+  push:
+    branches: ['**']
+    tags-ignore: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    # Tests import `engine.*`, `pipelines.*` and `vocab` as top-level modules,
+    # which resolve relative to this directory. Running from the repo root
+    # collects nothing.
+    working-directory: htn-concord
+
+jobs:
+  test:
+    name: pytest (Python 3.12)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # Single pinned version, matching the pinned dependency set in
+          # requirements.txt. This project's claim is reproducibility, not
+          # broad portability — a matrix here would test a configuration
+          # nobody actually runs.
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: htn-concord/requirements.txt
+
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Record environment
+        run: |
+          python --version
+          python -m pytest --version
+          pip freeze
+
+      # ── Guard 1: collection integrity ───────────────────────────────────────
+      - name: Verify test collection integrity
+        run: |
+          if ! python -m pytest --collect-only -q > /tmp/collect.txt 2>&1; then
+            echo "::error title=Test collection failed::A test module could not be imported, so the suite never ran. This is a structural break, not a test failure — the rest of the suite is unverified. Do NOT add --continue-on-collection-errors."
+            cat /tmp/collect.txt
+            exit 1
+          fi
+          cat /tmp/collect.txt
+
+      # ── Guard 2: the actual run ─────────────────────────────────────────────
+      - name: Run tests
+        run: python -m pytest -q --strict-markers --strict-config --durations=10
+
+      # ── Guard 3: surface the collected count ────────────────────────────────
+      - name: Publish test count to run summary
+        if: always()
+        run: |
+          COUNT=$(python -m pytest --collect-only -q 2>/dev/null | tail -1 || echo "unknown")
+          {
+            echo "### Test suite"
+            echo ""
+            echo "\`\`\`"
+            echo "${COUNT}"
+            echo "\`\`\`"
+            echo ""
+            echo "A **drop** in this number between runs on the same branch means tests"
+            echo "silently stopped being collected — check for a module-level"
+            echo "\`try/except ImportError\` or an \`importorskip\` before assuming it is fine."
+          } >> "$GITHUB_STEP_SUMMARY"
