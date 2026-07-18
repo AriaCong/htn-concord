@@ -11,6 +11,12 @@ Prepared 2026-07-08. Aligned with the Notion *🇬🇧 HTN-Concord — Master Pl
 titled "Consolidated Plan") and the 2025 AHA/ACC guideline (DOI 10.1161/HYP.0000000000000249).
 Chinese counterpart: `HTN-Concord_DataDictionary_and_CleaningStrategy_zh.md` — **update both together.**
 
+> 📘 **Companion document.** This file is the *reference* — every table across all five datasets, plus
+> the correction history. For a single-substrate **walkthrough** covering why each column was chosen,
+> the three-layer data-type contract, the missing-data policy (and why we do not impute), and the
+> step-by-step NHANES execution order, see `HTN-Concord_DataProcessing_Walkthrough.md`
+> (Chinese: `..._Walkthrough_zh.md`).
+
 ---
 
 ## 0. Status of the data (read first)
