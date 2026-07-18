@@ -22,7 +22,7 @@
 | HC-2 | 管线内 schema 校验 | 每一行写出前都校验；失败要报错而非静默 | HC-1 | S | ✅ |
 | HC-3 | **共享控制词表模块** | 一个可导入模块承载药物类 / 合并症 / 禁忌 / ICD 锚点集；NHANES pipeline 与引擎都导入它（在 MIMIC 接入前就掐死漂移） | — | M | ✅ |
 | HC-4 | 测试 harness + CI | 本地 `pytest` 全绿（跑 `pytest -q` —— **不要在此写死数字**）。**2026-07-18 已写好 workflow**（`.github/workflows/ci.yml`，提交 `e7081d1`）：push/PR 触发 pytest，锁定 Python 3.12，含「收集完整性」闸门 + `--strict-markers --strict-config` + 把已收集测试数发布到运行摘要。**CI 必须让 pytest *收集* 错误直接判定构建失败** —— 已实测：一个引用了不存在模块的测试，会让 123 个可收集测试**一个都跑不了**（`pytest -q` 退出码 2；而 `--continue-on-collection-errors` 会把它降级成退出码 1，workflow 里已明确警告绝不要加这个参数）。✅ **2026-07-18 已上线并实测全绿**（`github.com/AriaCong/htn-concord`，**私有仓库**）：连续两次运行成功，首次 = `29642244912`，8 个步骤全部成功，123 收集 / 123 通过（Python 3.12.13），与本地一致。仓库为私有时，徽章仅对协作者可见。 | — | S | ✅ |
-| HC-5 | `llm_output.schema.json`（ModelRecommendation） | 结构化字段支持确定性推理链评分；能校验一份手写样例 | **HC-39**（联合设计） | ~~S~~ **M** | ⬜ |
+| HC-5 | `llm_output.schema.json`（ModelRecommendation） | 结构化字段支持确定性推理链评分；能校验一份手写样例。✅ **2026-07-19 完成**：schema + 入库的手写样例（即 Master Plan 的 Task-B vignette）+ 防漂移测试 —— 把 `decision` 枚举钉死到 `engine.types.Decision`、药物类/禁忌枚举钉死到 `vocab.py`、抽取字段名钉死到 `patient_profile.schema.json`、推理链步骤的形状钉死到引擎的 `TraceStep`。「与 HC-39 联合设计」的约束正是这样满足的：链的形状*直接取自引擎*，HC-39 的发射器从此被测试契约约束 | **HC-39**（联合设计） | ~~S~~ **M** | ✅ |
 | HC-6 | 仓库卫生 | 锁定依赖（✅）、lockfile、`pyproject`、原始输入 SHA256 manifest | — | S | 🟡 |
 | HC-7 | **`git init` + `.gitignore` + 打标签的基线** | 项目纳入版本控制；gitignore 掉 `Data/` 与需授权的数据源 | — | S | ✅（`d94b5d9`，tag `baseline-2026-07-18`） |
 | HC-9 | 运行 manifest 发射器 | 每次 pipeline 运行输出 git SHA + 输入/输出 SHA256 + 解析后的配置 + 行数 | HC-7 | S | ⬜ |
@@ -130,7 +130,7 @@
 2. ~~**HC-4** CI workflow + 测试徽章~~ —— ✅ **2026-07-18 完成。** 已在 `AriaCong/htn-concord`（私有）上线并全绿，连续两次运行成功，123/123（Python 3.12.13）。
 3. **HC-9** 运行 manifest（git SHA + 输入/输出 SHA256 + 解析后配置），两条 pipeline 都要。
 4. **HC-42** `DecisionBuilder` 重构 —— 必须在 **HC-34 之前**，否则「先累积再冻结」的模式会在六个规则模块里各复制一遍。与 **HC-43** 配对做。
-5. **HC-5 + HC-39 联合设计** —— 它们是引擎与 LLM 那一半之间的契约；先写 HC-5 等于猜推理链的形状，事后还得重写。
+5. **HC-5 + HC-39 联合设计** —— 它们是引擎与 LLM 那一半之间的契约；先写 HC-5 等于猜推理链的形状，事后还得重写。*（2026-07-19 已解决：HC-5 ✅ 没有自创链形状，而是直接采用引擎已有的 `engine.types.TraceStep`，并用防漂移测试断言 schema 的 TraceStep 与该 dataclass 逐字段相等 —— HC-39 的发射器继承的是一份已固定的契约，而不是让 schema 去猜一个未来的格式。）*
 6. **HC-24 / HC-25 / HC-28** —— 安全与标签有效性，必须赶在 HC-36 落地之前。
 
 ### 2026-07-18 三评审员审计新开的工单

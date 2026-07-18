@@ -29,7 +29,7 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 | HC-2 | In-pipeline schema validation | every emitted row validated before write; fails loudly | HC-1 | S | ✅ |
 | HC-3 | **Shared controlled-vocab module** | one importable module for med classes / comorbidity / contraindication / ICD anchor sets; NHANES pipeline + engine both import it (kills drift before MIMIC) | — | M | ✅ |
 | HC-4 | Test harness + CI ✅ | `pytest` green locally (run `pytest -q` — **do not hardcode a count here**). ✅ **CI live and verified green 2026-07-18** on `github.com/AriaCong/htn-concord` (**private**). `.github/workflows/ci.yml`: pytest on push/PR, pinned Python 3.12, collection-integrity gate + `--strict-markers --strict-config` + collected-count published to the run summary. Two consecutive green runs; first = `29642244912`, all 8 steps succeeded, 123 collected / 123 passed on Python 3.12.13, matching local. Badge renders for collaborators only while the repo is private. **CI must fail the build on pytest *collection* errors** — a committed test importing a not-yet-written module aborts the whole suite, making "tests pass" unverifiable everywhere else | — | S | ✅ |
-| HC-5 | `llm_output.schema.json` (ModelRecommendation) | structured fields enabling deterministic trace scoring; validates a hand example | **HC-39** (design jointly) | ~~S~~ **M** | ⬜ |
+| HC-5 | `llm_output.schema.json` (ModelRecommendation) | structured fields enabling deterministic trace scoring; validates a hand example. ✅ **Done 2026-07-19**: schema + committed hand example (the Master-Plan Task-B vignette) + drift-guard tests pinning the `decision` enum to `engine.types.Decision`, med-class/contraindication enums to `vocab.py`, extracted field names to `patient_profile.schema.json`, and the trace-step shape to the engine's `TraceStep` — which is how the "design jointly with HC-39" constraint was satisfied: the trace shape is *taken from the engine*, and HC-39's emitter is now contractually bound to it by test | **HC-39** (design jointly) | ~~S~~ **M** | ✅ |
 | HC-6 | Repo hygiene | pinned deps (✅), lockfile, `pyproject`, raw-input SHA256 manifest | — | S | 🟡 |
 | HC-7 | **`git init` + `.gitignore` + tagged baseline** | repo under version control; `Data/` and credentialed sources gitignored | — | S | ✅ (`d94b5d9`, tag `baseline-2026-07-18`) |
 | HC-9 | Run-manifest emitter | git SHA + input/output SHA256 + resolved config + row counts per pipeline run | HC-7 | S | ⬜ |
@@ -119,7 +119,10 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 4. **HC-42** `DecisionBuilder` refactor — do this **before** HC-34, or the accumulate-then-freeze pattern
    gets duplicated across six rule modules.
 5. **HC-5 + HC-39 designed jointly** — they are the contract between the engine and the LLM half; authoring
-   HC-5 first means guessing the trace shape and rewriting it later.
+   HC-5 first means guessing the trace shape and rewriting it later. *(Resolved 2026-07-19: HC-5 ✅ took the
+   trace shape from the engine's existing `engine.types.TraceStep` rather than inventing one, and a
+   drift-guard test asserts the schema's TraceStep equals the dataclass field-for-field — so HC-39's emitter
+   inherits a fixed contract instead of the schema guessing at a future one.)*
 
 ### New tickets opened by the 2026-07-18 three-reviewer audit
 | ID | Ticket | Why | Priority |
