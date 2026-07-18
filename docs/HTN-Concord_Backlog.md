@@ -28,9 +28,13 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 | HC-1 | `patient_profile.schema.json` contract | schema exists; covers every data-dictionary §6 field; enums for stage/sex/context | — | S | ✅ |
 | HC-2 | In-pipeline schema validation | every emitted row validated before write; fails loudly | HC-1 | S | ✅ |
 | HC-3 | **Shared controlled-vocab module** | one importable module for med classes / comorbidity / contraindication / ICD anchor sets; NHANES pipeline + engine both import it (kills drift before MIMIC) | — | M | ✅ |
-| HC-4 | Test harness + CI | `pytest` green locally (run `pytest -q` — **do not hardcode a count here**). **Workflow authored 2026-07-18** (`.github/workflows/ci.yml`, commit `e7081d1`): pytest on push/PR, pinned Python 3.12, collection-integrity gate + `--strict-markers --strict-config` + collected-count published to the run summary. **Still 🟡 — it has never executed**, because no GitHub remote exists; the badge is an `OWNER/REPO` placeholder. Locally verified ≠ CI verified. **CI must fail the build on pytest *collection* errors** — a committed test importing a not-yet-written module aborts the whole suite, making "tests pass" unverifiable everywhere else | — | S | 🟡 |
-| HC-5 | `llm_output.schema.json` (ModelRecommendation) | structured fields enabling deterministic trace scoring; validates a hand example | — | S | ⬜ |
+| HC-4 | Test harness + CI ✅ | `pytest` green locally (run `pytest -q` — **do not hardcode a count here**). ✅ **CI live and verified green 2026-07-18** on `github.com/AriaCong/htn-concord` (**private**). `.github/workflows/ci.yml`: pytest on push/PR, pinned Python 3.12, collection-integrity gate + `--strict-markers --strict-config` + collected-count published to the run summary. Two consecutive green runs; first = `29642244912`, all 8 steps succeeded, 123 collected / 123 passed on Python 3.12.13, matching local. Badge renders for collaborators only while the repo is private. **CI must fail the build on pytest *collection* errors** — a committed test importing a not-yet-written module aborts the whole suite, making "tests pass" unverifiable everywhere else | — | S | ✅ |
+| HC-5 | `llm_output.schema.json` (ModelRecommendation) | structured fields enabling deterministic trace scoring; validates a hand example | **HC-39** (design jointly) | ~~S~~ **M** | ⬜ |
 | HC-6 | Repo hygiene | pinned deps (✅), lockfile, `pyproject`, raw-input SHA256 manifest | — | S | 🟡 |
+| HC-7 | **`git init` + `.gitignore` + tagged baseline** | repo under version control; `Data/` and credentialed sources gitignored | — | S | ✅ (`d94b5d9`, tag `baseline-2026-07-18`) |
+| HC-9 | Run-manifest emitter | git SHA + input/output SHA256 + resolved config + row counts per pipeline run | HC-7 | S | ⬜ |
+| HC-29 | Split facts/labels into separate artifacts | model-facing facts and hidden labels emitted as physically separate artifacts | HC-1 | M | ⬜ |
+| HC-56 | **Real MIMIC row in a committed test fixture** | fixture contains no verbatim credentialed data; determination recorded in the README. **Blocks HC-90** | — | S | ⬜ |
 
 ## EPIC E2 — Data cleaning: all sources → PatientProfile  🟡
 | ID | Ticket | Acceptance criteria | Dep | Size | Status |
@@ -108,9 +112,8 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 ### Immediate sprint (rewritten 2026-07-18 — the previous list was five completed tickets)
 1. **HC-7** `git init` + `.gitignore` + tagged baseline. No VCS exists; this blocks CI, manifests, release,
    and every stale-claim audit.
-2. ~~**HC-4** CI workflow (pytest on push; collection errors fail the build)~~ — 🟡 **authored 2026-07-18,
-   never executed.** Only remaining step: create a GitHub remote, push `main`, confirm the first run is
-   green, and replace `OWNER/REPO` in the README badge. Needs an owner/visibility decision.
+2. ~~**HC-4** CI workflow~~ — ✅ **done 2026-07-18.** Live and green on `AriaCong/htn-concord` (private);
+   two consecutive successful runs, 123/123 on Python 3.12.13.
 3. **HC-9** run manifest (git SHA + input/output SHA256 + resolved config) on both pipelines.
 4. **HC-42** `DecisionBuilder` refactor — do this **before** HC-34, or the accumulate-then-freeze pattern
    gets duplicated across six rule modules.
@@ -137,4 +140,5 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 | HC-46 | Leakage-audit lint (forbidden-token scanner) | referenced in HC-53's acceptance but never a deliverable | P2 |
 | HC-47 | Response cache + transcript store | makes analysis reproducible despite non-deterministic inference | P2 |
 | HC-48 | Prompt-template versioning + hashing | unversioned prompt edits silently invalidate prior runs | P2 |
+| HC-56 | Real MIMIC row in committed test fixture | `tests/test_mimic_omr_bp.py` embeds `10000032,2180-04-27,1,Blood Pressure,110/65`, present **verbatim** in `omr.csv.gz`. PhysioNet's DUA forbids redistribution — contained while the repo is private, **blocks HC-90**. Either license-clear it as ODbL demo data or replace with synthetic values | P1 |
 | HC-49 | Clinician face-validity + adjudication of 150–200 cases | "no clinician in the loop" is not survivable at review as currently framed | **P0 for Paper 1** |
