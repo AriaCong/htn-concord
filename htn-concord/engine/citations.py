@@ -52,6 +52,12 @@ CITATIONS: dict[str, Citation] = {
         "HTN-CONCORD:abstain-insufficient-data",
         "Engine abstains (not_encoded) when a determinant required for the decision is unknown.",
     ),
+    "HTN-CONCORD:abstain-out-of-scope": Citation(
+        "HTN-CONCORD:abstain-out-of-scope",
+        "Engine abstains (not_encoded) when the patient falls outside the encoded module's "
+        "scope of adult primary hypertension in the non-pregnant adult. Distinct from "
+        "insufficient data: more data would not make the encoded rules applicable.",
+    ),
 }
 
 

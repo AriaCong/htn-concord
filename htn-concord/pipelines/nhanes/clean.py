@@ -26,6 +26,12 @@ def clean_demo(df: pd.DataFrame) -> pd.DataFrame:
         "age": df["RIDAGEYR"],            # 80 = topcoded "80+"
         "sex": df["RIAGENDR"].map({1: "male", 2: "female"}),
         "race_eth": df.get("RIDRETH3"),   # subgroup reporting only
+        # RIDEXPRG (HC-96): 1 = pregnant, 2 = not pregnant, 3 = cannot ascertain.
+        # Asked only of women 20-44, so <NA> is the norm and must stay three-valued:
+        # mapping the absent majority to False would assert "not pregnant" about
+        # people who were never asked. The engine reads this as a scope gate.
+        "pregnant": (df["RIDEXPRG"].map({1: True, 2: False})
+                     if "RIDEXPRG" in df else pd.Series(pd.NA, index=df.index)),
         config.weight_col(): df.get(config.weight_col()),
         "sdmvpsu": df.get("SDMVPSU"),
         "sdmvstra": df.get("SDMVSTRA"),

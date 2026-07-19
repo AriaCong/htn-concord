@@ -122,3 +122,33 @@ def test_ckd_albuminuria_preserves_unknown():
 def test_ckd_albuminuria_false_only_when_both_labs_negative():
     out = derive.ckd_albuminuria(pd.Series([90.0]), pd.Series([10.0]))
     assert out.iloc[0] == False
+
+
+# --- HC-96: pregnancy is ascertainable and must reach the contraindication list ------
+# Before HC-96 `contraindications()` read potassium only, so 45 pregnant respondents
+# carried an empty list and a pregnant Stage-2 profile could be labelled INITIATE as
+# ground truth. NHANES DEMO_J.RIDEXPRG: 1 = pregnant, 2 = not, 3 = cannot ascertain.
+
+def test_pregnancy_flag_set_from_ridexprg():
+    df = pd.DataFrame({"potassium": [4.0], "pregnant": [True]})
+    assert derive.contraindications(df).iloc[0] == ["pregnancy"]
+
+
+def test_not_pregnant_and_unknown_do_not_set_the_flag():
+    """Positive-only: only a recorded pregnancy sets it; unknown must not guess either way."""
+    df = pd.DataFrame({"potassium": [4.0, 4.0], "pregnant": [False, None]})
+    out = derive.contraindications(df)
+    assert out.iloc[0] == []
+    assert out.iloc[1] == []
+
+
+def test_pregnancy_and_hyperkalemia_coexist():
+    """Flags are a set, not a priority ladder -- one must not mask the other."""
+    df = pd.DataFrame({"potassium": [5.8], "pregnant": [True]})
+    assert sorted(derive.contraindications(df).iloc[0]) == ["hyperkalemia", "pregnancy"]
+
+
+def test_missing_pregnant_column_is_tolerated():
+    """Non-NHANES sources have no RIDEXPRG; absence must not raise."""
+    df = pd.DataFrame({"potassium": [4.0]})
+    assert derive.contraindications(df).iloc[0] == []
