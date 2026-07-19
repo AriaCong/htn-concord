@@ -137,7 +137,8 @@
 
 - JSON 模式 runner，输出符合 `llm_output.schema.json`（结构化字段使推理链评分成为可能）。
 - 模型适配器：≥1 个前沿模型 + ≥1 个开源权重模型（用于 kill-criteria 对比）；vanilla LLM、朴素 RAG、指南图三种条件（RQ3）。
-- Prompt 模板版本化；temperature/seed 锁定；完整请求/响应日志；成本与延迟记录；重试与缓存。
+- Prompt 模板版本化；~~temperature/seed 锁定~~ —— **根本无法实现，2026-07-19 更正（HC-64）**：当前前沿模型会以 400 拒绝 `temperature`/`top_p`/`top_k`，而且从来就没有过 `seed`。**真正被锁定并记录**的是：模型 ID、prompt 原文 + SHA-256、输出 schema 的 SHA-256、`effort`、`max_tokens`、token 用量、成本、延迟。完整请求/响应日志；成本与延迟记录；重试与缓存。
+> ⚠️ **必须说清是哪一种「可复现」。** 本项目做到的是**存档级可复现**：论文里的每一个数字都能从存档 transcript 重新推导出来，而且 `ReplayProvider` 在 prompt 哈希变了时会拒绝服务存档响应 —— prompt 被改过就会直接失败，而不是悄悄「复现成功」。它**不是采样级可复现**：重新调用模型并不保证返回同样的文本，而且没有任何 API 参数能做到这一点。审稿人默认理解的是后者。请在方法部分明确写清这个区别（HC-64 / HC-91）。
 **验收门槛：** 确定性重跑能复现存档的 transcript；在冒烟集上畸形 JSON 率接近零。
 
 ---

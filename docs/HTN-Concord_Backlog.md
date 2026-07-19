@@ -82,10 +82,11 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 ## EPIC E5 — Model harness  ⬜
 | ID | Ticket | Acceptance criteria | Dep | Size | Status |
 |---|---|---|---|---|---|
-| HC-60 | JSON-mode runner | emits `llm_output.schema.json`; deterministic replay | HC-5 | M | ⬜ |
+| HC-60 | JSON-mode runner | emits `llm_output.schema.json`; deterministic replay. ✅ **Done 2026-07-19**: `runner/` — `run_case()` + provider seam (scripted/replay/Anthropic), strict local validation against the full HC-5 schema, malformed-JSON retry, transcript with prompt/schema hashes + usage + cost + latency, and `replay()`. ⚠️ `AnthropicProvider` is **authored but not executed** against the live API (no SDK/credential available) — see `runner/README.md`; malformed-JSON rate is **unmeasured** until a real smoke run | HC-5 | M | ✅ |
 | HC-61 | Model adapters | ≥1 frontier + ≥1 open-weight | HC-60 | S | ⬜ |
 | HC-62 | Conditions | vanilla / naive-RAG / guideline-graph | HC-60 | M | ⬜ |
-| HC-63 | Repro infra | seeds, logging, caching, cost/latency capture | HC-60 | S | ⬜ |
+| HC-63 | Repro infra | ~~seeds~~, logging, caching, cost/latency capture. **No seeds exist** — see HC-64; cost/latency already captured per call by HC-60 | HC-60 | S | ⬜ |
+| HC-64 | **"temperature/seed pinned" is not implementable** | `temperature`/`top_p`/`top_k` are rejected (400) on current frontier models and there is no `seed`. Reproducibility rests on transcript replay, not sampling control. Fix Phase-5 wording (✅ done), decide whether `effort` is frozen for the freeze, and state **archival** vs **sampling** reproducibility once in the methods | HC-60 | S | ⬜ |
 
 ## EPIC E6 — Evaluation & failure-mode audit  ⬜
 | ID | Ticket | Acceptance criteria | Dep | Size | Status |
