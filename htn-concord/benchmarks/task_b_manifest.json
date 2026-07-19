@@ -1,0 +1,49 @@
+{
+  "build_version": "1.0",
+  "cases_per_split": {
+    "dev": 2820,
+    "test": 2856,
+    "train": 8742
+  },
+  "decision_distribution": {
+    "abstain": 432,
+    "at_goal_continue": 1527,
+    "initiate_pharmacotherapy": 2253,
+    "intensify_pharmacotherapy": 2571,
+    "lifestyle_only": 7635
+  },
+  "files": {
+    "task_b_inputs.jsonl": {
+      "model_facing": true,
+      "n_records": 14418,
+      "sha256": "6f152c5286d5e55297cef8e0ef8cb0a8940d12920ddd4e55d07d87eee696eaf3"
+    },
+    "task_b_labels.jsonl": {
+      "model_facing": false,
+      "n_records": 14418,
+      "sha256": "27f3506a9b7c0a8e1ce4c0fd360536510c89bf3850111d9d8f765d8b110d8ef7"
+    }
+  },
+  "leakage_audit": {
+    "findings": [],
+    "n_cases_audited": 14418,
+    "n_label_key_hits": 0,
+    "n_token_hits": 0,
+    "passed": true
+  },
+  "levels": [
+    "simple",
+    "moderate",
+    "hard"
+  ],
+  "n_cases": 14418,
+  "n_patients": 4806,
+  "patients_per_split": {
+    "dev": 940,
+    "test": 952,
+    "train": 2914
+  },
+  "render_seed": 2026,
+  "split_salt": "htn-concord-v1",
+  "task": "B"
+}
