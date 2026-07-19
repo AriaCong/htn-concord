@@ -94,7 +94,7 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 ## EPIC E6 — Evaluation & failure-mode audit  ⬜
 | ID | Ticket | Acceptance criteria | Dep | Size | Status |
 |---|---|---|---|---|---|
-| HC-70 | Metrics | all 9 plan metrics; reproduces hand-scored gold set | HC-52..54 | M | ⬜ |
+| HC-70 | Metrics | all 9 plan metrics; reproduces hand-scored gold set. ✅ **Done 2026-07-20**: `evaluator/` (`metrics.py` pure functions, `score.py` per-case + aggregation). Gold set of 5 hand-scored cases passes. Aggregation **enforces the HC-92 audit findings in code**: `majority_class_baseline` emitted beside every concordance figure (F1), safety kept out of the headline mean, undefined metrics dropped with an `n_` count rather than zeroed (F2). Abstention reported as **two** rates (over/under) over their own denominators, never one score. `trace_concordance` is order-sensitive and symmetric, so padding a trace with filler cannot score 1.0. Extraction compares to the renderer's **displayed** (floored) BP per the HC-50 handoff. Exclusion table lives in `vocab.CONTRAINDICATED_CLASSES` so scoring and HC-36 cannot drift. End-to-end on the real test split: a constant `lifestyle_only` model scores 0.515 against a printed baseline of 0.515. Subgroups = HC-72; failure-mode tags = HC-71; CIs = HC-94 | HC-52..54 | M | ✅ |
 | HC-71 | Failure-mode classifier | each miss tagged extraction/reasoning/citation | HC-70 | M | ⬜ |
 | HC-72 | Subgroup + difficulty reporting | per sex/age/comorbidity × level | HC-70 | S | ⬜ |
 
