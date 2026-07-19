@@ -91,10 +91,11 @@
 
 | ID | 工单 | 验收标准 | 依赖 | 规模 | 状态 |
 |---|---|---|---|---|---|
-| HC-60 | JSON 模式 runner | 输出符合 `llm_output.schema.json`；可确定性重放 | HC-5 | M | ⬜ |
+| HC-60 | JSON 模式 runner | 输出符合 `llm_output.schema.json`；可确定性重放。✅ **2026-07-19 完成**：`runner/` —— `run_case()` + provider 接缝（scripted/replay/Anthropic）、对完整 HC-5 schema 的本地严格校验、畸形 JSON 重试、带 prompt/schema 哈希 + token 用量 + 成本 + 延迟的 transcript，以及 `replay()`。⚠️ `AnthropicProvider` **只写了、没真跑过**（环境里没有 SDK 也没有凭证）—— 见 `runner/README.md`；在真正跑一次冒烟之前，畸形 JSON 率**尚未测量** | HC-5 | M | ✅ |
 | HC-61 | 模型适配器 | ≥1 前沿 + ≥1 开源权重 | HC-60 | S | ⬜ |
 | HC-62 | 三种条件 | vanilla / 朴素 RAG / 指南图 | HC-60 | M | ⬜ |
-| HC-63 | 可复现基础设施 | seed、日志、缓存、成本/延迟记录 | HC-60 | S | ⬜ |
+| HC-63 | 可复现基础设施 | ~~seed~~、日志、缓存、成本/延迟记录。**根本不存在 seed** —— 见 HC-64；成本/延迟已由 HC-60 在每次调用时记录 | HC-60 | S | ⬜ |
+| HC-64 | **「temperature/seed 锁定」根本无法实现** | 当前前沿模型会以 400 拒绝 `temperature`/`top_p`/`top_k`，且从来就没有 `seed`。可复现性只能落在 transcript 重放上，而不是采样控制上。需修正阶段 5 的措辞（✅ 已完成）、决定基准冻结时是否锁死 `effort`，并在方法部分明确写清是**存档级**还是**采样级**可复现 | HC-60 | S | ⬜ |
 | HC-47 | 响应缓存 + transcript 存储 | 缓存模型响应；持久化每一次请求/响应 | HC-60 | M | ⬜ |
 | HC-48 | Prompt 模板版本化 + 哈希 | 每个模板带版本；每次运行记录其哈希 | HC-60 | S | ⬜ |
 

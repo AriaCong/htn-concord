@@ -206,9 +206,17 @@ any Task-B/C input); a human spot-check of 20 rendered vignettes confirms facts-
 - JSON-mode runner emitting `llm_output.schema.json` (structured fields enable trace scoring).
 - Model adapters: ≥1 frontier + ≥1 open-weight (kill-criteria comparison); vanilla LLM, naive RAG, and
   guideline-graph conditions (RQ3).
-- Prompt templates versioned; temperature/seed pinned; full request/response logging; cost/latency capture;
+- Prompt templates versioned; ~~temperature/seed pinned~~ — **not implementable, corrected 2026-07-19 (HC-64):**
+  `temperature`/`top_p`/`top_k` are rejected with a 400 on current frontier models and there has never been a
+  `seed`. What *is* pinned and recorded per call: model ID, prompt text + SHA-256, output-schema SHA-256,
+  `effort`, `max_tokens`, token usage, cost, latency. Full request/response logging; cost/latency capture;
   retry/caching. **Acceptance gate:** deterministic re-run reproduces a stored transcript; malformed JSON rate
   near zero on a smoke set.
+> ⚠️ **Say which reproducibility you mean.** Runs are **archivally reproducible** — every reported number can be
+> re-derived from stored transcripts, and `ReplayProvider` refuses to serve a stored response if the prompt hash
+> changed, so an edited prompt fails instead of silently "reproducing". They are **not sampling-reproducible**:
+> re-calling the model is not guaranteed to return the same text, and no API parameter can make it so. Reviewers
+> assume the second. State the distinction once in the methods section (HC-64 / HC-91).
 
 ---
 
