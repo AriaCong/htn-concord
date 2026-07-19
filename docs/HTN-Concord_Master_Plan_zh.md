@@ -31,7 +31,7 @@
 | 交付物 | 状态 | 备注 |
 |---|---|---|
 | `schemas/patient_profile.schema.json` | ✅（HC-1） | 2026-07-18 已核实存在于工作区；即「隐藏标签行」 |
-| `schemas/llm_output.schema.json` | ⬜（HC-5，未开工） | 结构化字段 → 确定性推理链评分；**文件尚不存在**，卡住阶段 5 的 runner。*（Notion 的 pilot 备注曾错误标为已完成，2026-07-18 更正。）* **已从 S 改判为 M，并改为依赖 HC-39**：它定义了每一项指标对比的另一半，在推理链格式定下来之前动手，等于猜链的形状、等有了 transcript 还得重写 |
+| `schemas/llm_output.schema.json` | ✅（HC-5，2026-07-19 完成） | 结构化字段 → 确定性推理链评分；已能校验入库的手写样例（Task-B vignette），不再卡阶段 5 的 runner（HC-60）。*（2026-07-18 Notion 的 pilot 备注曾在文件不存在时错误标为已完成；现在文件真的存在了。）* 「与 HC-39 联合设计」的约束以如下方式满足：schema **直接采用**引擎已有的 `engine.types.TraceStep`，连同 `Decision` 枚举、`vocab.py` 的药物类/禁忌枚举、`patient_profile.schema.json` 的字段名一起用防漂移测试钉死 —— HC-39 的发射器继承的是一份已固定的契约 |
 | 仓库结构 + `requirements.txt` + 环境约定 | 🟡 | `htn-concord/` 已存在；仍需锁版本、加 `pyproject`/lockfile。**版本控制已就位（HC-7 ✅ 2026-07-18）** —— 基线 `d94b5d9`，tag `baseline-2026-07-18`，远端 `AriaCong/htn-concord`（私有）。仍为黄灯的部分：锁版本 / lockfile |
 | `docs/` 数据字典 + 本计划 | ✅ | 中英双语维护（`*_zh.md`）；**两边必须一起改** |
 | 控制词表（引擎药物类、合并症 flag、禁忌 flag、ICD 集） | ✅（HC-3） | `htn-concord/vocab.py` —— pipeline 与引擎共用。*（本行在 2026-07-18 之前一直写着 ⬜，而 Linear 与 Notion 早已标记 HC-3 完成。）* |
@@ -228,7 +228,7 @@ P1 schema/词表 ──┬─> P2 数据 pipeline ──┐
 3. **HC-42 `DecisionBuilder` 重构 —— 在 HC-34 *之前*。** `evaluate()` 目前是个没有组合缝的直通函数，而 `EngineDecision` 是冻结的；现在花一个下午，抵得上事后去改六个规则模块和它们的测试。与 HC-43（guideline 字段 + 注册表分发）配对做 —— 后者现在免费，等 HC-41 之后就是侵入式改动。
 4. 然后是引擎剩余规则 —— HC-34（药物类）、HC-35（合并症）、HC-36（禁忌症）、HC-37（弃权）、HC-38（引用链接器，依赖 **HC-44** —— 取得指南 PDF 并把锚点映射到印刷章节 —— 而**不是**依赖 HC-33..37）、HC-39（推理链发射器）。最后以 **HC-45** 收尾：对全部档案跑引擎集成运行 + 弃权报告。它是阶段 3 的验收门却一直没有工单，这正是 HC-8 长期未被发现的原因。
 5. 建 **MIMIC-IV** pipeline（2.2 / HC-15..19）—— 剩下最大的数据工作量，解锁 Task B/C 的锚。在 HC-17/HC-18 *之前*先定掉 HC-26（ED 关联）与 HC-27（把化验严格限定在 `admittime` 之前）。
-6. **HC-5 `llm_output.schema.json` 与 HC-39 联合设计** —— 它们是引擎与 LLM 那一半之间的契约。
+6. ~~**HC-5 `llm_output.schema.json` 与 HC-39 联合设计**~~ —— ✅ **2026-07-19 完成。** 联合设计的落地方式：schema *采用*引擎的 `TraceStep`/`Decision`/词表形状并用防漂移测试钉死，HC-39 的发射器由此被绑定到同一份契约上。
 7. 然后是 LLM 那一半：渲染器（HC-50）→ Task B（HC-53）→ runner（HC-60）→ 指标（HC-70），汇聚到 **HC-80 pilot + kill 标准门** —— 尽早把这条端到端切片跑起来，用来检验区分力。
 8. MIMIC-ED（2.3）并行推进。eICU（2.4）只做降级后的弃权探针；Zigong（2.5）砍掉。
 9. **HC-49 临床医生表面效度 + 病例裁定** —— 对 Paper 1 而言是 P0，而且是长周期项，因为它取决于别人的日程。趁引擎工作收尾的同时就开始找人。

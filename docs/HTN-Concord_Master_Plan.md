@@ -41,7 +41,7 @@ Status legend: ✅ done · 🟡 in progress · ⬜ not started · 🔒 blocked o
 | Deliverable | Status | Notes |
 |---|---|---|
 | `schemas/patient_profile.schema.json` | ✅ (HC-1) | verified present in the working tree 2026-07-18; the hidden-label row |
-| `schemas/llm_output.schema.json` | ⬜ (HC-5, not started) | structured fields → deterministic trace scoring; file does NOT exist yet — gates the Phase-5 runner. *(Notion pilot note wrongly marked this done; corrected 2026-07-18.)* **Re-sized S → M and made dependent on HC-39:** it defines one half of every metric comparison, so authoring it before the reasoning-trace format means guessing the trace shape and rewriting it after transcripts exist |
+| `schemas/llm_output.schema.json` | ✅ (HC-5, done 2026-07-19) | structured fields → deterministic trace scoring; validates the committed hand example (the Task-B vignette) and no longer gates the Phase-5 runner (HC-60). *(Notion pilot note wrongly marked this done back on 2026-07-18 when the file did not exist; it exists now.)* The "design jointly with HC-39" constraint was met by **taking** the trace shape from the engine's existing `engine.types.TraceStep` and pinning it — plus the `Decision` enum, `vocab.py` med-class/contraindication enums, and `patient_profile.schema.json` field names — with drift-guard tests, so HC-39's emitter inherits a fixed contract |
 | Repo layout + `requirements.txt` + env conventions | 🟡 | `htn-concord/` exists; pin versions, add `pyproject`/lockfile. **Version control is in place (HC-7 ✅ 2026-07-18)** — baseline `d94b5d9`, tag `baseline-2026-07-18`, remote `AriaCong/htn-concord` (private). Remaining amber: version pinning / lockfile |
 | `docs/` data dictionary + this plan | ✅ | maintained in English *and* Chinese (`*_zh.md`); update both together |
 | Controlled vocabularies (engine med classes, comorbidity flags, contraindication flags, ICD sets) | ✅ (HC-3) | `htn-concord/vocab.py` — pipelines and engine both import it. *(This row said ⬜ until 2026-07-18 while Linear and Notion both had HC-3 Done.)* |
@@ -339,8 +339,9 @@ feasibility, HC-14 OMR BP parser, HC-8 derive.py correctness fixes.)*
    ticket, which is why HC-8 went undetected.
 5. Build the **MIMIC-IV** pipeline (2.2 / HC-15..19) — largest remaining data lift, enables the Tasks B/C
    anchor. Settle HC-26 (ED linkage) and HC-27 (bound labs strictly pre-`admittime`) *before* HC-17/HC-18.
-6. Author **HC-5** `llm_output.schema.json` **jointly with HC-39** — they are the contract between the engine
-   and the LLM half.
+6. ~~Author **HC-5** `llm_output.schema.json` **jointly with HC-39**~~ — ✅ **done 2026-07-19.** The joint
+   design resolved as: the schema *adopts* the engine's `TraceStep`/`Decision`/vocab shapes and pins them
+   with drift-guard tests, so HC-39's emitter is bound to the same contract.
 7. Then the LLM half: renderer (HC-50) → Task B (HC-53) → runner (HC-60) → metrics (HC-70), converging at the
    **HC-80 pilot + kill-criteria gate** — run this end-to-end slice early to test discriminative power.
 8. MIMIC-ED (2.3) in parallel. eICU (2.4) only as the descoped abstention probe; Zigong (2.5) dropped.
