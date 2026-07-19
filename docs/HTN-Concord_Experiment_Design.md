@@ -272,8 +272,8 @@ token hits and zero label-key hits, and 277 tests pass including
 level-over-level drop as extraction (RQ2b).
 
 **F1 — Majority class is 52.2%; a headline concordance number is uninterpretable without a baseline.**
-Test-split decisions: `lifestyle_only` 52.2%, `intensify` 17.4%, `initiate` 15.5%, `at_goal_continue`
-11.4%, `abstain` 3.4%. A model that answers `lifestyle_only` unconditionally scores 52.2%.
+Test-split majority class is `lifestyle_only` at **51.5%** (post-HC-96 rebuild; 52.2% before). A model
+that answers `lifestyle_only` unconditionally scores 51.5%.
 **Required:** report the majority-class baseline alongside every concordance figure, and prefer
 balanced accuracy or per-class recall as the reported headline. This does not threaten the ladder
 deltas (all conditions share the corpus) but it does threaten any absolute claim.
@@ -287,22 +287,29 @@ cases — no CI worth reporting, and `contraindication_recall` is in the same po
 a **purpose-built contraindication stress set**, not on the NHANES cohort. Reporting a safety rate
 from ~2 test patients would be worse than reporting none. Filed as HC-95.
 
-**F3 — Latent label-corruption hazard on pregnancy; currently unfired, and only by luck of the BP
-distribution.** `pipelines/nhanes/derive.py` (lines 100–106) documents that `RIDEXPRG` is
-ascertainable but not yet wired in. **45 pregnant respondents are in the emitted cohort, all carrying
-an empty contraindication list.** Their 135 Task B cases currently label as `lifestyle_only` (129),
-`at_goal_continue` (3) and `abstain` (3) — **zero pharmacotherapy labels today**, because this
-subgroup's BP happens to run low (systolic 90–128). That is a property of the sample, not a guarantee
-of the engine: a pregnant patient with stage-2 BP would receive an `initiate` label **as ground
-truth**, and once HC-36 (drug-class selection) lands that label would name an ACEi/ARB. A reference
-standard whose safety depends on a cohort's BP distribution is not yet defensible. Filed as HC-96;
-**must close before HC-36 and before any scored run**.
+**F3 — Latent label-corruption hazard on pregnancy. ✅ FIXED 2026-07-19 (HC-96).**
+`pipelines/nhanes/derive.py` documented that `RIDEXPRG` was ascertainable but never wired in, so
+**45 pregnant respondents sat in the cohort with empty contraindication lists.** Their 135 Task B
+cases labelled as `lifestyle_only` (129), `at_goal_continue` (3) and `abstain` (3) — zero
+pharmacotherapy labels, but only because that subgroup's BP happened to run low (systolic 90–128).
+A pregnant patient with stage-2 BP would have received an `initiate` label **as ground truth**, and
+once HC-36 landed it would have named an ACEi/ARB.
 
-**F4 — Abstention is thin and near-single-mechanism.** 96 abstain cases in test (32 patients), and
-92% of all corpus abstentions are one reason (`stage1_risk_indeterminate`; the remainder is
-`med_status_unknown`). `abstention_appropriateness` will therefore measure essentially one mechanism.
-Report it as such rather than as a general claim about calibrated uncertainty, and consider seeding
-additional abstention triggers in the stress set (HC-95).
+*Resolution.* Pregnancy is now derived from `RIDEXPRG` (positive-only: "not ascertained" never reads
+as "not pregnant") and the engine treats it as a **scope gate that precedes staging** — the encoded
+module covers adult primary hypertension in the *non-pregnant* adult, so a pregnant profile abstains
+with reason `pregnancy_out_of_scope` regardless of BP. Scope deliberately does not depend on BP;
+otherwise the corpus's safety would still rest on its BP distribution. All 45 now abstain (verified on
+the rebuilt cohort). New anchor `HTN-CONCORD:abstain-out-of-scope` distinguishes this from
+insufficient data: more data would not make the encoded rules applicable.
+**⚠️ This is a scope judgement made without a clinician — flag it explicitly for HC-49 adjudication.**
+
+**F4 — Abstention was thin and near-single-mechanism; partly improved by the F3 fix.** Before HC-96,
+92% of corpus abstentions were one reason. The corpus now carries three mechanisms —
+`stage1_risk_indeterminate` (393), `pregnancy_out_of_scope` (135), `med_status_unknown` (36) — and the
+test split has 117 abstain cases. Still dominated by one reason and still not a general claim about
+calibrated uncertainty; report per-reason rather than pooled, and seed further triggers in the stress
+set (HC-95).
 
 ---
 
