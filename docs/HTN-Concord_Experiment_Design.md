@@ -298,15 +298,25 @@ once HC-36 landed it would have named an ACEi/ARB.
 *Resolution.* Pregnancy is now derived from `RIDEXPRG` (positive-only: "not ascertained" never reads
 as "not pregnant") and the engine treats it as a **scope gate that precedes staging** — the encoded
 module covers adult primary hypertension in the *non-pregnant* adult, so a pregnant profile abstains
-with reason `pregnancy_out_of_scope` regardless of BP. Scope deliberately does not depend on BP;
+with reason `pregnancy_management_out_of_scope` regardless of BP. Scope deliberately does not depend on BP;
 otherwise the corpus's safety would still rest on its BP distribution. All 45 now abstain (verified on
 the rebuilt cohort). New anchor `HTN-CONCORD:abstain-out-of-scope` distinguishes this from
 insufficient data: more data would not make the encoded rules applicable.
-**⚠️ This is a scope judgement made without a clinician — flag it explicitly for HC-49 adjudication.**
+
+*Provenance of the scope call — corrected 2026-07-19.* An earlier draft of this section claimed the
+abstain-on-pregnancy decision was a judgement made without clinical input. **That was wrong.** It was
+already specified in the Master Plan contraindication table ("since hypertensive pregnancy management
+is out of scope the engine should ABSTAIN, emitting flags for scoring only") and in the HC-36 ticket,
+both written from a **cardiology review on 2026-07-18**. The implementation follows existing spec
+rather than inventing policy. HC-49 still confirms it, as it confirms every rule — but it is not an
+unreviewed call.
+
+*Ticket provenance.* This work was already filed as **HC-24** (P0, "Wire NHANES pregnancy flag") from
+that same review. HC-96 was raised in duplicate during the audit and has been closed against HC-24.
 
 **F4 — Abstention was thin and near-single-mechanism; partly improved by the F3 fix.** Before HC-96,
 92% of corpus abstentions were one reason. The corpus now carries three mechanisms —
-`stage1_risk_indeterminate` (393), `pregnancy_out_of_scope` (135), `med_status_unknown` (36) — and the
+`stage1_risk_indeterminate` (393), `pregnancy_management_out_of_scope` (135), `med_status_unknown` (36) — and the
 test split has 117 abstain cases. Still dominated by one reason and still not a general claim about
 calibrated uncertainty; report per-reason rather than pooled, and seed further triggers in the stress
 set (HC-95).

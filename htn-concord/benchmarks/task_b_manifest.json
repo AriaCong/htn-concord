@@ -21,7 +21,7 @@
     "task_b_labels.jsonl": {
       "model_facing": false,
       "n_records": 14418,
-      "sha256": "75b6f6a05bb1f1dadaefdfdcd5a5ca6caae1cffb0dfa0454f35b2fa56b70246d"
+      "sha256": "f9bd3589fceab13eabe672f8a09179d1594fee8349c1b363c1a6fe6dadabe125"
     }
   },
   "leakage_audit": {

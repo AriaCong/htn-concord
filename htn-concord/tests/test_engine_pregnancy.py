@@ -24,7 +24,7 @@ def test_pregnant_stage2_untreated_never_initiates():
     """The exact hazard: untreated Stage 2 + pregnancy must not yield INITIATE."""
     d = recommend(_p(sbp=165, dbp=105, contraindications=["pregnancy"]))
     assert d.decision is Decision.ABSTAIN
-    assert d.abstain_reason == "pregnancy_out_of_scope"
+    assert d.abstain_reason == "pregnancy_management_out_of_scope"
 
 
 def test_pregnant_treated_above_goal_never_intensifies():
@@ -32,7 +32,7 @@ def test_pregnant_treated_above_goal_never_intensifies():
     d = recommend(_p(sbp=165, dbp=105, on_bp_meds=True,
                      contraindications=["pregnancy"]))
     assert d.decision is Decision.ABSTAIN
-    assert d.abstain_reason == "pregnancy_out_of_scope"
+    assert d.abstain_reason == "pregnancy_management_out_of_scope"
 
 
 def test_pregnant_normotensive_also_abstains():
@@ -45,7 +45,7 @@ def test_pregnant_normotensive_also_abstains():
     """
     d = recommend(_p(sbp=105, dbp=65, contraindications=["pregnancy"]))
     assert d.decision is Decision.ABSTAIN
-    assert d.abstain_reason == "pregnancy_out_of_scope"
+    assert d.abstain_reason == "pregnancy_management_out_of_scope"
 
 
 def test_pregnancy_branch_precedes_the_unknown_med_status_abstention():
@@ -57,7 +57,7 @@ def test_pregnancy_branch_precedes_the_unknown_med_status_abstention():
     d = recommend(_p(sbp=165, dbp=105, on_bp_meds=None,
                      contraindications=["pregnancy"]))
     assert d.decision is Decision.ABSTAIN
-    assert d.abstain_reason == "pregnancy_out_of_scope"
+    assert d.abstain_reason == "pregnancy_management_out_of_scope"
 
 
 def test_pregnancy_decision_is_cited_and_traced():

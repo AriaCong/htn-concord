@@ -37,7 +37,7 @@
 | HC-11 | NHANES NCHS 关联死亡率解析器（Task D） | 解析定宽 `.dat`；按 SEQN 连接 MORTSTAT/PERMTH | HC-10 | M | ⬜ |
 | HC-12 | NHANES `P_` 合并周期运行 | `NHANES_CYCLE=P_pre_pandemic` 产出合法档案，带 WTMECPRP | HC-10 | S | ⬜ |
 | HC-13 | **MIMIC 可行性/衰减门（只计数）** | 产出量查询 + 锚点→≥2 次既往 OMR 的衰减瀑布图；决定 v1 还是 730 天/≥1 的回退 | HC-3 | M | ✅（血压规则可行：28,530 —— **但真正可*决策*的队列约为 8,921（31.3%）**，即有 `ed/medrecon` 的那个子集，而它是唯一不泄漏的 `on_bp_meds` 来源；见 HC-26） |
-| HC-96 | **把 `RIDEXPRG` 妊娠接入 `contraindications()`** | HC-92 审计 F3，**参考标准正确性缺陷**：`derive.py` 第 100–106 行已写明妊娠可获取但从未接入，导致**队列中 45 位孕妇携带空禁忌症列表**。今天没有药物治疗标签**仅仅**是因为该子群血压偏低（收缩压 90–128）——这是样本性质，不是保证。一位 stage-2 孕妇会**作为 ground truth** 拿到 `initiate` 标签，且 HC-36 落地后会指名 ACEi/ARB。接入该标记，确定并记录队列策略（标记保留 vs 单列一臂），补一条"stage-2 孕妇绝不产出 ACEi/ARB"的回归测试，重建 Task B。✅ **2026-07-19 完成**：妊娠由 `RIDEXPRG` 派生（只认阳性——"未确定"绝不读作"未怀孕"）；引擎将其作为**先于分期的范围闸门**，无论血压如何都以 `pregnancy_out_of_scope` 弃权，因为所编码模块覆盖的是**非妊娠**成人。新增锚点 `HTN-CONCORD:abstain-out-of-scope`。45 位孕妇档案现全部弃权；语料已重建（abstain 432→564，`lifestyle_only` 7635→7506）。⚠️ **该范围判断在没有临床医生参与下做出——必须交 HC-49 裁定** | — | S | ✅ |
+| HC-96 | ~~接入 `RIDEXPRG` 妊娠~~ **HC-24 的重复项** | 在 HC-92 审计中于发现 HC-24 之前重复立票；工作本身属实且已完成，记录在 **HC-24** 下。两点更正：本票冗余（立票前应先按症状搜 backlog）；此处早先注明「该范围判断在没有临床医生参与下做出」是**错的** —— 它早已写在 Master Plan 禁忌症规则表与 HC-36 中，两者均出自 2026-07-18 的心内科评审 | — | — | ❌ 重复 |
 | HC-14 | MIMIC OMR 血压解析器 + context flag | 解析 `"SBP/DBP"`；处理体位；每行都带慢性/门诊/入院 flag | HC-13 | M | ✅（`pipelines/mimic/omr_bp.py`，30 个测试） |
 | HC-15 | MIMIC labevents 加载器 + eGFR | 按 itemid 过滤加载（肌酐=50912，钾=50971）；用 `valuenum`；取离 index 最近值；派生 eGFR | HC-13、**HC-27** | M | ⬜ |
 | HC-16 | MIMIC ICD-9/10 合并症+禁忌交叉映射 | 一份交叉映射 → 糖尿病/CKD/血管神经性水肿/妊娠 flag；时间限定在 admittime 之前 | HC-3 | M | ⬜ |
@@ -48,7 +48,7 @@
 | HC-21 | eICU pipeline —— **降级** | ~~完整 pipeline~~ → 仅约 **500 例住院的弃权校准探针**（模型会不会正确拒绝对 ICU 血压做慢性分级？）。eICU 每条血压都是急性，完整构建会产出约 20 万行没有决策标签的数据。注：eICU *确实*带 `note.csv`（306 MB），但那是路径/数值片段而非叙事文本，因此仍然没有 Task C | HC-3 | S | ⬜ |
 | HC-22 | Zigong HF 轻清洗 —— **建议砍掉** | 2,008 名中国心衰住院病人；没有降压决策语境、没有病历文本、也不是原发性高血压。「中国指南分歧」检查由 ESC-2024 对照模块（HC-41）在真实队列上做要好得多 | — | S | ⬜ |
 | HC-23 | **落实已决定的中位数血压统一** | `clean.py` 改用中位数、重跑 pipeline、把全部下游数字重新引用一遍 | HC-10 | S（代码）/ 基准冻结级（影响） | ⬜ |
-| HC-24 | 接上 NHANES 妊娠 flag（`RIDEXPRG`）—— **安全** | 读 `DEMO_J.RIDEXPRG`，置妊娠禁忌 flag，让引擎弃权 | HC-10 | S | ⬜ **P0** |
+| HC-24 | 接上 NHANES 妊娠 flag（`RIDEXPRG`）—— **安全** | ✅ **2026-07-19 完成**（PR #5）：`RIDEXPRG` → `pregnant`（三值：只问 20–44 岁女性，缺失绝不读作「未怀孕」）；引擎将其作为**先于分期的范围闸门**，无论血压如何都以 `pregnancy_management_out_of_scope` 弃权，依据 Master Plan 禁忌症规则表。新增锚点 `HTN-CONCORD:abstain-out-of-scope`。45 位全部弃权；语料已重建（abstain 432→564）。药物类别后果仍属 **HC-36**；其余范围守卫仍属 **HC-28** | HC-10 | S | ✅ |
 | HC-25 | 下载 `MCQ_J`，填充 `clinical_cvd` | `MCQ160B–F`（心衰/冠心病/心绞痛/心梗/卒中）→ 经 Kleene 或运算得 `clinical_cvd` | HC-10 | S | ⬜ |
 | HC-26 | MIMIC ED 关联队列决策 | 在已知真实决策队列 N 的前提下确定 index 就诊规则 | HC-13 | M | ⬜ |
 | HC-27 | 把 MIMIC 化验严格限定在 `admittime` 之前 | 取严格早于 admittime 的最近一次化验，且落在预注册的回溯窗内 | HC-13 | S | ⬜ |
@@ -148,7 +148,7 @@
 | HC-8 | 修复 `derive.py` 正确性缺陷 —— **两个都算在这一单里**：`ckd_albuminuria` 的 NA 强转（未知→False，击穿弃权契约；未知 0 → 266）**以及** `bp_stage` 的 `between()` 边界 bug（把 4,806 行中 56 行合法的非整数血压判空；档案列与引擎静默矛盾） | ✅ **已完成** —— 缺失 56 → 0，档案重新导出并含 `clinical_cvd`（30 → 31 列），并新增边界网格测试，保证 `derive` 与 `vocab` 的分级永不分叉。*（不存在独立的「HC-8b」工单 —— 两个 bug 在 Linear 与 Notion 里都归在 HC-8 下。）* | P0 |
 | HC-9 | 运行 manifest 发射器 | 产物已经与生成它的代码发生漂移 | P0 |
 | HC-23 | 落实已决定的**中位数**血压统一 | 所有文档都说 2026-07-18 已统一为中位数，而 `clean.py` 仍用 `mean()` —— 于是交付的底料是均值产物，所有被引用的分期/标签数字描述的都是均值管线。属基准冻结级操作：改代码、重跑、重新引用，一次做完 | P1 |
-| HC-24 | 接上 `DEMO_J.RIDEXPRG` 妊娠 flag | 45 名孕妇禁忌列表为空 → HC-36 一落地就会产出不安全的标准答案 | P0 |
+| HC-24 | 接上 `DEMO_J.RIDEXPRG` 妊娠 flag | ✅ **2026-07-19 完成**（PR #5）：`RIDEXPRG` → `pregnant`（三值：只问 20–44 岁女性，缺失绝不读作「未怀孕」）；引擎将其作为**先于分期的范围闸门**，无论血压如何都以 `pregnancy_management_out_of_scope` 弃权，依据 Master Plan 禁忌症规则表。新增锚点 `HTN-CONCORD:abstain-out-of-scope`。45 位全部弃权；语料已重建（abstain 432→564）。药物类别后果仍属 **HC-36**；其余范围守卫仍属 **HC-28** | ✅ |
 | HC-25 | 下载 `MCQ_J`，填充 `clinical_cvd` | 该触发因子目前对每一行 NHANES 都是 null → 偏向治疗不足 | P1 |
 | HC-26 | MIMIC ED 关联队列决策 | 真实决策队列 N 约 8,921，而非 28,530 | P1 |
 | HC-27 | 把 MIMIC 化验严格限定在 `admittime` 之前 | 「取离 index 最近的值」是双向的 → index 后泄漏 | P1 |

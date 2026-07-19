@@ -71,7 +71,7 @@ def recommend(profile: Mapping[str, Any]) -> EngineDecision:
     if _has_flag(profile, "pregnancy"):
         c = cite("HTN-CONCORD:abstain-out-of-scope")
         return EngineDecision(
-            Decision.ABSTAIN, None, (), "pregnancy_out_of_scope", (c,),
+            Decision.ABSTAIN, None, (), "pregnancy_management_out_of_scope", (c,),
             (TraceStep("scope", "Pregnancy: outside the encoded module's scope "
                                 "(adult primary HTN, non-pregnant); abstain.", c.anchor),),
         )

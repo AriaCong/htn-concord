@@ -78,7 +78,7 @@ and weights differ — do not mix J and P_ in one frame). Recommendation below a
 | **NCHS LMF** | `MORTSTAT`,`PERMTH_EXM`,`UCOD_LEADING` | mortality status, person-months, cause | Task D only |
 | **GHB_J** | `LBXGH` | HbA1c (%) | lab limb of the diabetes flag (≥6.5%); **was missing from this table** though the pipeline consumes it |
 | **RXQ_DRUG** | `RXDDRGID`,`RXDDRGNM` | drug-info lookup | joined to `RXQ_RX_J` for drug→class; **was missing from this table** |
-| **DEMO_J** | `RIDEXPRG` | Pregnancy status | 1 = pregnant. **Present and currently UNUSED** — see cleaning rule 2 |
+| **DEMO_J** | `RIDEXPRG` | Pregnancy status | 1 = pregnant, 2 = not, 3 = cannot ascertain. ✅ **Wired 2026-07-19 (HC-24)** → `pregnant` → `contraindications`; see cleaning rule 2 |
 | **MCQ_J** ⚠️ | `MCQ160B–F` | CHF / CHD / angina / MI / stroke | **NOT DOWNLOADED.** Sole source of `clinical_cvd`; until added, that trigger is null for every NHANES row |
 
 ### Cleaning rules — NHANES
@@ -93,6 +93,14 @@ and weights differ — do not mix J and P_ in one frame). Recommendation below a
    thing `unsafe_recommendation` is meant to catch. Required: read `RIDEXPRG`, set the `pregnancy` flag,
    and — since hypertensive pregnancy management is out of scope — have the engine **ABSTAIN**
    (`pregnancy_management_out_of_scope`) while still emitting the flag for contraindication scoring.
+   ✅ **Done 2026-07-19 (HC-24, PR #5) exactly as specified above.** `clean_demo` carries `pregnant`
+   from `RIDEXPRG` and keeps it **three-valued**: the question is asked only of women 20–44, so `<NA>`
+   is the norm and mapping the absent majority to `False` would assert "not pregnant" about people who
+   were never asked. `derive.contraindications()` reads it positive-only. The engine applies it as a
+   **scope gate placed before staging**, so the abstention does not depend on BP — all 45 pregnant
+   profiles now abstain, where 129 of their 135 rendered cases previously scored `lifestyle_only`.
+   Anchor: `HTN-CONCORD:abstain-out-of-scope`. Drug-class consequences remain **HC-36**; the remaining
+   out-of-scope guards (resistant/secondary HTN, ESRD, hypertensive emergency) remain **HC-28**.
 3. **BP summarization — use the MEDIAN (harmonized 2026-07-18).** Previously this doc said *mean* while
    the Master Plan and the MIMIC cohort algorithm both said *median*; that contradiction is now resolved in
    favour of **median everywhere**, so the headline Task-B comparison is not confounded by a different
