@@ -92,18 +92,25 @@ def ckd_albuminuria(egfr: pd.Series, uacr: pd.Series) -> pd.Series:
 def contraindications(df: pd.DataFrame) -> pd.Series:
     """Set of engine contraindication flags per row (NHANES: K+ only reliably)."""
     k = pd.to_numeric(df.get("potassium"), errors="coerce")
+    preg = df.get("pregnant")
     out = []
     for i in df.index:
         flags = []
         if pd.notna(k.get(i)) and k[i] >= config.K_HYPERKALEMIA:
             flags.append("hyperkalemia")
-        # angioedema_hx is not ascertainable in NHANES -> exercised via synthetic
-        # vignettes only (plan risk #4). Left empty rather than guessed.
-        # NOTE (2026-07-18): pregnancy IS ascertainable -- DEMO_J.RIDEXPRG (55 respondents,
-        # 45 currently in the emitted cohort). It is not yet wired in. Until it is, every
-        # pregnant row carries an empty contraindication list, so once HC-36 lands the
-        # engine could emit "initiate ACEI/ARB" for a pregnant patient AS GROUND TRUTH.
-        # Fix before HC-36. See DataDictionary S1 rule 2.
+        # Pregnancy (HC-96), from DEMO.RIDEXPRG via clean_demo. Positive-only: only a
+        # recorded pregnancy sets the flag, so "not ascertained" never reads as "not
+        # pregnant". The engine treats this flag as a scope gate and abstains on it --
+        # before HC-96 it was never read, and a pregnant Stage-2 row was labelled
+        # INITIATE as ground truth. See DataDictionary S1 rule 2.
+        # `is True` would be wrong here: a pandas row yields numpy.bool_(True), and
+        # `numpy.bool_(True) is True` is False. notna() screens None/NaN so that an
+        # unascertained pregnancy cannot read as either pregnant or not-pregnant.
+        pv = None if preg is None else preg.get(i)
+        if pv is not None and pd.notna(pv) and bool(pv):
+            flags.append("pregnancy")
+        # angioedema_hx is not ascertainable in NHANES -> exercised via the HC-95
+        # contraindication stress set only (plan risk #4). Left empty rather than guessed.
         out.append(flags)
     return pd.Series(out, index=df.index)
 

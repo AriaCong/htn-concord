@@ -78,8 +78,8 @@ by value and cleanliness (NHANES first — largest, cleanest, drives most tasks)
   hand-synced counts.
 - **Remaining:** NCHS linked-mortality parser (Task D, HC-11); document single-measurement CKD/diabetes
   over-trigger as a known upward bias on the initiation label; **implement the already-decided median BP
-  harmonization — `clean.py` still uses `mean()` (HC-23)**; wire the pregnancy flag (HC-24) and
-  `clinical_cvd` via `MCQ_J` (HC-25); decide "discard BP reading #1"; optional `P_` pooled-cycle run.
+  harmonization — `clean.py` still uses `mean()` (HC-23)**; ~~wire the pregnancy flag (HC-24)~~ ✅ **done
+  2026-07-19**; `clinical_cvd` via `MCQ_J` (HC-25); decide "discard BP reading #1"; optional `P_` pooled-cycle run.
   *(PREVENT is done — HC-31, with the statin input and age-30–79 gate; this line previously listed it as
   outstanding.)*
 
@@ -356,9 +356,12 @@ feasibility, HC-14 OMR BP parser, HC-8 derive.py correctness fixes.)*
    *(CI workflow HC-4, commit `e7081d1` — ✅ **now live and verified green** on the private remote
    `AriaCong/htn-concord`; badge repointed in `0a3aeb8`. The earlier "never executed / no remote exists yet"
    note is superseded.)*
-2. **Safety and label-validity fixes before any new rule lands:** HC-24 (wire `DEMO_J.RIDEXPRG`; 45 pregnant
-   respondents currently carry an empty contraindication list — once HC-36 lands the engine could emit
-   "initiate ACEI/ARB" for a pregnant patient *as ground truth*), HC-25 (`MCQ_J` → `clinical_cvd`, null for
+2. **Safety and label-validity fixes before any new rule lands:** ~~HC-24~~ ✅ **done 2026-07-19 (PR #5)** —
+   `DEMO_J.RIDEXPRG` is wired three-valued, and pregnancy now acts as a **scope gate before staging**, so all
+   45 pregnant respondents abstain (`pregnancy_management_out_of_scope`) rather than receiving a BP-driven
+   label. The hazard it removed: a pregnant Stage-2 patient would have been labelled INITIATE *as ground
+   truth*, which HC-36 would then have named an ACEI/ARB. Drug-class consequences remain HC-36; the other
+   out-of-scope guards remain HC-28. Still open: HC-25 (`MCQ_J` → `clinical_cvd`, null for
    every row today, biasing toward under-treatment — the unsafe direction), HC-28 (runtime out-of-scope
    guards; the engine currently answers confidently on resistant/secondary HTN, ESRD and hypertensive
    emergency, all declared out of scope).

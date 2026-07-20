@@ -6,22 +6,22 @@
     "train": 8742
   },
   "decision_distribution": {
-    "abstain": 432,
-    "at_goal_continue": 1527,
+    "abstain": 564,
+    "at_goal_continue": 1524,
     "initiate_pharmacotherapy": 2253,
     "intensify_pharmacotherapy": 2571,
-    "lifestyle_only": 7635
+    "lifestyle_only": 7506
   },
   "files": {
     "task_b_inputs.jsonl": {
       "model_facing": true,
       "n_records": 14418,
-      "sha256": "6f152c5286d5e55297cef8e0ef8cb0a8940d12920ddd4e55d07d87eee696eaf3"
+      "sha256": "6bf0fa6969ae18277dcb6e64fa79ba9a906feb13e6566c79b09332f895feac71"
     },
     "task_b_labels.jsonl": {
       "model_facing": false,
       "n_records": 14418,
-      "sha256": "27f3506a9b7c0a8e1ce4c0fd360536510c89bf3850111d9d8f765d8b110d8ef7"
+      "sha256": "f9bd3589fceab13eabe672f8a09179d1594fee8349c1b363c1a6fe6dadabe125"
     }
   },
   "leakage_audit": {

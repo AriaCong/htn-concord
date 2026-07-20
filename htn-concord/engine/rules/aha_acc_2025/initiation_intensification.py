@@ -49,7 +49,33 @@ def _num(value: Any) -> float | None:
     return None if f != f else f  # NaN -> None
 
 
+def _has_flag(profile: Mapping[str, Any], flag: str) -> bool:
+    """True iff `flag` is present in the profile's contraindication list.
+
+    Positive-only by design: a missing or unreadable list means "not recorded", never
+    "absent", so this can gate a scope decision without inventing an absence.
+    """
+    flags = profile.get("contraindications")
+    try:
+        return flag in flags
+    except TypeError:
+        return False
+
+
 def recommend(profile: Mapping[str, Any]) -> EngineDecision:
+    # 0. Scope gate (HC-96). The encoded module covers adult primary hypertension in the
+    # non-pregnant adult; hypertensive disorders of pregnancy are a different framework and
+    # ACEi/ARB are fetotoxic. This precedes staging deliberately: a BP-driven answer for a
+    # pregnant patient is a guess dressed as a guideline label, and at Stage 2 it would be
+    # INITIATE. Scope does not depend on BP, so a normotensive pregnant patient abstains too.
+    if _has_flag(profile, "pregnancy"):
+        c = cite("HTN-CONCORD:abstain-out-of-scope")
+        return EngineDecision(
+            Decision.ABSTAIN, None, (), "pregnancy_management_out_of_scope", (c,),
+            (TraceStep("scope", "Pregnancy: outside the encoded module's scope "
+                                "(adult primary HTN, non-pregnant); abstain.", c.anchor),),
+        )
+
     staging = stage_bp(profile)
     citations = [staging.citation]
     trace = [staging.trace]
