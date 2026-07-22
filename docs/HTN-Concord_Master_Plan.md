@@ -145,12 +145,6 @@ patients, never generates the label.
   small **abstention-calibration probe** (~500 sampled stays: does a model correctly *refuse* to stage ICU
   BP?), not as a second full substrate.
 
-### 2.5 Zigong HF 1.3 — **recommended for outright removal** (HC-22)  ⬜
-- `dat.csv` (**2,008**×167, ships a data dictionary; verified against the file 2026-07-18).
-- **Recommended cut.** 2,008 Chinese CHF inpatients with no antihypertensive-decision framing, no notes, and
-  not primary hypertension. The China-guideline disagreement check it was meant to serve is better served by
-  the ESC-2024 comparator (HC-41) run on real cohort data. Drop HC-22 rather than carry a fifth source.
-
 **Phase-2 acceptance gate:** every in-scope source emits a schema-valid `PatientProfile` table + a QA report
 (row counts, missingness, range violations, unit assertions, BP-stage distribution). Cross-source column
 audit passes (identical names/types/units).
@@ -338,8 +332,8 @@ P1 schema/vocab ──┬─> P2 data pipelines ──┐
    `pipelines/nhanes/clean.py` still averages the three oscillometric readings. Because switching re-emits the
    substrate and moves every quoted stage/label figure, treat it as a benchmark-freeze action: change, re-run,
    and re-quote all downstream numbers in one pass. *Needed to finalize P2.1.*
-7. **eICU and Zigong scope (HC-21 / HC-22).** Recommendation: descope eICU to a ~500-stay abstention probe and
-   drop Zigong entirely. *Needed before P2 is called done.*
+7. **eICU scope (HC-21).** Recommendation: descope eICU to a ~500-stay abstention probe.
+   *Needed before P2 is called done.*
 
 ---
 
@@ -381,6 +375,6 @@ feasibility, HC-14 OMR BP parser, HC-8 derive.py correctness fixes.)*
    with drift-guard tests, so HC-39's emitter is bound to the same contract.
 7. Then the LLM half: renderer (HC-50) → Task B (HC-53) → runner (HC-60) → metrics (HC-70), converging at the
    **HC-80 pilot + kill-criteria gate** — run this end-to-end slice early to test discriminative power.
-8. MIMIC-ED (2.3) in parallel. eICU (2.4) only as the descoped abstention probe; Zigong (2.5) dropped.
+8. MIMIC-ED (2.3) in parallel. eICU (2.4) only as the descoped abstention probe.
 9. **HC-49 clinician face-validity + adjudication** — P0 *for Paper 1*, and long-lead because it depends on
    other people's calendars. Start recruiting while the engine work finishes.

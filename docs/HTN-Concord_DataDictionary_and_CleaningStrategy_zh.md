@@ -9,7 +9,7 @@
 
 编写于 2026-07-08。与 Notion 的《🇬🇧 HTN-Concord — Master Plan (English)》主页（即原先题为 "Consolidated Plan" 的那一页）以及 2025 AHA/ACC 指南（DOI 10.1161/HYP.0000000000000249）保持一致。
 
-> 📘 **配套文档。** 本文件是**参考手册** —— 覆盖五个数据集的每一张表，并保留更正历史。
+> 📘 **配套文档。** 本文件是**参考手册** —— 覆盖四个数据集的每一张表，并保留更正历史。
 > 若需要单一底料的**走查**（每一列为何被选中、三层数据类型契约、缺失数据策略及为何不做填补、
 > NHANES 逐步执行顺序），请见 `HTN-Concord_DataProcessing_Walkthrough_zh.md`
 > （英文版：`..._Walkthrough.md`）。
@@ -25,10 +25,9 @@
 | MIMIC-IV-Note 2.2 | ✅ | `Data/mimic-iv-note.../note/` | `discharge.csv.gz` = 1.1 GB |
 | MIMIC-IV-ED 2.2 | ✅ | `Data/mimic-iv-ed-2.2/ed/` | gzip CSV |
 | eICU-CRD 2.0 | ✅ | `Data/eicu-collaborative-research-database-2.0/` | 纯 CSV |
-| Zigong HF 1.3 | ✅ | `Data/hospitalized-patients-with-heart-failure.../` | `dat.csv` **2,008**×167；可选/不在主线 |
 
 **数据集 → 任务：** NHANES → Task A/B + PREVENT + 死亡率（Task D）。MIMIC-IV（+ED+Note）→ Task B/C + `dod` 合理性。
-eICU → **2026-07-18 已降级**为约 500 例住院的弃权校准探针（eICU 每条血压都是急性场景，建完整 pipeline 会产出约 20 万行没有决策标签的数据）。Zigong HF → **建议移除**。
+eICU → **2026-07-18 已降级**为约 500 例住院的弃权校准探针（eICU 每条血压都是急性场景，建完整 pipeline 会产出约 20 万行没有决策标签的数据）。
 
 > ⚠️ **「eICU 没有病历文本」这个说法是错的。** eICU 带有一个 306 MB 的 `note.csv`。结论仍然成立 —— 其内容是路径/数值片段而非叙事文本，因此依然不适合 Task C —— 但凡本文档此前作此断言之处，前提都是假的（2026-07-18 更正）。
 
@@ -160,12 +159,6 @@ eICU → **2026-07-18 已降级**为约 500 例住院的弃权校准探针（eIC
 
 ---
 
-## 5. Zigong HF 1.3 —— 可选，不在主线
-
-单个 CSV `dat.csv`（**2,008** 行 × 167 列），宽表、已经过整理；自带 `dataDictionary.csv`。中国队列，充血性心衰（不是原发性高血压）。含 `systolic.blood.pressure`、`diastolic.blood.pressure`、各合并症 flag、`diabetes`、CKD，以及 28 天/3 个月/6 个月死亡率。**仅用于 CHARLS/中国指南分歧的 sanity check，或作为外部表格型压力测试 —— 不属于 Paper-1 队列。** 清洗很轻：使用自带字典、统一列名、核实单位（血压 mmHg，已是数值）、把合并症 flag 映射到引擎 schema。
-
----
-
 ## 6. 跨源派生变量（每个数据源都用完全相同的算法计算）
 
 这些是引擎输入，在各源清洗**之后**计算，从而保证 `PatientProfile` schema 统一。
@@ -213,5 +206,4 @@ eICU → **2026-07-18 已降级**为约 500 例住院的弃权校准探针（eIC
 2. ~~建 **NHANES → PatientProfile** pipeline~~ —— **已完成**；4,806 份档案。已于 2026-07-18 在 `bp_stage` / `ckd_albuminuria` 正确性修复后重新导出。
 3. 建 **MIMIC-IV**（按 itemid 过滤加载 labevents、OMR 血压解析器、ICD-9/10 交叉映射、medrecon 连接、出院小结选择）→ Task B/C。
 4. **eICU** 只作为约 500 例住院的弃权校准探针接入（HC-21，已降级），而不是第二个完整的结构化底料。
-5. **砍掉 Zigong HF**（HC-22，建议）：没有降压决策语境、没有病历文本、也不是原发性高血压。「中国指南分歧」检查由 ESC-2024 对照模块（HC-41）在真实队列上做要好得多。
-6. 在任何引擎/标签运行之前，先产出一份 **QA 报告**（行数、缺失率、越界日志、单位断言）。
+5. 在任何引擎/标签运行之前，先产出一份 **QA 报告**（行数、缺失率、越界日志、单位断言）。

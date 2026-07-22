@@ -7,7 +7,7 @@
   "additionalProperties": true,
   "required": ["source", "age", "sex", "sbp", "dbp", "bp_stage", "bp_context", "med_classes", "contraindications"],
   "properties": {
-    "source": {"type": "string", "enum": ["nhanes", "mimic_iv", "eicu", "zigong_hf", "synthetic"]},
+    "source": {"type": "string", "enum": ["nhanes", "mimic_iv", "eicu", "synthetic"]},
     "age": {"type": ["number", "null"], "minimum": 0, "maximum": 120},
     "sex": {"type": ["string", "null"], "enum": ["male", "female", null]},
     "race_eth": {"type": ["number", "string", "null"], "description": "subgroup reporting only; engine is race-neutral"},

@@ -13,7 +13,7 @@
 6. 整条处理流水线一步一步到底做了什么？
 
 **与另一份数据文档的关系。** `HTN-Concord_DataDictionary_and_CleaningStrategy.md` 是**参考手册** ——
-它列举五个数据集（含 MIMIC-IV、MIMIC-ED、eICU、Zigong HF）的每一张表，并保留更正历史。
+它列举四个数据集（含 MIMIC-IV、MIMIC-ED、eICU）的每一张表，并保留更正历史。
 **本文是**走查**（walkthrough）** —— 只跟随一条底料（NHANES cycle J），从原始 `.XPT` 一路走到通过校验的
 `PatientProfile`，并且集中讲参考手册默认你已经懂的那部分推理。两边冲突时：关于**其他**数据集的事实以参考手册为准；
 关于 NHANES 的执行顺序以本文为准，因为本文是直接读 `pipelines/nhanes/` 代码写出来的。

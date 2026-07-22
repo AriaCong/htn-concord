@@ -52,7 +52,6 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 | HC-19 | MIMIC Task-C notes + silver labels | discharge-note selection; silver labels from dx+labs+medrecon; hand-validate a sample | HC-18 | M | ⬜ |
 | HC-20 | MIMIC-ED pipeline | medrecon class sets; triage/vitals acute-context; edstays join | HC-1 | M | ⬜ |
 | HC-21 | eICU pipeline — **descope** | ~~full pipeline~~ → **~500-stay abstention-calibration probe** only (does a model correctly refuse to stage ICU BP?). Every eICU BP is acute, so a full build emits ~200k rows with no decision label. NB: eICU *does* ship `note.csv` (306 MB), but it is path/value fragments, not narrative — still no Task C | HC-3 | S | ⬜ |
-| HC-22 | Zigong HF light clean — **recommended DROP** | 2,008 Chinese CHF inpatients; no antihypertensive-decision framing, no notes, not primary HTN. The China-guideline disagreement check is better served by the ESC-2024 comparator (HC-41) on real cohort data | — | S | ⬜ |
 
 ## EPIC E3 — Deterministic Guideline Engine (Aria hand-writes rules)  🟡
 | ID | Ticket | Acceptance criteria | Dep | Size | Status |
