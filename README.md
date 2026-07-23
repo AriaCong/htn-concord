@@ -43,19 +43,27 @@ modules, which only resolve from there.
 ```
 vocab.py      shared controlled vocabulary: med classes, comorbidity and
               contraindication flags, HTN ICD anchor sets, BP thresholds
-schemas/      patient_profile.schema.json   (llm_output.schema.json NOT BUILT)
+schemas/      patient_profile.schema.json, llm_output.schema.json      (both built)
 engine/       types, citations, evaluate + rules/aha_acc_2025/
-              {staging, initiation_intensification}   (2 rules built)
-pipelines/    nhanes/  cohort builder, derive, PREVENT, QA  — BUILT
-              mimic/   config, feasibility, omr_bp          — partial
+              {staging, initiation_intensification}                    (2 rules built;
+              drug-class / comorbidity / contraindication / abstention /
+              citation-linker / trace-emitter rules NOT BUILT — HC-34..39)
+pipelines/    nhanes/  cohort builder, derive, PREVENT, QA             — BUILT
+              mimic/   config, feasibility, omr_bp                     — partial
+leakage.py    forbidden-token scanner shared by renderer + Task-B gate — BUILT (HC-46)
+renderer/     phrasing, render — 3-level facts-only vignettes          — BUILT (HC-50)
+tasks/        profiles, splits, spotcheck, task_b — Task-B builder + leakage audit — BUILT (HC-53)
+runner/       providers, run_case — JSON-mode runner + transcript replay — BUILT (HC-60;
+              AnthropicProvider authored but not yet run against the live API)
+evaluator/    metrics, score — all 9 plan metrics + aggregation         — BUILT (HC-70)
 tests/        one module per rule
-
-renderer/     NOT BUILT      runner/  NOT BUILT      evaluator/  NOT BUILT
 ```
 
 Present tense describes verified-existing code only; anything planned is tagged `NOT BUILT`. This
 convention exists because a doc that described an *intended* repo in the present tense produced a phantom
-"1 worked rule + 9 tests" claim that cost a full spec cycle to disprove.
+"1 worked rule + 9 tests" claim that cost a full spec cycle to disprove. *(Synced 2026-07-23 against
+Linear + the working tree: renderer / tasks / runner / evaluator and `llm_output.schema.json` are now
+built — the earlier `NOT BUILT` block had itself gone stale, the very failure this convention guards.)*
 
 ## Data
 

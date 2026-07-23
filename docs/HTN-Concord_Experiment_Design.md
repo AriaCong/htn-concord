@@ -197,11 +197,11 @@ framework is a credibility cost, not a credential.
 | **Prompt disclosure** | Prompt templates versioned; full text published in appendix | 🟡 versioned ✅ / appendix ⬜ |
 | **Inference parameters** | Recorded; non-pinnable parameters explicitly declared (§5, HC-64) | ✅ |
 | **Stochasticity handling** | k = 5 replicates, across-replicate SD reported (§4.4) | ⬜ |
-| **Performance measures, pre-specified** | Nine metrics, Phase 6; primary + co-primary safety outcome named in §3 | 🟡 defined ✅ / HC-70 ⬜ |
+| **Performance measures, pre-specified** | Nine metrics, Phase 6; primary + co-primary safety outcome named in §3 | ✅ HC-70 done 2026-07-20 (`evaluator/`) |
 | **Uncertainty quantification** | Patient-clustered bootstrap CIs (§4.2–4.3) | ⬜ |
 | **Subgroup / fairness reporting** | HC-72: sex, age band, comorbidity × difficulty | ⬜ |
 | **Error / failure analysis** | HC-71 failure-mode classifier; trace-step attribution | ⬜ |
-| **Abstention & uncertainty behaviour** | `abstention_appropriateness`; engine three-valued abstention | 🟡 engine ✅ / metric ⬜ |
+| **Abstention & uncertainty behaviour** | `abstention_appropriateness`; engine three-valued abstention | ✅ engine + metric (HC-70: two rates, over/under) |
 | **Human oversight / intended use** | Explicit non-deployment statement (§8) | ⬜ |
 | **Reproducibility & availability** | Open-source engine + benchmark; manifest, checksums, environment lock; archival-vs-sampling distinction stated once | 🟡 |
 | **Limitations** | §7 | ✅ this doc |

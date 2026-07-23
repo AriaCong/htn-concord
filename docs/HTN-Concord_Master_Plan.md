@@ -226,8 +226,13 @@ any Task-B/C input); a human spot-check of 20 rendered vignettes confirms facts-
 
 ---
 
-## Phase 5 — Model harness (LLM runner)  ⬜
+## Phase 5 — Model harness (LLM runner)  🟡
 **Goal:** run any model over any task in strict JSON mode, reproducibly.
+
+> ✅ **HC-60 done 2026-07-20** — `runner/` (`run_case()` + scripted/replay/Anthropic provider seam, strict
+> validation against the HC-5 schema, malformed-JSON retry, transcript with prompt/schema hashes + usage +
+> cost + latency, `replay()`). Remaining amber: `AnthropicProvider` is authored but **not yet run against the
+> live API** (malformed-JSON rate unmeasured), and HC-61 adapters / HC-62 conditions / HC-63 infra are ⬜.
 
 - JSON-mode runner emitting `llm_output.schema.json` (structured fields enable trace scoring).
 - Model adapters: ≥1 frontier + ≥1 open-weight (kill-criteria comparison); vanilla LLM, naive RAG, and
@@ -246,8 +251,14 @@ any Task-B/C input); a human spot-check of 20 rendered vignettes confirms facts-
 
 ---
 
-## Phase 6 — Evaluation & failure-mode audit  ⬜
+## Phase 6 — Evaluation & failure-mode audit  🟡
 **Goal:** decomposition, not one number. Implement every plan metric and the RQ2 audit.
+
+> ✅ **HC-70 done 2026-07-20** — `evaluator/` (`metrics.py` pure per-metric functions, `score.py` per-case +
+> aggregation) implements all nine metrics and reproduces a 5-case hand-scored gold set. The HC-92 audit
+> findings are enforced in code: `majority_class_baseline` printed beside every concordance figure, safety
+> kept out of the headline mean, abstention reported as two rates (over/under). Remaining ⬜: HC-71
+> failure-mode classifier, HC-72 subgroup/difficulty reporting, HC-94 CIs.
 
 - **Metrics:** `decision_concordance`, `staging_correct`, `extraction_f1`, `contraindication_recall`,
   `contraindication_false_positive`, **`unsafe_recommendation`** (safety headline), `citation_support`,
