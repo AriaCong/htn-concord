@@ -355,6 +355,8 @@ P1 schema/vocab ──┬─> P2 data pipelines ──┐
 ---
 
 ## Immediate next actions (in order, as of 2026-07-18)
+
+> 🔄 **Refresh 2026-07-24.** Several items below are now complete: HC-5 (schema) and HC-70 (metrics) are ✅ merged; HC-42 (DecisionBuilder) + HC-43 (registry dispatch) are ✅ implemented (branch, pending PR). The live critical path is now the hand-written engine rules **HC-34→HC-37 (Aria's medicine)**, the HC-38/HC-39 scaffolding, then HC-95 unblocks. Treat this dated list as historical; **Linear (GAI board) is authoritative**.
 *(Done since the original list: HC-3 vocab, HC-31 PREVENT, HC-32/33 staging + initiation, HC-13 MIMIC
 feasibility, HC-14 OMR BP parser, HC-8 derive.py correctness fixes.)*
 
