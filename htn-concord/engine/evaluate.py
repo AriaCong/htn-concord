@@ -1,17 +1,39 @@
-"""Top-level engine entry point.
+"""Top-level engine entry point: dispatch a PatientProfile to a guideline module.
 
-Composes the 2025 AHA/ACC rules into one decision for a PatientProfile. Thin for now
-(staging -> initiation/intensification, both handled inside recommend()). As later rules
-land (HC-34 drug-class selection, HC-36 contraindications), they compose here.
+evaluate() selects the guideline contribution from a registry, lets it mutate a
+DecisionBuilder, and freezes the result exactly once (HC-42). Guidelines stay separate
+(principle 6): a second module (ESC 2024, HC-41) registers here via `register()` without
+editing the first, and every decision carries a `guideline` tag (HC-43) so an AHA-vs-ESC
+disagreement report needs no out-of-band bookkeeping.
 """
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
-from engine.rules.aha_acc_2025.initiation_intensification import recommend
+from engine.builder import DecisionBuilder
+from engine.rules.aha_acc_2025 import initiation_intensification as _aha
 from engine.types import EngineDecision
 
+# A guideline contribution mutates the builder in place and returns None (HC-42).
+Contribution = Callable[[Mapping[str, Any], DecisionBuilder], None]
 
-def evaluate(profile: Mapping[str, Any]) -> EngineDecision:
-    """Return the deterministic guideline decision for one PatientProfile."""
-    return recommend(profile)
+_GUIDELINES: dict[str, Contribution] = {
+    "aha_acc_2025": _aha.contribute,
+}
+
+
+def register(name: str, contribution: Contribution) -> None:
+    """Register a guideline contribution under `name`. ESC 2024 (HC-41) lands here."""
+    _GUIDELINES[name] = contribution
+
+
+def evaluate(profile: Mapping[str, Any], guideline: str = "aha_acc_2025") -> EngineDecision:
+    """Return the deterministic guideline decision for one PatientProfile.
+
+    `guideline` names a registered module; an unregistered name raises KeyError rather than
+    silently falling back, so a typo or a not-yet-built comparator fails loudly.
+    """
+    contribution = _GUIDELINES[guideline]
+    builder = DecisionBuilder(guideline=guideline)
+    contribution(profile, builder)
+    return builder.build()

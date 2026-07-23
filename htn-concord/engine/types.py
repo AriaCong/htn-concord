@@ -50,3 +50,7 @@ class EngineDecision:
     abstain_reason: str | None       # not_encoded reason when decision == ABSTAIN
     citations: tuple[Citation, ...]  # guideline anchors backing the decision
     trace: tuple[TraceStep, ...]     # ordered reasoning steps
+    guideline: str = "aha_acc_2025"  # (HC-43) which guideline module produced this; lets
+                                     # an AHA-vs-ESC disagreement report be assembled without
+                                     # out-of-band bookkeeping. Default keeps the AHA/ACC
+                                     # primary path and prior positional construction working.
