@@ -5,7 +5,7 @@ import math
 
 import pytest
 
-from pipelines.nhanes import prevent
+from pipelines.common import prevent
 
 
 def _inputs(**over):

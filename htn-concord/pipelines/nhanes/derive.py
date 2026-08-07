@@ -10,7 +10,9 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from . import config, prevent
+from pipelines.common import prevent
+
+from . import config
 
 
 def egfr_ckdepi_2021(creatinine: pd.Series, age: pd.Series, sex: pd.Series) -> pd.Series:
