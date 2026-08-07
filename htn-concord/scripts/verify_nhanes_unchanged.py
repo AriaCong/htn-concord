@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,7 +32,9 @@ def sha256(path: Path) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--record", action="store_true",
-                    help="write the current digest as the baseline")
+                    help="write the current digest as the baseline (only if no baseline exists)")
+    ap.add_argument("--force", action="store_true",
+                    help="permit --record to overwrite an existing baseline")
     args = ap.parse_args()
 
     if not CSV.exists():
@@ -44,6 +45,11 @@ def main() -> int:
     print(f"{CSV.name}: {digest}")
 
     if args.record:
+        if BASELINE.exists() and not args.force:
+            existing = BASELINE.read_text().strip()
+            print(f"BASELINE ALREADY EXISTS: {existing}")
+            print(f"  To re-record intentionally, delete {BASELINE} or use --force")
+            return 1
         BASELINE.write_text(digest + "\n")
         print(f"recorded -> {BASELINE}")
         return 0
