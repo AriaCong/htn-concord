@@ -12,7 +12,7 @@ The documentation has three legs — the English Notion tree, the Chinese Notion
 
 **Fault 1 — figures are restated instead of referenced.** `4,806`, `42.8%`, `40.7%`, `8,921`, `28,530`, `144 abstain` each appear in three to five places across the hubs, the audit log, and the walkthrough pages. Each copy is an independent opportunity to drift, and several already have:
 
-- `pipelines/nhanes/clean.py` computes BP with `mean`, while the data dictionary, the Master Plan, the MIMIC cohort algorithm and both Notion trees all state `median` was adopted on 2026-07-18. No code implements that decision (HC-23 / GAI-62). Every published NHANES figure therefore describes a pipeline that the documentation does not describe.
+- `pipelines/nhanes/clean.py` computes BP with `mean`, while the data dictionary, the Master Plan, the MIMIC cohort algorithm and both Notion trees all state `median` was adopted on 2026-07-18 (HC-23 / GAI-62). **Resolved 2026-08-08 against the guideline source: the code is correct and the documents are wrong.** See §4.1.
 - The PREVENT high-risk share was published as `38.4%` (denominator 3,606 age-eligible) when the correct value is `40.7%` (denominator 3,404 actually scored). The wrong denominator silently treated 202 unscorable patients as low-risk — the exact error `prevent.py` warns against in a comment.
 - `eICU note.csv` is recorded as **321 MB** in the EN "Corrected figures" list and **306 MB** in the EN reconciliation section and CN §七. The same page contradicts itself.
 - Test counts 9 / 23 / 28 / 37 / 46 / 83 / 84 / 113 / 123 have all circulated as current. A rule already exists ("run `pytest -q`, never quote") but it is unenforced and applies only to test counts.
@@ -41,7 +41,7 @@ There is also an unresolved self-contradiction inside the CN hub: §八 cites `H
 
 ## 3. Non-goals
 
-- Re-running any pipeline or changing any pipeline code. HC-23's re-emission is a separate, ticketed benchmark-freeze action; this work records its status, it does not perform it.
+- Re-running any pipeline or changing any pipeline code. Per §4.1 no re-emission is required; the median sensitivity analysis it recommends is a separate ticketed analysis task.
 - Resolving any open clinical or scientific decision. Open decisions are migrated into a register with their status intact, not settled.
 - Changing the Linear board or the Notion Progress Tracker database.
 
@@ -57,6 +57,34 @@ There is also an unresolved self-contradiction inside the CN hub: §八 cites `H
 | D6 | Plain-language register | Preserved as `▶ In plain terms / 通俗解释` callouts inside pages 01 and 04, rather than as separate primer pages. |
 
 D5 and D6 were raised as amendments during design and approved.
+
+### 4.1 D7 — HC-23 resolved: BP is summarized by `mean`
+
+**Decision: `mean`. The code is correct; the documents are wrong. No pipeline change, no re-emission.**
+
+HC-23 was filed as "code computes `mean` while every document says `median`" and scoped as a benchmark-freeze action requiring re-emission of the substrate and re-quotation of every downstream figure. Checked against the primary source on 2026-08-08, the finding inverts.
+
+`docs/guidelines/jones-et-al-2025-*.pdf` (2025 AHA/ACC, DOI `10.1161/HYP.0000000000000249`) specifies the average throughout and never specifies a median:
+
+- *"Office BP should be based on the **average of available readings**, and an average of ≥2 BP measurements obtained on ≥2 separate occasions may minimize error and provide a more accurate estimation of office BP."*
+- §5.2.7: *"Achievement of target BP should be based on **an average of ≥2 readings at ≥2 visits**, not on an individual BP measurement."*
+- Table note: *"BP indicates blood pressure (based on **an average of ≥2 careful readings**…)"*
+- Staging thresholds are stated as *"an average of SBP ≥130 mm Hg or an average…"*
+
+The token "median" occurs once in the guideline, in an unrelated passage on weight regain after bariatric surgery.
+
+**Why the original decision was wrong.** The 2026-07-18 note justified median as harmonization — *"so the headline Task-B comparison is not confounded by a different summary statistic per source."* Harmonization requires only that the same statistic be used everywhere; `mean` satisfies that identically. The rationale argued for harmonization and concluded median, which does not follow.
+
+The one median-specific argument — robustness to MIMIC's irregular, right-skewed OMR reading counts — is an engineering concern, not a guideline-faithfulness one. Adopting it would make the engine deviate from the guideline on `bp_stage`, the most load-bearing input in the pipeline, in a project whose defensibility rests on the engine being a faithful transcription of a published guideline. That trade is rejected. The robustness concern is handled instead by the existing range gates (SBP 60–290, DBP 30–200), the MIMIC requirement of ≥2 readings on distinct dates, and a **median sensitivity analysis** reported alongside the discard-reading-#1 sensitivity the docs already promise.
+
+**Scope of the fix.** Documentation only:
+
+- The `median` claim is corrected wherever it appears — the data dictionary, the MIMIC cohort algorithm, and both Notion trees. Because the hub and walkthrough pages are being rewritten wholesale by this restructure, the correction is applied *as those pages are written* rather than as a separate edit pass; `HTN-Concord_DataDictionary_and_CleaningStrategy.md` / `_zh` survive the restructure and need a direct edit.
+- HC-23 / GAI-62 is re-scoped from P0 benchmark-freeze to a documentation correction and closed, in **both** the Linear board and the Notion Progress Tracker.
+- The inversion is recorded in the Audit & Decision Log (§7) with the guideline quotations above, and the superseded median rationale is retained verbatim in the superseded-text subsection.
+- Like every encoded rule, the averaging rule remains in scope for HC-49 clinician face-validation. This resolution reports what the guideline text states; it does not substitute for that sign-off.
+
+**Unaffected known limitation.** NHANES is a single-visit protocol, so it satisfies "average of ≥2 readings" but not "at ≥2 visits". That deviation is already documented as a source of slight over-triggering on Stage-1 decisions and is independent of the mean-vs-median question.
 
 ## 5. Target structure
 
@@ -140,13 +168,13 @@ The register is built by reading values off artifacts and code, **not** off the 
 
 | Conflict | Recorded as |
 |---|---|
-| BP summarized by `mean` in code vs `median` in all docs (HC-23) | all downstream NHANES figures `pending-reemission`, with a note that they describe the mean pipeline |
+| BP summarized by `mean` in code vs `median` in all docs (HC-23) | **resolved — mean is correct** (§4.1). NHANES figures are `verified`, not `pending-reemission`. No re-emission occurs. |
 | `eICU note.csv` 321 MB vs 306 MB | `unverified` pending a `stat` of the file on disk during implementation |
 | MIMIC 28,530 vs ~8,921 vs 138,038 | three separate rows with explicit denominators; ~8,921 flagged as the only decision-capable cohort |
 | PREVENT ≥7.5% = 40.7% of 3,404 scored | `Supersedes: 38.4% (wrong denominator, 3,606 age-eligible)` |
 | BP Stage 1+2 = 42.8% | definition states *unweighted sample description, not population prevalence* |
 | NHANES pooled-span gain 1.7× (9,254 → ~15,560) | `Supersedes: "roughly double"` |
-| Post-fix label distribution over 4,806 profiles (lifestyle_only 2,545 · intensify 857 · initiate 751 · at_goal_continue 509 · abstain 144) | one row per label, all `pending-reemission` under HC-23 |
+| Post-fix label distribution over 4,806 profiles (lifestyle_only 2,545 · intensify 857 · initiate 751 · at_goal_continue 509 · abstain 144) | one row per label, `verified` once re-read from the artifact at step 2 |
 
 ## 7. Audit & Decision Log
 
@@ -227,7 +255,8 @@ Steps 1–7 are additive and reversible. Step 8 is the only destructive action.
 
 ## 13. Dependencies and sequencing
 
-- `docs/reference/Literature_Landscape_2026-08.md` — required for page 07 — currently exists **only** on the unmerged branch `ariacongdev/mimic-eicu-data-pipeline-design`. Either that branch merges first, or the file is cherry-picked onto the restructure branch before step 3.
+- `docs/reference/Literature_Landscape_2026-08.md` — required for page 07 — **resolved 2026-08-08**: cherry-picked onto this branch from `ariacongdev/mimic-eicu-data-pipeline-design`. No longer blocking.
+- HC-23 — **resolved 2026-08-08** (§4.1). It no longer blocks step 2, and the register is built once against correct values.
 - The Notion MCP connector rejects writes containing shell-command strings (Cloudflare WAF). Page 04 describes the stack, and §10's CI tests are referenced by filename; wording must avoid literal command strings, or those passages must be published as inline code that does not read as a shell invocation.
 - Both Notion trees must be updated together with the Linear board and Notion Progress Tracker whenever ticket state changes; this work does not alter ticket state.
 
