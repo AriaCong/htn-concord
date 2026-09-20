@@ -10,10 +10,10 @@ Open decision (plan #1): "J" is the default for building/validating; flip to
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
 from pathlib import Path
 
 import vocab
+from pipelines.common.qa import Range
 
 # ---------------------------------------------------------------------------
 # Cycle selection
@@ -112,12 +112,6 @@ def raw_path(component: str) -> Path:
 # ---------------------------------------------------------------------------
 # Plausibility ranges (values outside -> NA, logged by qa.py). See DATA dict §7.
 # ---------------------------------------------------------------------------
-@dataclass(frozen=True)
-class Range:
-    lo: float
-    hi: float
-
-
 RANGES: dict[str, Range] = {
     "sbp":        Range(60, 290),
     "dbp":        Range(30, 200),

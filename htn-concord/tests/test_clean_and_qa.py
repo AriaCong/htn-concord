@@ -1,8 +1,11 @@
 """Tests for missing-value preservation (abstention principle) and range gating."""
+import json
+
 import numpy as np
 import pandas as pd
 
-from pipelines.nhanes import clean, qa
+from pipelines.common import qa
+from pipelines.nhanes import clean, config
 
 
 def test_diabetes_sentinel_preserved_as_na():
@@ -45,7 +48,47 @@ def test_on_bp_meds_skip_pattern():
 
 def test_apply_ranges_nulls_and_logs():
     df = pd.DataFrame({"sbp": [120, 999], "potassium": [4.0, 20.0]})
-    gated, log = qa.apply_ranges(df)
+    gated, log = qa.apply_ranges(df, config.RANGES)
     assert pd.isna(gated["sbp"].iloc[1])
     assert pd.isna(gated["potassium"].iloc[1])
     assert {v["column"] for v in log} == {"sbp", "potassium"}
+
+
+def test_apply_ranges_takes_an_explicit_range_map():
+    """Ranges are a parameter, not a NHANES import, so MIMIC can supply its own."""
+    df = pd.DataFrame({"sbp": [120.0, 350.0, 90.0]})
+    ranges = {"sbp": qa.Range(60, 290)}
+    out, log = qa.apply_ranges(df, ranges)
+
+    assert pd.isna(out.loc[1, "sbp"]), "350 mmHg is out of range and must be nulled"
+    assert out.loc[0, "sbp"] == 120.0
+    assert log == [{"column": "sbp", "lo": 60, "hi": 290, "n_nulled": 1}]
+
+
+def test_apply_ranges_rejects_to_na_rather_than_clipping():
+    """A clipped 350 becomes a plausible 290 and then a confident Stage-2 label
+    from data known to be corrupt. The gate must reject, never clip."""
+    df = pd.DataFrame({"sbp": [350.0]})
+    out, _ = qa.apply_ranges(df, {"sbp": qa.Range(60, 290)})
+    assert pd.isna(out.loc[0, "sbp"])
+
+
+def test_write_report_takes_an_explicit_out_path(tmp_path):
+    """The report path is a parameter so each source writes its own QA file."""
+    df = pd.DataFrame({"bp_stage": ["stage1", "normal"], "sbp": [134.0, 110.0]})
+    out = tmp_path / "some_qa.json"
+    written = qa.write_report(df, [], {"DEMO": 2}, out)
+
+    assert written == out
+    payload = json.loads(out.read_text())
+    assert payload["n_profiles"] == 2
+    assert payload["bp_stage_distribution"] == {"stage1": 1, "normal": 1}
+    assert payload["source_row_counts"] == {"DEMO": 2}
+
+
+def test_write_report_merges_source_specific_extras(tmp_path):
+    """`extra` carries per-source fields (NHANES cycle, MIMIC cohort rule) without
+    the shared writer having to know about any of them."""
+    out = tmp_path / "qa.json"
+    qa.write_report(pd.DataFrame({"sbp": [120.0]}), [], {}, out, extra={"cycle": "J"})
+    assert json.loads(out.read_text())["cycle"] == "J"
