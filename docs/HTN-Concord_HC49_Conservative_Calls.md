@@ -140,10 +140,32 @@ and both are reported:
 The gap is large because **6,688 of 8,919 patients (75%) have no prior admission
 at all** — their comorbidity record does not exist before the index encounter.
 
+**The built corpus sharpened this into the single most consequential question in
+this document.** Contraindication counts under the two readings:
+
+| Contraindication | Prior admissions only | Including index-encounter codes |
+|---|---:|---:|
+| High potassium (from a lab, unaffected) | 568 | 568 |
+| Pregnancy | 46 | 52 |
+| **Angioedema history** | **6** | **47** |
+
+Angioedema is **eight times more common** when the index encounter's own codes are
+counted. Under the strict reading, only 6 patients have a *previously documented*
+angioedema history — close to NHANES's zero, and too few to estimate anything.
+
+The asymmetry is not arbitrary, and it may be the key to the whole question. **A
+history code is not a new diagnosis.** "Personal history of angioedema" billed at
+this admission asserts something that was already true when the patient arrived;
+histories do not begin at admission. A *new* diagnosis of diabetes billed at the
+same encounter asserts nothing of the kind.
+
 **Questions.** (a) Is "absence within an existing problem list means absent"
 acceptable as a pre-registered assumption? (b) Diagnoses billed at the index
 encounter are assigned at discharge — is it legitimate to use them as though they
-described the patient at admission?
+described the patient at admission? (c) **Should history-of codes be treated
+differently from new-diagnosis codes for this purpose?** If yes, the angioedema
+sample is 47 and the benchmark can measure the rule; if no, it is 6 and it cannot,
+and the synthetic stress set (HC-95) remains the only source of power for it.
 
 ### 2.2 Smoking status is inferred from diagnosis codes
 
@@ -322,7 +344,7 @@ Ranked by how much a wrong answer would cost.
 
 | # | Decision | Why it is first | §
 |---|---|---|---|
-| 1 | Absent diagnosis code counts as negative | Biases toward under-treatment, the unsafe direction, and moves the abstention rate from 9.8% to 28.6% | 2.1 |
+| 1 | Absent diagnosis code counts as negative, **and whether history-of codes are exempt** | Biases toward under-treatment, moves the abstention rate from 9.8% to 28.6%, and decides whether the angioedema sample is 47 or 6 | 2.1 |
 | 2 | Pregnancy flagged across the whole obstetric chapter | Safety flag; over-flagging is intentional but includes ended pregnancies | 1.1 |
 | 3 | Coded-negative plus missing lab resolves to unknown | Leaves diabetes unknown for 48.5% and the risk score for 75.9%, and partly undoes the decision in row 1 | 2.5 |
 | 4 | Smoking inferred from diagnosis codes | Feeds the risk score, which is the Stage-1 treatment trigger | 2.2 |

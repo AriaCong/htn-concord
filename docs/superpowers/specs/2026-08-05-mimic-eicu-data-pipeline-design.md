@@ -431,6 +431,10 @@ question, not one Aria should be asked to settle.
 
 **Verdict: PASS on all four. Proceed to B2b.**
 
+> ⚠️ **Read §6.5 with this.** B2b has since been built, and two figures below
+> are superseded by the realised numbers — the treatment split, and the
+> angioedema count, which is 6 rather than 47 under the conservative reading.
+
 > ✅ **Signed off by Aria, 2026-09-20.** The four criteria above are approved as written and
 > B2b (HC-15..19) is cleared to begin. Also decided at the same time:
 > **HC-26's index rule requires an index-stay medication reconciliation, not merely ED
@@ -458,6 +462,69 @@ premise that is no longer true: HC-23 has landed, in the other direction, on the
 `ariacongdev/notion-doc-restructure` branch. `HTN-Concord_DataDictionary_and_CleaningStrategy.md`
 and its `_zh` twin have now been corrected to match, which the HC-23 resolution listed as
 outstanding.
+
+### 6.5 Realised build, 2026-09-20 — and a correction to §6.3's headline
+
+B2b is built. **8,919 profiles, schema-valid, under both absence readings**
+(`data/mimic/processed/mimic_profiles_primary_{prior_only,prior_plus_index}.csv`).
+Two findings supersede numbers reported at the gate.
+
+#### Correction 1 — `on_bp_meds` and the treatment split
+
+The gate projected 6,996 treated / 1,923 untreated. The realised figures are
+**7,715 treated / 1,204 untreated / 0 unknown**. Two causes, both improvements:
+
+* The gate classified medications by ingredient name only. The pipeline also uses
+  the therapeutic-class route, which recognises antihypertensives whose names match
+  no keyword rule — so more patients are correctly identified as treated.
+* A reconciliation de-duplication defect was dropping real medications (see the
+  HC-17 record). Fixing it moved patients from *untreated* to *treated*.
+
+Kill criterion 3 (both arms ≥500) still passes, with 1,204 in the smaller arm.
+
+#### Correction 2 — the angioedema claim is much weaker under the safe reading
+
+This one matters, and §6.3 overstated it by quoting only the permissive reading.
+
+| Contraindication | `prior_only` | `prior_plus_index` |
+|---|---:|---:|
+| hyperkalemia (lab-derived) | **568** | **568** |
+| pregnancy | 46 | 52 |
+| **angioedema history** | **6** | **47** |
+
+Angioedema is **8× more common when index-encounter codes are counted**. Under the
+leakage-safe reading only **6** patients carry a *previously documented* angioedema
+history — close to NHANES's zero, and below the ≥30 threshold of kill criterion 4.
+
+**What this means for the manuscript.** §1.2's claim that MIMIC is the only
+real-data condition exercising the angioedema rule survives, but it must be stated
+with the reading attached. On a strict pre-index reading the MIMIC angioedema
+sample is 6, not 47, and **that is too small to estimate anything.** Kill criterion
+4 passes on hyperkalemia alone under either reading; it does not pass on angioedema
+under the conservative one.
+
+This is not an argument for adopting the permissive reading. An angioedema history
+coded at the index encounter is a real clinical fact about the patient — histories
+do not begin at admission — so counting it is defensible in a way that counting a
+new diabetes diagnosis is not. But the two cannot be waved through together, and
+**whether a history code billed at the index encounter may be treated as
+pre-existing is now the sharpest question on the HC-49 agenda** (§2.1 there).
+
+The HC-95 contraindication stress set therefore remains necessary for angioedema
+power, exactly as §1.2 said, and cannot be retired on the strength of the 47.
+
+#### Other realised figures
+
+* **BP stage:** stage1 2,986 · stage2 2,945 · elevated 1,741 · normal 1,247. No nulls.
+* **Range gate:** 13 values rejected across creatinine (2), potassium (7),
+  total cholesterol (3) and HDL (1). Rejected to null, never clipped.
+* **Risk score computable:** 26.6% (`prior_plus_index`) / 6.5% (`prior_only`) —
+  materially worse than the gate's projection, because the gate used the raw coded
+  diabetes flag whereas the pipeline resolves diabetes through the Kleene OR with
+  HbA1c, which returns *unknown* for a coded-negative patient with no HbA1c. See
+  the HC-49 agenda §2.5; it needs a ruling rather than a code change.
+* **Input provenance:** all eleven consumed files match the checksums PhysioNet
+  ships with the datasets (`data/mimic/qa/input_manifest.json`).
 
 ## 7. Testing
 
