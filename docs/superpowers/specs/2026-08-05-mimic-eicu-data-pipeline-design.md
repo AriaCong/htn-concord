@@ -338,6 +338,119 @@ NHANES walkthrough is trustworthy precisely because it was written by reading
 
 ---
 
+### 6.3 Gate result — **PASS**, recorded 2026-09-20
+
+Produced by `scripts/mimic_label_yield_gate.py`; full output in
+`data/mimic/qa/label_yield_projection.json`. Counting only — no profiles, no labels.
+
+**Decision cohort: 8,919 subjects.** HC-26's rule as implemented: the earliest HTN-anchor
+admission that both carries a medication reconciliation at its own ED stay and has ≥2 OMR BP
+readings on distinct dates within 365 d strictly before `admittime`; then adults only.
+
+The attrition reproduces the recorded figures exactly: 110,932 anchor subjects → 28,530 after
+the BP rules → **9,492 ED-linked** → **8,921 whose ED stay actually carries a reconciliation**
+→ 8,919 adults. Note the last step: §3.2 described the constraint as *ED linkage*, but 571 of
+the ED-linked encounters have no reconciliation, and a stay without one cannot establish
+`on_bp_meds` — which is the only reason the linkage is required at all. **The rule is
+index-stay medrecon, not ED linkage.** Stated as ED linkage it overstates the cohort by 571.
+
+#### Projected label yield, both absence readings (§4.2's mandatory sensitivity)
+
+| | `prior_only` | `prior_plus_index` |
+|---|---:|---:|
+| n | 8,919 | 8,919 |
+| **Resolvable (non-ABSTAIN)** | **6,372 (71.4%)** | **8,041 (90.2%)** |
+| Abstain share | 0.286 | 0.098 |
+| …med status unknown | 0 | 0 |
+| …staging indeterminate | 0 | 0 |
+| …**Stage-1 risk indeterminate** | **2,547** | **878** |
+| PREVENT computable | 860 | 3,525 |
+
+`prior_only` counts diagnoses from admissions strictly before the index `admittime`;
+`prior_plus_index` also counts the index encounter's own codes, which is what §4.2 describes.
+The first two abstention gates are zero **by construction** — the cohort rule already requires
+a reconciliation and ≥2 readings — so Stage-1 risk indeterminacy is the only live gate.
+
+**The gap between the two readings is large and is itself the finding.** 6,688 of 8,919
+subjects (75%) have *no prior admission at all*, so under `prior_only` their comorbidity
+enumeration does not exist and every flag is `NA` — which correctly refuses to resolve a
+Stage-1 case. The 19-point difference in abstention is not a rounding choice between two
+defensible conventions; it is the cost of a cohort in which three of four patients are first
+seen at the index encounter. **Carry both numbers into the manuscript. Do not pick one.**
+Flagged for HC-49.
+
+#### Contraindication prevalence — audit finding F2 is answered
+
+| Flag | MIMIC decision cohort | NHANES (F2) |
+|---|---:|---|
+| hyperkalemia (K⁺ ≥5.5) | **575** of 8,709 measured | 9 of 4,806 |
+| angioedema history | **47** | **0** |
+| pregnancy | **52** | **0** |
+
+This is the headline result of the gate. On NHANES, `unsafe_recommendation` is not estimable:
+9 patients carry any contraindication, all hyperkalemia. The MIMIC decision cohort carries
+roughly 674, **including 47 angioedema and 52 pregnancy — the two flags NHANES cannot supply
+at all.** §1.2's claim that MIMIC is the only real-data condition exercising two encoded engine
+rules is therefore **confirmed with numbers, not withdrawn**, and the co-primary safety outcome
+becomes estimable on real data for the first time. The HC-95 stress set remains necessary for
+power, but it is no longer the only source.
+
+#### Supporting distributions
+
+- **BP stage:** stage1 2,986 · stage2 2,945 · elevated 1,741 · normal 1,247. No `NA`.
+  Summarised by **mean**, per HC-23 as resolved 2026-08-08 — not median. See §6.4.
+- **`on_bp_meds`:** true 6,996 · false 1,923 · unknown 0. Both arms of the initiate-versus-
+  intensify distinction are well populated; this is what the ED-linkage requirement bought.
+- **Lab coverage (strictly pre-`admittime`, ≤365 d):** creatinine 8,773 · potassium 8,709 ·
+  hba1c 3,593 · total_chol 4,502 · hdl 4,427 · **uacr 1,409**.
+
+**The binding constraint on PREVENT is lipids, not smoking.** §1.1 identified the missing
+smoking field as the threat to `prevent_10yr`; the ICD limb fixed that, but total cholesterol
+and HDL are present for only about half the cohort, so PREVENT is computable for 3,525 at
+best. Widening the smoking code set would not move this. If Stage-1 yield ever needs to rise,
+the lever is lipid coverage — a longer lookback for lipids specifically, pre-registered — not
+the smoking crosswalk.
+
+#### Proposed kill criteria — **for Aria's sign-off before B2b (HC-15..19) begins**
+
+These are proposals, not decisions. Whether a given yield is *clinically* adequate is an HC-49
+question, not one Aria should be asked to settle.
+
+1. **Decision-cohort size ≥ 2,000 resolvable cases under the conservative (`prior_only`)
+   reading.** Observed 6,372 — passes with 3.2× headroom. Rationale: below roughly 2,000 the
+   real-EHR arm stops supporting subgroup reporting (HC-72) and becomes an anecdote.
+2. **Abstain share ≤ 50% under the conservative reading.** Observed 28.6% — passes. Above
+   half, the arm measures abstention behaviour rather than concordance, and RQ4 would need
+   rewriting rather than running.
+3. **Both `initiate` and `intensify` arms ≥ 500.** `on_bp_meds` false 1,923 / true 6,996 —
+   passes. A cohort that is nearly all already-treated cannot test initiation at all.
+4. **At least one contraindication flag with ≥ 30 cases.** All three clear it (575 / 47 / 52) —
+   passes. This is the criterion F2 failed on NHANES, and it is the reason the MIMIC arm exists.
+
+**Verdict: PASS on all four. Proceed to B2b.**
+
+Two caveats to carry forward rather than bury:
+
+- `age` here is `anchor_age`, not the age offset to the index admission (§4.1), so the 30–79
+  PREVENT window is approximate at gate time. It moves `prevent_computable` by a small amount
+  in either direction and does not affect the verdict.
+- The abstention model reproduces three gates, not the engine. Once the engine's Stage-1 rules
+  land, re-run against the real engine before quoting any of these numbers in the manuscript.
+
+### 6.4 Note on the BP summary statistic
+
+The gate summarises MIMIC OMR blood pressure by the **mean**, not the median. HC-23 was
+resolved on 2026-08-08 against the guideline source: the 2025 AHA/ACC text specifies the
+average of ≥2 readings throughout and never specifies a median. NHANES already computed the
+mean, so this keeps both arms identical, which is the property HC-97 exists to guarantee.
+
+Recorded here because the 2026-09-20 MIMIC handoff instructs the opposite — implement median
+for MIMIC and note that the arms disagree until HC-23 lands. That instruction rests on a
+premise that is no longer true: HC-23 has landed, in the other direction, on the
+`ariacongdev/notion-doc-restructure` branch. `HTN-Concord_DataDictionary_and_CleaningStrategy.md`
+and its `_zh` twin have now been corrected to match, which the HC-23 resolution listed as
+outstanding.
+
 ## 7. Testing
 
 Per repo convention — a branch without a test does not ship.
