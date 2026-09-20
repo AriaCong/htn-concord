@@ -12,9 +12,9 @@ from functools import reduce
 
 import pandas as pd
 
-from pipelines.common import derive, qa
+from pipelines.common import derive, qa, validate
 
-from . import clean, config, drug_class, io_xpt, validate
+from . import clean, config, drug_class, io_xpt
 
 # Output column order for the canonical PatientProfile.
 PROFILE_COLUMNS = [
