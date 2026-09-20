@@ -28,6 +28,7 @@ fidelity with a hand-validated sample, never as concordance.
 """
 from __future__ import annotations
 
+import json
 from typing import Any, Iterable
 
 import pandas as pd
@@ -145,3 +146,76 @@ def build_text_cohort(
     silver = silver_labels(profiles)
     silver = silver[silver["hadm_id"].isin(set(notes["hadm_id"]))]
     return notes, silver.reset_index(drop=True)
+
+
+def main() -> int:
+    """Build the Task-C text cohort from an existing primary profile table.
+
+    The notes stay LOCAL. `data/` is git-ignored and nothing here is rendered,
+    summarised to an external service, or committed -- MIMIC is credentialed,
+    and the corpus is derived locally for a local run.
+
+        python -m pipelines.mimic.notes [--absence prior_plus_index]
+    """
+    import argparse
+
+    ap = argparse.ArgumentParser(description="Task-C note corpus + silver labels")
+    ap.add_argument("--absence", default="prior_plus_index",
+                    choices=["prior_only", "prior_plus_index"])
+    args = ap.parse_args()
+
+    src = config.PROCESSED / f"mimic_profiles_primary_{args.absence}.csv"
+    if not src.exists():
+        print(f"MISSING {src}\nRun: python -m pipelines.mimic.build_profiles "
+              f"--absence {args.absence}")
+        return 1
+
+    profiles = pd.read_csv(src)
+    for c in ("med_classes", "contraindications"):
+        if c in profiles.columns:
+            profiles[c] = profiles[c].map(
+                lambda v: json.loads(v) if isinstance(v, str) else []
+            )
+
+    print(f"Building Task-C text cohort from {len(profiles):,} profiles "
+          f"(absence reading = {args.absence})")
+    print("  scanning note/discharge (chunked, hadm-filtered)...", flush=True)
+    notes_df, silver = build_text_cohort(profiles)
+
+    stats = note_stats(notes_df)
+    print(f"  notes: {stats['n_notes']:,} over {stats['n_admissions']:,} admissions")
+    print(f"  chars: median {stats.get('chars_median')}, "
+          f"p10 {stats.get('chars_p10')}, p90 {stats.get('chars_p90')}")
+    print(f"  notes containing a deid placeholder: "
+          f"{stats.get('notes_with_deid_placeholder'):,}")
+
+    notes_out = config.PROCESSED / f"mimic_taskc_notes_{args.absence}.csv"
+    silver_out = config.PROCESSED / f"mimic_taskc_silver_{args.absence}.csv"
+    # Anti-leakage discipline: the model-facing text and the hidden labels are
+    # written to PHYSICALLY SEPARATE files, joined only by hadm_id. One file
+    # carrying both would make an accidental leak a formatting mistake away.
+    notes_df.to_csv(notes_out, index=False)
+    for c in ("med_classes", "contraindications"):
+        if c in silver.columns:
+            silver[c] = silver[c].map(
+                lambda v: json.dumps(v if isinstance(v, list) else [])
+            )
+    silver.to_csv(silver_out, index=False)
+    print(f"  wrote {notes_out.name} and {silver_out.name} (separate files, "
+          f"joined only by hadm_id)")
+
+    qa_path = config.QA / f"mimic_taskc_{args.absence}.json"
+    qa_path.write_text(json.dumps(
+        {"absence_reading": args.absence,
+         "silver_fields": list(SILVER_FIELDS),
+         "silver_source": "structured: diagnoses_icd + labevents + medrecon",
+         "framing": "extraction fidelity, NOT guideline concordance",
+         **stats},
+        indent=2,
+    ))
+    print(f"  QA -> {qa_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
