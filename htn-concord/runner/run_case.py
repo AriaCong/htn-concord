@@ -115,26 +115,51 @@ def load_output_schema() -> dict[str, Any]:
 
 
 def api_safe_schema(schema: Mapping[str, Any]) -> dict[str, Any]:
-    """Strip keywords the structured-outputs API rejects, recursively.
+    """Build the request-side copy: strip what the API rejects, inline every ref.
 
-    Everything removed here is still enforced locally against the full schema.
+    Everything removed here is still enforced locally against the full schema,
+    which is the actual contract.
+
+    **Refs are inlined and `definitions` dropped.** The full schema is draft-07
+    and spells its ref target `#/definitions/...`; the structured-output
+    documentation names `$ref`/`$defs`. Rather than bet the first live call on
+    whether the API resolves draft-07's spelling, the request copy carries no
+    refs at all. `$schema` and `$id` go for the same reason: they are not part of
+    the output contract and only give the API more to reject.
     """
-    if isinstance(schema, Mapping):
-        out: dict[str, Any] = {}
-        for key, value in schema.items():
-            if key in _UNSUPPORTED:
-                continue
-            if key == "properties" and isinstance(value, Mapping):
-                out[key] = {k: api_safe_schema(v) for k, v in value.items()}
-            elif isinstance(value, Mapping):
-                out[key] = api_safe_schema(value)
-            elif isinstance(value, list):
-                out[key] = [api_safe_schema(v) if isinstance(v, Mapping) else v
-                            for v in value]
-            else:
-                out[key] = value
-        return out
-    return dict(schema)
+    definitions = dict(schema.get("definitions") or {})
+    out = _strip(schema, definitions)
+    for key in ("$schema", "$id", "definitions"):
+        out.pop(key, None)
+    return out
+
+
+def _strip(node: Any, definitions: Mapping[str, Any], _depth: int = 0) -> Any:
+    """Recursive half of `api_safe_schema`. `_depth` guards a cyclic ref."""
+    if not isinstance(node, Mapping):
+        if isinstance(node, list):
+            return [_strip(v, definitions, _depth) for v in node]
+        return node
+
+    ref = node.get("$ref")
+    if isinstance(ref, str) and ref.startswith("#/definitions/"):
+        if _depth > 16:
+            raise ValueError(f"cyclic or too-deeply nested $ref: {ref}")
+        target = definitions.get(ref.rsplit("/", 1)[-1])
+        if target is None:
+            raise ValueError(f"unresolvable $ref in output schema: {ref}")
+        merged = {**target, **{k: v for k, v in node.items() if k != "$ref"}}
+        return _strip(merged, definitions, _depth + 1)
+
+    out: dict[str, Any] = {}
+    for key, value in node.items():
+        if key in _UNSUPPORTED:
+            continue
+        if key == "properties" and isinstance(value, Mapping):
+            out[key] = {k: _strip(v, definitions, _depth) for k, v in value.items()}
+        else:
+            out[key] = _strip(value, definitions, _depth)
+    return out
 
 
 def _sha256(text: str) -> str:

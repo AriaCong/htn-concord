@@ -30,6 +30,13 @@ Never validate against the stripped copy. The stripped copy cannot enforce
 "`abstain_reason` is required exactly when `decision == abstain`" — the rule that
 separates a real abstention from a silent one.
 
+`api_safe_schema()` also **inlines every `$ref` and drops `definitions`,
+`$schema` and `$id`**. The full schema is draft-07 and spells its ref target
+`#/definitions/...`, while the structured-output documentation names
+`$ref`/`$defs` — rather than bet the first live call on whether the API resolves
+draft-07's spelling, the request copy carries no refs at all. The full schema
+keeps them; `jsonschema` resolves them locally.
+
 ## Three failure modes, never pooled (HC-61)
 
 A benchmark that reports one "failure rate" cannot be read. These are separate,

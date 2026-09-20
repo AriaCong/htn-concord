@@ -643,3 +643,46 @@ def test_open_weight_provider_records_the_model_the_host_reports():
     result = run_case(model="requested-name", prompt_input=PROMPT, profile=None,
                       provider=provider)
     assert result.transcript["model"] == "openweight-x"
+
+
+# ---------------------------------------------------------------------------
+# The request copy must not depend on draft-07 spellings the API may not share
+# ---------------------------------------------------------------------------
+
+def test_api_safe_schema_inlines_every_ref():
+    """`$ref: "#/definitions/..."` is draft-07's spelling; the structured-output
+    documentation names `$ref`/`$defs`. Rather than bet the first live call on
+    whether `definitions` resolves, the request copy carries no refs at all.
+    The full local schema keeps them — it is the contract, and jsonschema
+    resolves them itself.
+    """
+    safe = api_safe_schema(load_output_schema())
+    assert "$ref" not in json.dumps(safe)
+
+
+def test_api_safe_schema_drops_draft_metadata():
+    """`$schema`, `$id` and a now-empty `definitions` block are not part of the
+    output contract and only give the API more to reject."""
+    safe = api_safe_schema(load_output_schema())
+    for key in ("$schema", "$id", "definitions"):
+        assert key not in safe
+
+
+def test_inlining_preserves_the_shapes_the_refs_pointed_at():
+    """Inlining must not quietly drop the scored structure."""
+    safe = api_safe_schema(load_output_schema())
+    recommendation = safe["properties"]["recommendation"]
+    assert recommendation["type"] == "object"
+    assert "drug_classes" in recommendation["properties"]
+    assert recommendation["additionalProperties"] is False
+
+    step = safe["properties"]["trace"]["items"]
+    assert set(step["required"]) == {"rule", "detail"}
+    assert "citation" in step["properties"]
+
+
+def test_the_full_schema_still_uses_refs_and_still_validates():
+    """Inlining is a property of the *request copy* only."""
+    full = load_output_schema()
+    assert "$ref" in json.dumps(full)
+    jsonschema.Draft7Validator(full).validate(_valid_output())
