@@ -156,13 +156,15 @@ Anchor codes: ICD-9 `4010`/`4011`/`4019` (+ `402–404`, anchor only), ICD-10 `I
 
 | Sub-cohort | Selection rule | Purpose | Expected N |
 |---|---|---|---|
-| **Primary** | Earliest anchor admission that is **both** ED-linked **and** has ≥2 prior OMR BP on distinct dates within 365 d before `admittime` | Task-B real-EHR concordance — the only cohort that can receive an initiate-vs-intensify label | ~8,921 |
+| **Primary** | Earliest anchor admission that **both** carries an index-stay ED medication reconciliation **and** has ≥2 prior OMR BP on distinct dates within 365 d strictly before `admittime` | Task-B real-EHR concordance — the only cohort that can receive an initiate-vs-intensify label | **8,919** (measured) |
 | **OMR-only** | ≥2 OMR BP on distinct dates, regardless of HTN ICD | Captures undiagnosed / undertreated patients — the highest-value concordance gaps | ~138,038 |
 | **Text-robustness** | Discharge notes from anchor patients, no OMR requirement | Task C extraction + error propagation | ≤110,932 — the anchor-patient ceiling; the realised N is those with a usable discharge summary and is counted in B2a |
 
-The ED-linkage requirement on Primary is HC-26's resolution. `medrecon` is the only leakage-safe
-source of `on_bp_meds`, and only 31.3% of the 28,530 PRIMARY-by-BP subjects have an ED medication
-reconciliation at their index encounter. `on_bp_meds` is the variable separating *initiate* from
+The reconciliation requirement on Primary is HC-26's resolution, **as refined and signed off
+2026-09-20: the rule binds on the medrecon, not on ED linkage.** `medrecon` is the only
+leakage-safe source of `on_bp_meds`. Of the 28,530 PRIMARY-by-BP subjects, 9,492 (33.3%) are
+ED-linked but only 8,921 (31.3%) have a reconciliation at that stay — and the 571 in between
+cannot be labelled, so counting them would overstate the arm. `on_bp_meds` is the variable separating *initiate* from
 *intensify*; without it the engine must abstain. **28,530 is reported as a staging/Task-C cohort,
 never as the decision cohort.** Relieving the N pressure with discharge meds is forbidden — those
 are the answer.
@@ -428,6 +430,12 @@ question, not one Aria should be asked to settle.
    passes. This is the criterion F2 failed on NHANES, and it is the reason the MIMIC arm exists.
 
 **Verdict: PASS on all four. Proceed to B2b.**
+
+> ✅ **Signed off by Aria, 2026-09-20.** The four criteria above are approved as written and
+> B2b (HC-15..19) is cleared to begin. Also decided at the same time:
+> **HC-26's index rule requires an index-stay medication reconciliation, not merely ED
+> linkage** — the decision cohort is 8,919, not 9,492 — and **HC-23 stands: BP is summarized
+> by the mean**, with median retained as a pre-registered sensitivity analysis.
 
 Two caveats to carry forward rather than bury:
 
