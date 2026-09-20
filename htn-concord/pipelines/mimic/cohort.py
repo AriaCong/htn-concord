@@ -189,3 +189,75 @@ def primary_cohort(
     idx = earliest_anchor_admit(diagnoses, admissions)
     idx = idx[idx["hadm_id"].isin(hadms_with_medrecon(edstays, medrecon))]
     return qualifying_omr(idx, omr)
+
+
+def omr_only_cohort(
+    omr: Any = None,
+    window_days: int | None = None,
+    min_dates: int | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Patients with >=2 OMR BP readings on distinct dates, with NO HTN ICD
+    requirement. Captures the undiagnosed and the undertreated, where the
+    interesting concordance gaps are.
+
+    **The index date is a design decision, not a given.** These patients have no
+    anchor admission, so there is no ``admittime`` to bound anything against.
+    We use the **most recent qualifying OMR date** as the index: the decision
+    point for an undiagnosed patient is the outpatient encounter at which their
+    pressure was last measured. Labs and comorbidities are then bound strictly
+    before that date by the same rules the Primary cohort uses.
+
+    Two consequences, both intended and both flagged for HC-49:
+
+    * The readings that define the cohort are the same readings that set the
+      index date, so the window looks backward from the last of them rather
+      than forward to an admission. A reading cannot be both the index and a
+      qualifying prior reading, so the most recent one anchors the window and
+      the rest must fall inside it.
+    * ``on_bp_meds`` is unknown for most of this cohort, because a
+      reconciliation only exists if the patient also happened to attend the
+      emergency department. The engine will therefore abstain on
+      initiate-versus-intensify for most of them. That is correct behaviour and
+      it is why this is a secondary cohort: it measures staging concordance,
+      not the treatment decision.
+    """
+    window = config.WINDOW_PRIMARY_DAYS if window_days is None else window_days
+    need = config.MIN_READINGS_PRIMARY if min_dates is None else min_dates
+
+    src = config.HOSP / "omr.csv.gz" if omr is None else omr
+    bp = omr_bp.load_omr_bp(src)
+
+    last = (
+        bp.groupby("subject_id")["chartdate"].max()
+        .rename("index_admit").reset_index()
+    )
+    j = bp.merge(last, on="subject_id", how="inner")
+    days = (j["index_admit"] - j["chartdate"]).dt.days
+    # 0 <= days <= window: the index reading itself counts here, unlike the
+    # Primary cohort, because it IS the decision point rather than preceding one.
+    j = j[(days >= 0) & (days <= window)]
+
+    dates = j.groupby("subject_id")["chartdate"].nunique()
+    keep = set(dates[dates >= need].index)
+
+    index = last[last["subject_id"].isin(keep)].copy()
+    # No admission exists for this cohort; the join key stays null rather than
+    # being invented, so nothing downstream can mistake it for an encounter.
+    index["hadm_id"] = pd.NA
+    return (
+        index[["subject_id", "hadm_id", "index_admit"]].reset_index(drop=True),
+        j[j["subject_id"].isin(keep)].reset_index(drop=True),
+    )
+
+
+def text_cohort_hadms(
+    diagnoses: Any = None, admissions: Any = None
+) -> pd.DataFrame:
+    """Anchor patients' index admissions, with NO OMR requirement.
+
+    The Task-C text cohort: extraction fidelity does not need a chronic blood
+    pressure, because the note is what is being read. Its realised size is
+    whichever of these admissions has a usable discharge summary, which
+    ``notes.build_text_cohort`` determines.
+    """
+    return earliest_anchor_admit(diagnoses, admissions)

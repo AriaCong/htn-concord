@@ -157,3 +157,45 @@ def test_primary_cohort_applies_every_rule_together():
     # 1 qualifies. 2 has a medrecon-less stay AND one BP date. 5 has a medrecon
     # but no OMR. 3 is secondary HTN, 4 is not hypertensive.
     assert set(keep["subject_id"]) == {90000001}
+
+
+# --- OMR-only sub-cohort ----------------------------------------------------
+_OMR_ONLY = (
+    "subject_id,chartdate,seq_num,result_name,result_value\n"
+    # no HTN code anywhere: exactly the undiagnosed patient this cohort exists for
+    "90000009,2200-01-10,1,Blood Pressure,148/94\n"
+    "90000009,2200-03-10,1,Blood Pressure,152/96\n"
+    # only one distinct date
+    "90000010,2200-03-10,1,Blood Pressure,130/82\n"
+    "90000010,2200-03-10,1,Blood Pressure Sitting,132/84\n"
+)
+
+
+def test_omr_only_cohort_needs_no_hypertension_code():
+    keep, _ = cohort.omr_only_cohort(_b(_OMR_ONLY))
+    assert 90000009 in set(keep["subject_id"])
+
+
+def test_omr_only_cohort_still_needs_two_distinct_dates():
+    keep, _ = cohort.omr_only_cohort(_b(_OMR_ONLY))
+    assert 90000010 not in set(keep["subject_id"])
+
+
+def test_omr_only_index_is_the_most_recent_qualifying_reading():
+    """These patients have no admission, so the decision point is the last
+    outpatient encounter at which their pressure was measured."""
+    keep, _ = cohort.omr_only_cohort(_b(_OMR_ONLY))
+    assert keep.set_index("subject_id").loc[90000009, "index_admit"] == pd.Timestamp("2200-03-10")
+
+
+def test_omr_only_cohort_has_no_admission_id():
+    """Inventing a hadm_id would let something downstream treat this as an
+    encounter it is not."""
+    keep, _ = cohort.omr_only_cohort(_b(_OMR_ONLY))
+    assert keep["hadm_id"].isna().all()
+
+
+def test_text_cohort_does_not_require_any_blood_pressure():
+    """Extraction fidelity does not need a chronic BP -- the note is the input."""
+    out = cohort.text_cohort_hadms(_b(_DX), _b(_ADM))
+    assert 90000005 in set(out["subject_id"])   # anchor patient with no OMR
