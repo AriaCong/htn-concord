@@ -1,18 +1,20 @@
-"""Derived clinical variables shared across all sources (see DATA dict §6).
+"""Derived clinical variables shared across all sources.
 
 These turn cleaned columns into engine inputs: eGFR (CKD-EPI 2021 race-free),
 BP stage, diabetes resolution, CKD/albuminuria, contraindication flags, and the
 PREVENT 10-year risk score. Computing them here (not per-source) keeps the
-PatientProfile schema identical across NHANES / MIMIC / eICU.
+PatientProfile schema identical across NHANES / MIMIC / eICU. Thresholds come
+from ``vocab``, which is the single source of truth for both this module and
+``engine/``.
 """
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 
-from pipelines.common import prevent
+import vocab
 
-from . import config
+from . import prevent
 
 
 def egfr_ckdepi_2021(creatinine: pd.Series, age: pd.Series, sex: pd.Series) -> pd.Series:
@@ -47,7 +49,7 @@ def bp_stage(sbp: pd.Series, dbp: pd.Series) -> pd.Series:
     engine. This now mirrors the scalar rule exactly; ``vocab`` remains the single
     source of truth for both thresholds and ordering. Fixed 2026-07-18.
     """
-    t = config.BP_THRESHOLDS
+    t = vocab.BP_THRESHOLDS
     s = pd.to_numeric(sbp, errors="coerce")
     d = pd.to_numeric(dbp, errors="coerce")
     known = s.notna() & d.notna()
@@ -67,7 +69,7 @@ def resolve_diabetes(df: pd.DataFrame) -> pd.Series:
     self_dx = df.get("diabetes_self", pd.Series(pd.NA, index=df.index)).astype("boolean")
     if "hba1c" in df:
         a1c = pd.to_numeric(df["hba1c"], errors="coerce")
-        lab = (a1c >= config.HBA1C_DIABETES).astype("boolean").mask(a1c.isna())
+        lab = (a1c >= vocab.HBA1C_DIABETES).astype("boolean").mask(a1c.isna())
         # Kleene OR: True|NA=True, False|NA=NA, NA|NA=NA -> abstains only when truly unknown
         return self_dx | lab
     return self_dx
@@ -86,8 +88,8 @@ def ckd_albuminuria(egfr: pd.Series, uacr: pd.Series) -> pd.Series:
     """
     e = pd.to_numeric(egfr, errors="coerce")
     u = pd.to_numeric(uacr, errors="coerce")
-    low_egfr = (e < config.EGFR_CKD).astype("boolean").mask(e.isna())
-    high_uacr = (u >= config.UACR_ALBUMINURIA).astype("boolean").mask(u.isna())
+    low_egfr = (e < vocab.EGFR_CKD).astype("boolean").mask(e.isna())
+    high_uacr = (u >= vocab.UACR_ALBUMINURIA).astype("boolean").mask(u.isna())
     return low_egfr | high_uacr
 
 
@@ -98,7 +100,7 @@ def contraindications(df: pd.DataFrame) -> pd.Series:
     out = []
     for i in df.index:
         flags = []
-        if pd.notna(k.get(i)) and k[i] >= config.K_HYPERKALEMIA:
+        if pd.notna(k.get(i)) and k[i] >= vocab.K_HYPERKALEMIA:
             flags.append("hyperkalemia")
         # Pregnancy (HC-96), from DEMO.RIDEXPRG via clean_demo. Positive-only: only a
         # recorded pregnancy sets the flag, so "not ascertained" never reads as "not
