@@ -54,10 +54,24 @@ class PreventInputs:
 
 
 def _is_nan(v) -> bool:
+    """True for any value that is not a usable number.
+
+    Handles three shapes, because the sources differ: ``float('nan')`` from
+    NHANES's float64 columns, ``None``, and ``pandas.NA`` from the nullable
+    dtypes MIMIC's lab loader produces. ``pd.NA != pd.NA`` evaluates to ``pd.NA``
+    rather than True, and ``bool(pd.NA)`` raises, so the naive self-comparison
+    crashed on the first MIMIC row with a missing lipid.
+
+    An uncomparable value is treated as MISSING, not as present. That is the
+    conservative direction: it makes PREVENT return None, which the caller must
+    read as "abstain / no PREVENT trigger", never as low risk.
+    """
+    if v is None:
+        return True
     try:
-        return v != v  # noqa: PLR0124 - NaN check without importing math for scalars
+        return bool(v != v)  # noqa: PLR0124 - NaN check without importing math
     except Exception:
-        return False
+        return True
 
 
 # Order of transformed features. COEFFICIENTS (per sex) must supply one value for

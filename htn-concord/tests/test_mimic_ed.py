@@ -141,3 +141,35 @@ def test_hypertensive_urgency_flag_uses_acute_bp_only():
     flagged = ed.hypertensive_urgency(df)
     assert flagged[flagged["stay_id"] == 30000001].iloc[0]["hypertensive_urgency"] == True  # noqa: E712
     assert flagged[flagged["stay_id"] == 30000002].iloc[0]["hypertensive_urgency"] == False  # noqa: E712
+
+
+# --- dedupe scope (regression) ----------------------------------------------
+_MEDRECON_TWO_VISITS = (
+    "subject_id,stay_id,charttime,name,gsn,ndc,etc_rn,etccode,etcdescription\n"
+    "90000001,30000001,2200-01-05 08:30:00,Lisinopril,1,1,1,1,ACE Inhibitors\n"
+    # same patient, same drug, a LATER visit -- a different reconciliation event
+    "90000001,30000077,2201-01-05 08:30:00,Lisinopril,1,1,1,1,ACE Inhibitors\n"
+)
+
+
+def test_dedupe_is_scoped_to_the_stay_not_the_patient_history():
+    """Deduplicating on (subject, name, gsn) across the whole table drops the
+    later visit's row as a 'duplicate'. On the real table that destroys 46,809
+    ED stays outright, and a stay with no surviving rows is indistinguishable
+    from one that never had a reconciliation -- so on_bp_meds silently flips
+    from known to unknown and the patient abstains instead of being labelled."""
+    out = ed.med_classes_by_stay(_b(_MEDRECON_TWO_VISITS))
+    assert set(out["stay_id"]) == {30000001, 30000077}
+    for _, row in out.iterrows():
+        assert row["med_classes"] == ["acei"]
+
+
+def test_repeated_rows_within_one_stay_still_collapse():
+    """The dedupe must still do its original job."""
+    dup = (
+        "subject_id,stay_id,charttime,name,gsn,ndc,etc_rn,etccode,etcdescription\n"
+        "90000001,30000001,2200-01-05 08:30:00,Lisinopril,1,1,1,1,ACE Inhibitors\n"
+        "90000001,30000001,2200-01-05 09:30:00,Lisinopril,1,1,1,1,ACE Inhibitors\n"
+    )
+    out = ed.med_classes_by_stay(_b(dup))
+    assert out.iloc[0]["n_medrecon_rows"] == 1

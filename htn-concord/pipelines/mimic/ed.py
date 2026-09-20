@@ -55,11 +55,26 @@ def load_edstays(path_or_buf: Any) -> pd.DataFrame:
 # Home medications
 # ---------------------------------------------------------------------------
 def load_medrecon(path_or_buf: Any) -> pd.DataFrame:
-    """Reconciled home meds, deduplicated on (subject_id, name, gsn).
+    """Reconciled home meds, deduplicated **within a stay**.
 
-    The dedupe is required by the spec and is not cosmetic: medrecon repeats a
-    drug across reconciliation passes within one visit, and an undeduplicated
-    count would make a single agent look like several.
+    The dedupe key is (subject_id, stay_id, name, gsn). medrecon repeats a drug
+    across reconciliation passes within one visit, and an undeduplicated count
+    would make a single agent look like several.
+
+    ``stay_id`` is part of the key, and leaving it out is not a stylistic
+    choice. The spec writes the key as (subject_id, name, gsn), which reads
+    naturally as "within a visit" but, applied to the whole table, deduplicates
+    across a patient's entire history: the second visit's lisinopril row is
+    dropped as a duplicate of the first visit's. Measured on the real table that
+    destroys **46,809 ED stays outright** -- every row of those stays was a
+    repeat of a drug the same patient carried at an earlier visit -- taking
+    260,387 surviving stays where 307,196 exist.
+
+    The damage is not a row count. A stay that loses all its rows looks like a
+    stay that never had a reconciliation, so ``on_bp_meds`` silently flips from
+    a known value to unknown, and the patient abstains instead of being
+    labelled. Found by noticing that 780 profiles had an unknown medication
+    status in a cohort whose entry rule *requires* a reconciliation.
     """
     df = pd.read_csv(
         path_or_buf,
@@ -70,7 +85,9 @@ def load_medrecon(path_or_buf: Any) -> pd.DataFrame:
     df = df.dropna(subset=["stay_id"]).copy()
     df["stay_id"] = df["stay_id"].astype("int64")
     df["subject_id"] = df["subject_id"].astype("int64")
-    return df.drop_duplicates(subset=["subject_id", "name", "gsn"]).reset_index(drop=True)
+    return df.drop_duplicates(
+        subset=["subject_id", "stay_id", "name", "gsn"]
+    ).reset_index(drop=True)
 
 
 def _row_classes(row) -> list[str]:

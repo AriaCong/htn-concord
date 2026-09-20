@@ -64,3 +64,29 @@ def test_indicator_and_interaction_features():
 def test_risk_in_valid_range():
     risk = prevent.prevent_10yr_cvd_risk(_inputs())
     assert risk is not None and 0.0 <= risk <= 100.0
+
+
+# --- nullable-dtype safety (found by the first MIMIC build) -----------------
+def test_missing_inputs_of_every_flavour_yield_none_not_a_crash():
+    """MIMIC's lab loader emits pandas nullable dtypes, so a missing lipid
+    arrives as pd.NA rather than float nan. `pd.NA != pd.NA` is pd.NA, and
+    bool(pd.NA) raises -- the naive self-comparison crashed the first real
+    build. Every missing shape must read as missing and abstain."""
+    import pandas as pd
+
+    for missing in (float("nan"), None, pd.NA):
+        inp = prevent.PreventInputs(
+            age=60, sex="male", total_chol_mgdl=missing, hdl_mgdl=45,
+            sbp=140, on_bp_meds=False, diabetes=False, current_smoker=False,
+            egfr=90, statin=False,
+        )
+        assert prevent.prevent_10yr_cvd_risk(inp) is None, missing
+
+
+def test_a_complete_input_is_unaffected_by_the_na_guard():
+    inp = prevent.PreventInputs(
+        age=50, sex="female", total_chol_mgdl=200, hdl_mgdl=45, sbp=160,
+        on_bp_meds=True, diabetes=True, current_smoker=False, egfr=90,
+        statin=False,
+    )
+    assert prevent.prevent_10yr_cvd_risk(inp) == pytest.approx(14.684, abs=0.001)
