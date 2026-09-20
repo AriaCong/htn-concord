@@ -4,6 +4,15 @@ numpy==2.4.2
 jsonschema==4.23.0   # required: PatientProfile contract validation
 pytest==9.0.2        # tests (a branch without a test does not ship)
 
+# The only dependency that talks to a network. Pinned like everything else: the
+# request shape this project sends (output_config.format, effort, thinking) is a
+# recorded experimental parameter, so an unpinned SDK could change what a "same"
+# run sends without changing a line of our code.
+#
+# The import in runner/providers.py stays lazy on purpose, so `pytest` and CI
+# still run green without it installed and without a key.
+anthropic==1.7.0
+
 # Optional: faster columnar output that preserves list dtype natively. The CSV
 # output is already lossless (list columns JSON-encoded), so this is not required.
 # pyarrow>=15,<23

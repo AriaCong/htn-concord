@@ -18,13 +18,13 @@ import json
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 import jsonschema
 
 from runner.providers import Provider, ProviderRequest, _prompt_blob
 
-TRANSCRIPT_VERSION = "1.0"
+TRANSCRIPT_VERSION = "1.1"
 
 _SCHEMA_PATH = Path(__file__).resolve().parents[1] / "schemas" / "llm_output.schema.json"
 
@@ -36,13 +36,20 @@ _UNSUPPORTED = frozenset({
     "minItems", "maxItems", "uniqueItems",
 })
 
-# USD per token. Verify against current pricing before quoting a cost in the paper;
-# an unlisted model records a null cost rather than a wrong one.
+# USD per token, transcribed from the published price list (cached 2026-06-24).
+# An unlisted model records a null cost rather than a wrong one, so this table
+# being incomplete degrades to "no cost" — but the pilot is supposed to report a
+# cost, so the models it runs must be here. Re-check before quoting in a paper.
 _PRICES: dict[str, tuple[float, float]] = {
+    "claude-fable-5-1": (10e-6, 50e-6),
+    "claude-mythos-5-1": (10e-6, 50e-6),
     "claude-fable-5": (10e-6, 50e-6),
+    "claude-opus-5": (5e-6, 25e-6),
     "claude-opus-4-8": (5e-6, 25e-6),
     "claude-opus-4-7": (5e-6, 25e-6),
-    "claude-sonnet-5": (3e-6, 15e-6),
+    "claude-opus-4-6": (5e-6, 25e-6),
+    "claude-sonnet-5": (2e-6, 10e-6),
+    "claude-sonnet-4-6": (3e-6, 15e-6),
     "claude-haiku-4-5": (1e-6, 5e-6),
 }
 
@@ -58,10 +65,40 @@ DEFAULT_SYSTEM = (
 class MalformedOutputError(RuntimeError):
     """The model never produced schema-valid JSON within the retry budget."""
 
-    def __init__(self, message: str, raw_text: str, attempts: int) -> None:
+    def __init__(self, message: str, raw_text: str, attempts: int,
+                 attempt_log: Sequence[Mapping[str, Any]] = ()) -> None:
         super().__init__(message)
         self.raw_text = raw_text
         self.attempts = attempts
+        self.attempt_log = list(attempt_log)
+
+
+class TruncatedOutputError(MalformedOutputError):
+    """Every attempt stopped at `max_tokens`.
+
+    This is our ceiling being too low, not the model formatting badly, and the
+    two must not land in the same rate. Thinking tokens count against
+    `max_tokens`, so a value chosen before adaptive thinking was on will truncate
+    good answers and inflate the malformed-output rate with our own defect.
+    """
+
+
+class RefusalError(RuntimeError):
+    """The model declined to answer (`stop_reason == "refusal"`).
+
+    A refusal is a *result*, not a parse failure: on a clinical benchmark, "the
+    model would not answer this" is a finding, and it has to be reported as its
+    own outcome with its own denominator rather than folded into a
+    malformed-output rate. It is never retried — the same request earns the same
+    refusal, and paying for it twice tells us nothing.
+    """
+
+    def __init__(self, message: str, *, category: str | None = None,
+                 raw_text: str = "", stop_details: Mapping[str, Any] | None = None) -> None:
+        super().__init__(message)
+        self.category = category
+        self.raw_text = raw_text
+        self.stop_details = dict(stop_details) if stop_details else None
 
 
 @dataclass(frozen=True)
@@ -143,12 +180,25 @@ def run_case(
     case_id: str | None = None,
     task: str | None = None,
     max_attempts: int = 3,
-    max_tokens: int = 4096,
+    max_tokens: int = 16000,
 ) -> RunResult:
     """Run one benchmark case and return the validated output plus its transcript.
 
     `profile` is the hidden structured row. It is hashed for linkage and never
     sent to the model.
+
+    Three failures are distinguished rather than pooled, because the pilot reports
+    a failure-mode table and pooling them would make it unreadable:
+
+    * `RefusalError` — the model declined. Not retried.
+    * `TruncatedOutputError` — every attempt hit `max_tokens`. Our ceiling, not
+      the model's formatting.
+    * `MalformedOutputError` — the model produced text that is not schema-valid
+      JSON. This is the only one of the three that is a malformed-output rate.
+
+    `max_tokens` defaults to 16000 because thinking tokens count against it; the
+    old 4096 was set before adaptive thinking was on by default and would have
+    charged our own configuration to the model's formatting.
     """
     full_schema = load_output_schema()
     validator = jsonschema.Draft7Validator(full_schema)
@@ -162,21 +212,57 @@ def run_case(
         max_tokens=max_tokens,
     )
 
-    malformed: list[str] = []
+    attempt_log: list[dict[str, Any]] = []
     last_text = ""
     started = time.monotonic()
+
+    effort = getattr(provider, "effort", None)
+    thinking = getattr(provider, "thinking", None)
 
     for attempt in range(1, max_attempts + 1):
         response = provider.complete(request)
         last_text = response.text
-        try:
-            candidate = _extract_json(response.text)
-            validator.validate(candidate)
-        except (json.JSONDecodeError, ValueError, jsonschema.ValidationError) as exc:
-            malformed.append(f"attempt {attempt}: {type(exc).__name__}: {exc}")
+
+        # A refusal is an answer, and retrying it buys the same answer again.
+        if response.stop_reason == "refusal":
+            details = response.stop_details or {}
+            raise RefusalError(
+                "model declined to answer "
+                f"(category={details.get('category')!r}): "
+                f"{details.get('explanation') or 'no explanation given'}",
+                category=details.get("category"),
+                raw_text=response.text,
+                stop_details=response.stop_details,
+            )
+
+        if response.stop_reason == "max_tokens":
+            attempt_log.append({
+                "attempt": attempt, "outcome": "truncated",
+                "detail": f"stopped at max_tokens={max_tokens}",
+            })
             continue
 
+        try:
+            candidate = _extract_json(response.text)
+        except (json.JSONDecodeError, ValueError) as exc:
+            attempt_log.append({
+                "attempt": attempt, "outcome": "invalid_json",
+                "detail": f"{type(exc).__name__}: {exc}",
+            })
+            continue
+
+        try:
+            validator.validate(candidate)
+        except jsonschema.ValidationError as exc:
+            attempt_log.append({
+                "attempt": attempt, "outcome": "schema_violation",
+                "detail": f"{exc.message} at {'/'.join(str(p) for p in exc.absolute_path)}",
+            })
+            continue
+
+        attempt_log.append({"attempt": attempt, "outcome": "ok", "detail": None})
         latency_ms = int((time.monotonic() - started) * 1000)
+        malformed = [a for a in attempt_log if a["outcome"] != "ok"]
         transcript = {
             "transcript_version": TRANSCRIPT_VERSION,
             "case_id": case_id,
@@ -191,6 +277,8 @@ def run_case(
             "request": {
                 "output_schema_sha256": _sha256(_canonical(full_schema)),
                 "max_tokens": max_tokens,
+                "effort": effort,
+                "thinking": dict(thinking) if thinking else None,
             },
             "response": {
                 "raw_text": response.text,
@@ -198,8 +286,10 @@ def run_case(
                 "stop_reason": response.stop_reason,
             },
             "attempts": attempt,
+            "attempt_log": attempt_log,
             "malformed_attempts": len(malformed),
-            "malformed_detail": malformed,
+            "malformed_detail": [f"attempt {a['attempt']}: {a['outcome']}: {a['detail']}"
+                                 for a in malformed],
             "usage": {
                 "input_tokens": response.input_tokens,
                 "output_tokens": response.output_tokens,
@@ -216,10 +306,16 @@ def run_case(
             malformed_attempts=len(malformed),
         )
 
-    raise MalformedOutputError(
-        f"no schema-valid JSON after {max_attempts} attempt(s): " + "; ".join(malformed),
+    summary = "; ".join(f"attempt {a['attempt']}: {a['outcome']}: {a['detail']}"
+                        for a in attempt_log)
+    error = (TruncatedOutputError
+             if attempt_log and all(a["outcome"] == "truncated" for a in attempt_log)
+             else MalformedOutputError)
+    raise error(
+        f"no schema-valid JSON after {max_attempts} attempt(s): {summary}",
         raw_text=last_text,
         attempts=max_attempts,
+        attempt_log=attempt_log,
     )
 
 

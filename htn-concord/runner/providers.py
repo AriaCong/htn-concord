@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Protocol
+from types import MappingProxyType
+from typing import Any, Callable, Mapping, Protocol
 
 
 @dataclass(frozen=True)
@@ -23,12 +24,19 @@ class ProviderRequest:
 
 @dataclass(frozen=True)
 class ProviderResponse:
-    """Raw model output plus the accounting the transcript needs."""
+    """Raw model output plus the accounting the transcript needs.
+
+    `stop_reason` is load-bearing, not bookkeeping: it is what separates a model
+    that declined to answer (`refusal`) and a reply our own token ceiling cut off
+    (`max_tokens`) from a model that genuinely emitted bad JSON. Collapsing the
+    three would report all of them as a malformed-output rate.
+    """
     text: str
     model: str
     input_tokens: int = 0
     output_tokens: int = 0
     stop_reason: str | None = None
+    stop_details: Mapping[str, Any] | None = None
 
 
 class Provider(Protocol):
@@ -49,6 +57,8 @@ class ScriptedProvider:
     name: str = "scripted"
     input_tokens: int = 100
     output_tokens: int = 50
+    stop_reason: str = "end_turn"
+    stop_details: Mapping[str, Any] | None = None
     calls: list[ProviderRequest] = field(default_factory=list)
     _next: int = 0
 
@@ -66,7 +76,8 @@ class ScriptedProvider:
             model=request.model,
             input_tokens=self.input_tokens,
             output_tokens=self.output_tokens,
-            stop_reason="end_turn",
+            stop_reason=self.stop_reason,
+            stop_details=self.stop_details,
         )
 
 
@@ -112,22 +123,39 @@ def _prompt_blob(system: str | None, user: str) -> str:
 class AnthropicProvider:
     """Calls a real Claude model in strict JSON mode.
 
-    Determinism note (HC-61): there is no temperature/top_p/top_k and no seed to
+    **Determinism (HC-64).** There is no temperature/top_p/top_k and no seed to
     pin — those parameters are rejected on current frontier models. Run-to-run
-    reproducibility therefore comes from the stored transcript (ReplayProvider),
-    not from sampling control. `effort` is pinned because it changes answer
-    quality and so must be recorded and held fixed across a benchmark freeze.
+    reproducibility comes from the stored transcript (`ReplayProvider`), not from
+    sampling control. What *is* pinned and recorded is `effort` and `thinking`:
+    both change answer quality, so a benchmark that leaves them to whatever the
+    API defaults to this month is not comparing like with like.
+
+    **Thinking is on, deliberately.** Adaptive thinking is what the model uses to
+    do the multi-step work this benchmark measures — stage, stratify risk, check
+    contraindications, choose. Turning it off would measure a different system.
+    It is declared explicitly rather than left to the model default, because the
+    default differs between model generations.
+
+    **No server-side refusal fallback, deliberately.** The API can silently
+    re-route a refused request to another model. Model identity is a crossed
+    factor in this design and is recorded per call, so a substituted answer would
+    be a result attributed to the wrong model. A refusal must surface as a
+    refusal — see `RefusalError`.
     """
 
     name = "anthropic"
 
-    def __init__(self, client: Any = None, effort: str = "high") -> None:
+    DEFAULT_THINKING: Mapping[str, Any] = MappingProxyType({"type": "adaptive"})
+
+    def __init__(self, client: Any = None, effort: str = "high",
+                 thinking: Mapping[str, Any] | None = None) -> None:
         if client is None:
             import anthropic  # imported lazily: not needed for tests or CI
 
             client = anthropic.Anthropic()
         self._client = client
         self.effort = effort
+        self.thinking = dict(self.DEFAULT_THINKING if thinking is None else thinking)
 
     def complete(self, request: ProviderRequest) -> ProviderResponse:
         kwargs: dict[str, Any] = {
@@ -137,18 +165,186 @@ class AnthropicProvider:
                 "format": {"type": "json_schema", "schema": dict(request.output_schema)},
                 "effort": self.effort,
             },
+            "thinking": dict(self.thinking),
             "messages": [{"role": "user", "content": request.user}],
         }
         if request.system is not None:
             kwargs["system"] = request.system
 
         message = self._client.messages.create(**kwargs)
-        text = "".join(b.text for b in message.content if getattr(b, "type", None) == "text")
+
+        # Only text blocks. A response may also carry thinking blocks, and feeding
+        # those to the JSON parser would turn a good answer into a parse failure.
+        text = "".join(b.text for b in message.content
+                       if getattr(b, "type", None) == "text")
         usage = getattr(message, "usage", None)
+        details = getattr(message, "stop_details", None)
         return ProviderResponse(
             text=text,
             model=getattr(message, "model", request.model),
             input_tokens=getattr(usage, "input_tokens", 0) or 0,
             output_tokens=getattr(usage, "output_tokens", 0) or 0,
             stop_reason=getattr(message, "stop_reason", None),
+            stop_details=_as_mapping(details),
         )
+
+
+def _as_mapping(value: Any) -> dict[str, Any] | None:
+    """Normalize the SDK's stop_details object (or dict, or None) to a dict."""
+    if value is None:
+        return None
+    if isinstance(value, Mapping):
+        return dict(value)
+    for attr in ("model_dump", "to_dict", "dict"):
+        dumper = getattr(value, attr, None)
+        if callable(dumper):
+            try:
+                return dict(dumper())
+            except Exception:  # pragma: no cover - defensive against SDK drift
+                pass
+    return {k: v for k, v in vars(value).items() if not k.startswith("_")}
+
+
+# ---------------------------------------------------------------------------
+# The open-weight arm (HC-61, decision D3)
+# ---------------------------------------------------------------------------
+
+#: Hosted endpoints that speak the OpenAI-compatible chat-completions shape.
+#: The *provider* is configuration; the *model version* is an experimental
+#: variable and must be written out in full, never as a floating alias like
+#: "-latest", because a floating alias silently changes what a "same" run ran.
+OPENAI_COMPATIBLE_ENDPOINTS: Mapping[str, str] = MappingProxyType({
+    "together": "https://api.together.xyz/v1",
+    "fireworks": "https://api.fireworks.ai/inference/v1",
+    "groq": "https://api.groq.com/openai/v1",
+    "openrouter": "https://openrouter.ai/api/v1",
+})
+
+
+class OpenAICompatibleProvider:
+    """The second arm: an open-weight model behind an OpenAI-compatible endpoint.
+
+    **Why open weights are the second arm** (decision D3, resolved 2026-09-20).
+    The design requires a failure mode to replicate across models before it is
+    reported as a finding. That bar needs a second model that is *genuinely
+    different* — a different lab, different data, different training — rather than
+    a smaller sibling of the first. Open weights add a reproducibility property
+    the frontier arm cannot have: the weights can be pinned by version and
+    re-run years later, whereas an API model may be withdrawn or silently updated.
+
+    **Raw HTTP on purpose.** The chat-completions wire shape is small, stable and
+    identical across the endpoints above; adding a vendor SDK would pin a
+    dependency whose surface is not part of the experiment. The request is
+    written out in full here so the recorded wire shape *is* the code.
+
+    **Structured-output support varies by host.** `json_schema` is requested when
+    `structured_outputs=True` and `json_object` otherwise. Either way the reply is
+    validated locally against the full `llm_output.schema.json` — the local
+    validator is the contract, exactly as for the Anthropic arm.
+
+    ⚠️ **Never executed against a live endpoint.** Pinned by hermetic test only,
+    with no credential available at the time of writing. Treat its malformed-
+    output rate as unmeasured until a real call has been made — the same warning
+    `AnthropicProvider` carried, and it is repeated rather than quietly dropped.
+    """
+
+    name = "openai_compatible"
+
+    def __init__(self, model_label: str, *, base_url: str, api_key: str,
+                 temperature: float | None = None,
+                 structured_outputs: bool = True,
+                 timeout: float = 600.0,
+                 transport: Callable[[str, Mapping[str, Any], Mapping[str, str], float],
+                                     Mapping[str, Any]] | None = None) -> None:
+        self.model_label = model_label
+        self.base_url = base_url.rstrip("/")
+        self._api_key = api_key
+        self.temperature = temperature
+        self.structured_outputs = structured_outputs
+        self.timeout = timeout
+        self._transport = transport or _post_json
+
+    @classmethod
+    def for_host(cls, host: str, model_label: str, *, api_key: str, **kwargs: Any
+                 ) -> "OpenAICompatibleProvider":
+        try:
+            base_url = OPENAI_COMPATIBLE_ENDPOINTS[host]
+        except KeyError:
+            raise ValueError(
+                f"unknown host {host!r}; known: "
+                f"{', '.join(sorted(OPENAI_COMPATIBLE_ENDPOINTS))}. "
+                "Pass base_url= directly for anything else."
+            ) from None
+        return cls(model_label, base_url=base_url, api_key=api_key, **kwargs)
+
+    def complete(self, request: ProviderRequest) -> ProviderResponse:
+        messages: list[dict[str, Any]] = []
+        if request.system is not None:
+            messages.append({"role": "system", "content": request.system})
+        messages.append({"role": "user", "content": request.user})
+
+        body: dict[str, Any] = {
+            "model": self.model_label,
+            "max_tokens": request.max_tokens,
+            "messages": messages,
+        }
+        if self.structured_outputs:
+            body["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {"name": "llm_output", "strict": True,
+                                "schema": dict(request.output_schema)},
+            }
+        else:
+            body["response_format"] = {"type": "json_object"}
+        # Open-weight hosts *do* accept temperature. Sending it is a deliberate
+        # choice recorded in the transcript, not a default: leaving it unset means
+        # the host's default applies, which is exactly the unrecorded variable
+        # HC-64 is about.
+        if self.temperature is not None:
+            body["temperature"] = self.temperature
+
+        payload = self._transport(
+            f"{self.base_url}/chat/completions",
+            body,
+            {"Authorization": f"Bearer {self._api_key}",
+             "Content-Type": "application/json"},
+            self.timeout,
+        )
+
+        choice = (payload.get("choices") or [{}])[0]
+        text = ((choice.get("message") or {}).get("content")) or ""
+        usage = payload.get("usage") or {}
+        finish = choice.get("finish_reason")
+        return ProviderResponse(
+            text=text,
+            model=payload.get("model") or self.model_label,
+            input_tokens=usage.get("prompt_tokens", 0) or 0,
+            output_tokens=usage.get("completion_tokens", 0) or 0,
+            # Normalized to the vocabulary run_case branches on, so one chain of
+            # outcome handling covers both arms.
+            stop_reason=_NORMALIZED_FINISH.get(finish, finish),
+            stop_details={"finish_reason": finish} if finish else None,
+        )
+
+
+_NORMALIZED_FINISH: Mapping[str, str] = MappingProxyType({
+    "stop": "end_turn",
+    "length": "max_tokens",
+    "content_filter": "refusal",
+})
+
+
+def _post_json(url: str, body: Mapping[str, Any], headers: Mapping[str, str],
+               timeout: float) -> dict[str, Any]:
+    """POST JSON with the standard library. No vendor SDK, no new dependency."""
+    import urllib.error
+    import urllib.request
+
+    data = json.dumps(body).encode("utf-8")
+    req = urllib.request.Request(url, data=data, headers=dict(headers), method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:  # pragma: no cover - needs a live host
+        detail = exc.read().decode("utf-8", "replace")[:2000]
+        raise RuntimeError(f"{url} returned HTTP {exc.code}: {detail}") from exc

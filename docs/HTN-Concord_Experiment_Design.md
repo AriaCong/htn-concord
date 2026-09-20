@@ -252,7 +252,7 @@ clinician-in-the-loop study design — explicitly out of scope here.
 | # | Decision | Why it must be resolved before the run |
 |---|---|---|
 | D1 | Confirm the 2×2 retrieval×tool secondary block (§2) — cost vs. reviewer-proofing | Changes the run budget and the freeze contents |
-| D2 | Fix k (replicates) at 5 — or raise it if pilot SD is large | Multiplies total call cost by k |
+| D2 | Fix k (replicates) at 5 — or raise it if pilot SD is large | Multiplies total call cost by k. **Threshold now defined:** K6 raises k if the median across-replicate SD exceeds 0.05 |
 | D3 | Which open-weight model is the second arm (HC-61) | Determines whether the "replicates across models" bar can be met |
 | D4 | Whether ESC 2024 comparator lands in Paper 1 or Paper 2 | Scope of the reference-standard section |
 | D5 | Transcribe TRIPOD-LLM item numbers from the published checklist (HC-93) | The mapping in §6 is topic-level until this is done |
@@ -325,8 +325,28 @@ set (HC-95).
 
 ## 11. Order of execution
 
-The pilot (HC-80) runs **C1 only, moderate level, 20 patients × 2 models** and exists to kill the
-benchmark early if it lacks discriminative power (all levels near ceiling, or frontier ≈ open-weight
-everywhere). **No ladder condition beyond C1 is worth building until the pilot shows the corpus can
-separate models.** After the pilot: freeze (§4.7), then C0/C1 full, then C2/C3 as their gating tickets
-land, then C3g and C4.
+The pilot (HC-80) runs **C1 only, all three difficulty levels, 20 patients × 2 models ×
+k = 5 replicates** (600 calls) and exists to kill the benchmark early if it lacks discriminative power
+(all levels near ceiling, or frontier ≈ open-weight everywhere). **No ladder condition beyond C1 is
+worth building until the pilot shows the corpus can separate models.** After the pilot: freeze (§4.7),
+then C0/C1 full, then C2/C3 as their gating tickets land, then C3g and C4.
+
+> **Corrected 2026-09-20 — this section previously said "moderate level only", and contradicted
+> itself.** It stated the kill criterion as *"all difficulties near ceiling"*, which a moderate-only
+> run cannot evaluate: one level cannot tell you about three. The backlog's scope (20 × 3 levels × 2
+> models) is the one consistent with the stated criteria, and is now the scope in both documents.
+> The pilot also has to run replicates — §4.4 fixes k = 5 and decision D2 says to raise it if the
+> pilot's SD is large, so a single pass could not inform the decision it exists to inform.
+> Full reasoning, and the criteria themselves: `HTN-Concord_Pilot_Kill_Criteria.md` §7.
+
+**The kill criteria are pre-registered and signed.** They were written and signed off by Aria on
+2026-09-20 **before any pilot call was made**, because a gate whose thresholds are written after the
+results is not a gate. Six criteria (ceiling, flat ladder, models indistinguishable, floor, harness
+unusable, replicate variance) with the verdict rule fixed in advance; they live in
+`HTN-Concord_Pilot_Kill_Criteria.md` and are implemented as `experiments/kill_criteria.py` so the
+thresholds cannot be reinterpreted once numbers are on the screen.
+
+**Pilot numbers are not results.** They inform a go/no-go and nothing else, and they are provisional
+until HC-57 (the human facts-only sign-off) closes. At 20 patients the 95% CI half-width is roughly
+±18 pp, so the gate is a smoke test for gross failure: a kill verdict is strong evidence, a pass is
+weak evidence and means only that no gross failure was detected.
