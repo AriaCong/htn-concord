@@ -15,90 +15,24 @@ import re
 
 import pandas as pd
 
-import vocab
-
-from . import config
+from . import cohort, config, ed
 
 _BP_RE = re.compile(r"^\s*\d{2,3}\s*/\s*\d{2,3}")  # "120/80"-ish
 
 
-def _anchor_subject_hadms() -> pd.DataFrame:
-    """Rows (subject_id, hadm_id) whose diagnosis is an HTN anchor code."""
-    dx = pd.read_csv(
-        config.HOSP / "diagnoses_icd.csv.gz",
-        usecols=["subject_id", "hadm_id", "icd_code", "icd_version"],
-        dtype={"icd_code": "string", "icd_version": "Int64"},
-    )
-    # Classify only the distinct (code, version) pairs, then map back — cheap.
-    pairs = dx[["icd_code", "icd_version"]].drop_duplicates()
-    pairs["is_anchor"] = pairs.apply(
-        lambda r: vocab.is_htn_anchor(r["icd_code"], int(r["icd_version"])), axis=1
-    )
-    anchor_codes = pairs[pairs["is_anchor"]][["icd_code", "icd_version"]]
-    anchor = dx.merge(anchor_codes, on=["icd_code", "icd_version"], how="inner")
-    return anchor[["subject_id", "hadm_id"]].drop_duplicates()
-
-
-def _earliest_anchor_admit() -> pd.DataFrame:
-    """Per subject: the earliest anchor encounter, with its hadm_id retained.
-
-    hadm_id is required for the ED-linkage join (HC-26). The previous version
-    dropped it, which is why the ED-linked count had to be established outside
-    this module. Ties on admittime are broken by the smallest hadm_id so the
-    index encounter is deterministic across runs -- idxmin alone would pick
-    whichever row the groupby happened to see first.
-    """
-    anchor = _anchor_subject_hadms()
-    adm = pd.read_csv(
-        config.HOSP / "admissions.csv.gz",
-        usecols=["subject_id", "hadm_id", "admittime"],
-        parse_dates=["admittime"],
-    )
-    merged = anchor.merge(adm, on=["subject_id", "hadm_id"], how="inner")
-    merged = merged.sort_values(["subject_id", "admittime", "hadm_id"])
-    idx = merged.drop_duplicates(subset="subject_id", keep="first")
-    return (
-        idx[["subject_id", "hadm_id", "admittime"]]
-        .rename(columns={"admittime": "index_admit"})
-        .reset_index(drop=True)
-    )
+# The anchor, index-encounter and ED-linkage rules live in cohort.py, which is
+# the single home of the cohort definition. They are re-exported here rather
+# than reimplemented: the attrition waterfall has to justify the cohort the
+# profile builder actually produces, and two copies would eventually disagree.
+_anchor_subject_hadms = cohort.anchor_subject_hadms
+_earliest_anchor_admit = cohort.earliest_anchor_admit
+ed_linked_hadms = cohort.ed_linked_hadms
+hadms_with_medrecon = cohort.hadms_with_medrecon
 
 
 def _edstays() -> pd.DataFrame:
-    """[subject_id, hadm_id, stay_id] for every ED visit that reached a hospital
-    admission. stay_id is the key medrecon is filed under, not hadm_id."""
-    ed = pd.read_csv(
-        config.ED / "edstays.csv.gz",
-        usecols=["subject_id", "hadm_id", "stay_id"],
-        dtype={"hadm_id": "Int64", "stay_id": "Int64"},
-    )
-    return ed.dropna(subset=["hadm_id"])
-
-
-def ed_linked_hadms() -> set[int]:
-    """hadm_ids that have an ED stay -- the precondition for medrecon.
-
-    medrecon is the ONLY leakage-safe source of on_bp_meds, and on_bp_meds is
-    the variable separating initiate from intensify. An encounter without ED
-    linkage cannot receive the primary decision label (HC-26).
-    """
-    return set(_edstays()["hadm_id"].astype(int).tolist())
-
-
-def hadms_with_medrecon() -> set[int]:
-    """hadm_ids whose OWN ED stay has at least one reconciled home-med row.
-
-    Deliberately stay-level. Asking merely whether the subject has a medrecon
-    somewhere in their history is looser and inflates the decision cohort: the
-    reconciliation that establishes on_bp_meds has to belong to the index visit,
-    or it is describing a different point in time.
-    """
-    rec_stays = set(
-        pd.read_csv(config.ED / "medrecon.csv.gz", usecols=["stay_id"])
-        ["stay_id"].dropna().astype(int).unique().tolist()
-    )
-    ed = _edstays()
-    return set(ed[ed["stay_id"].isin(rec_stays)]["hadm_id"].astype(int).tolist())
+    """[subject_id, hadm_id, stay_id] for ED visits that reached an admission."""
+    return ed.load_edstays(config.ED / "edstays.csv.gz")
 
 
 def project_label_yield(primary: pd.DataFrame, flags: pd.DataFrame) -> dict:

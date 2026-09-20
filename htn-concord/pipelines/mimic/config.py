@@ -59,4 +59,6 @@ LAB_LOOKBACK_SENSITIVITY_DAYS = 730
 LAB_CHUNK_ROWS = 5_000_000
 
 INTERIM = ROOT / "data" / "mimic" / "interim"
-INTERIM.mkdir(parents=True, exist_ok=True)
+PROCESSED = ROOT / "data" / "mimic" / "processed"
+for _p in (INTERIM, PROCESSED):
+    _p.mkdir(parents=True, exist_ok=True)
