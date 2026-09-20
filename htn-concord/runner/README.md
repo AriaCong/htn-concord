@@ -5,13 +5,13 @@ engine) and downstream (evaluator, metrics) is a pure function, so confining the
 model boundary to this module is what keeps the rest of the project reproducible.
 
 ```python
-from runner import run_case, AnthropicProvider
+from runner import run_case, OpenAIProvider
 
 result = run_case(
-    model="claude-opus-5",
+    model="gpt-6-astra",
     prompt_input=vignette_text,     # the ONLY thing the model sees
     profile=hidden_row,             # hashed for linkage, never sent
-    provider=AnthropicProvider(),
+    provider=OpenAIProvider(),
     case_id="nhanes-12345",
     task="B",
 )
@@ -91,21 +91,58 @@ latency.
 
 ## The two arms (HC-61, decision D3)
 
-| arm | class | notes |
+| arm | class | model |
 |---|---|---|
-| frontier | `AnthropicProvider` | `claude-opus-5`. `anthropic==1.7.0`, pinned in `requirements.txt`; the import stays lazy so `pytest` and CI still run green with no SDK and no key. |
-| open-weight | `OpenAICompatibleProvider` | A large open-weight model behind a hosted OpenAI-compatible endpoint (Together / Fireworks / Groq / OpenRouter). Raw HTTP on the standard library — the wire shape is small and stable, and writing it out means the recorded shape *is* the code. |
+| **frontier** | `OpenAIProvider` | `gpt-6-astra` (override with `FRONTIER_MODEL`) |
+| open-weight | `OpenAICompatibleProvider` | a large open-weight model on a hosted OpenAI-compatible endpoint (Together / Fireworks / Groq / OpenRouter) |
+| *(retained)* | `AnthropicProvider` | still built and tested; select it with `FRONTIER_MODEL=claude-opus-5` |
+
+**The frontier arm changed from Claude to OpenAI on 2026-09-20**, at Aria's
+request. That is a change to what the experiment compares — not a transport
+detail — so it is recorded as a pre-call amendment in the signed
+`docs/HTN-Concord_Pilot_Kill_Criteria.md`. `AnthropicProvider` is kept rather
+than deleted: it is covered by tests, costs nothing to keep, and preserves the
+option of a third arm.
 
 The open-weight arm exists because the design only reports a failure mode as a
 finding if it replicates across models, and that needs a genuinely different
 model rather than a smaller sibling. Open weights also add a reproducibility
-property the frontier arm cannot have: they can be pinned by version and re-run
-later, whereas an API model may be withdrawn or silently updated. **Pin the exact
-version string — never a floating alias**, which would change what a "same" run
-ran without changing a line of code.
+property no API model has: they can be pinned by version and re-run later.
 
-Both arms normalize onto one outcome vocabulary (`end_turn` / `max_tokens` /
-`refusal`), so the pilot's failure-mode table means the same thing per model.
+All three providers normalize onto one outcome vocabulary (`end_turn` /
+`max_tokens` / `refusal`), so the pilot's failure-mode table means the same thing
+per model.
+
+### What differs per provider, and why it matters
+
+Each of these would have broken or silently corrupted a first live call. All are
+taken from the installed SDKs' own type definitions, not from memory.
+
+| | Anthropic | OpenAI | OpenAI-compatible hosts |
+|---|---|---|---|
+| output ceiling | `max_tokens` | **`max_completion_tokens`** — `max_tokens` is deprecated and *rejected by reasoning models* | `max_tokens` |
+| effort knob | `effort` (in `output_config`) | **`reasoning_effort`** | none; `temperature` exists and is deliberately not sent |
+| reasoning | `thinking: {type: "adaptive"}`, counted inside `output_tokens` | on by default; `reasoning_tokens` reported separately and **billed as output** | n/a |
+| refusal | `stop_reason == "refusal"` + `stop_details` | **`message.refusal`, with `content: null`** | `finish_reason == "content_filter"` |
+
+The OpenAI refusal shape is the sharpest trap: reading only `message.content`
+yields an empty string, which parses as malformed JSON — scoring a declined
+clinical question as a formatting failure. On a clinical benchmark that is the
+difference between a finding and a bug.
+
+### ⚠️ The frontier arm cannot be fully version-pinned
+
+`gpt-6-astra` publishes **no dated snapshot id** — the floating name is the only
+id there is. The model behind it can therefore change without the string
+changing, which is precisely the failure mode this project's pinning discipline
+exists to prevent, and it cannot be prevented here.
+
+The mitigation is partial and should be described as partial: every call records
+the model id the API reports back, plus the full transcript, so a change is
+**detectable after the fact** rather than preventable. If a dated snapshot is
+published later, pin it and note the switch. This is a limitation of the arm, not
+of the harness, and it belongs in the manuscript's reproducibility section beside
+the archival-vs-sampling distinction.
 
 ## Verification status
 
@@ -116,16 +153,17 @@ key and CI stays offline and deterministic. The pilot harness
 (`experiments/kill_criteria.py`) are covered the same way, and the whole pipeline
 has been dry-run end to end against the **real** corpus with a scripted model.
 
-⚠️ **Neither `AnthropicProvider` nor `OpenAICompatibleProvider` has been executed
-against a live API.** No credential existed on the machine when they were written
-(2026-09-20): no `ANTHROPIC_API_KEY`, no `ANTHROPIC_AUTH_TOKEN`, no `ant` CLI, no
-OAuth profile. The request shapes are pinned by test against mocks and derived
+⚠️ **No provider here has been executed against a live API** —
+`OpenAIProvider`, `AnthropicProvider` and `OpenAICompatibleProvider` alike. No
+credential existed on the machine when they were written (2026-09-20): no
+`OPENAI_API_KEY`, no `ANTHROPIC_API_KEY`, no `ANTHROPIC_AUTH_TOKEN`, no `ant`
+CLI, no OAuth profile. The request shapes are pinned by test against mocks and derived
 from the current API reference rather than from memory — but a shape that passes
 a mock is a shape no server has accepted yet.
 
 **Therefore the malformed-output rate is still unmeasured**, and it is one of the
 numbers the pilot is required to report. Do not quote it, and do not let a table
-imply it exists. To close this: put a key in `htn-concord/.env` (gitignored) and
+imply it exists. To close this: put `OPENAI_API_KEY` in `htn-concord/.env` (gitignored) and
 run `python scripts/run_pilot.py smoke` — one case, end to end, validated against
 the *full* schema. The first live call is also the first real test of whether the
 API accepts the stripped schema.

@@ -38,7 +38,7 @@ the backlog. See §7 for the reasoning and the doc changes.
 | Condition | **C1 only** (rendered vignette, parametric memory, model's own arithmetic) |
 | Patients | **20**, drawn from the **test** split, stratified by engine decision |
 | Levels | **all three** — simple, moderate, hard |
-| Models | **2** — one frontier, one open-weight (D3) |
+| Models | **2** — one frontier (`gpt-6-astra`), one open-weight (D3) |
 | Replicates | **k = 5** per case per model (design §4.4) |
 | Total calls | **20 × 3 × 2 × 5 = 600** |
 
@@ -219,6 +219,9 @@ the verdict they produce will be accepted — **including if it is *stop***.
 - **Approved:** as written, including the §6 framing that this pilot is a smoke
   test for gross failure and that "no kill" does **not** mean the benchmark
   discriminates
+- **Frontier arm:** `gpt-6-astra`. Changed from `claude-opus-5` on 2026-09-20
+  (see the change log below); the change was made before any pilot call, and
+  altered no criterion, threshold or verdict rule
 - **Open-weight arm (D3):** a large open-weight model through a hosted API,
   pinned by exact version string at run time and recorded per call. Family and
   provider selected by the implementer; the decision to use a *hosted frontier-class
@@ -233,3 +236,4 @@ here with its reason and its date, not edited silently.*
 |---|---|---|
 | 2026-09-20 | Created | Pre-registration before any call |
 | 2026-09-20 | Signed by Aria, approved as written; D3 resolved to a hosted open-weight arm | Sign-off obtained before any pilot call, per HC-80 |
+| 2026-09-20 | **Frontier arm changed from Claude (`claude-opus-5`) to OpenAI (`gpt-6-astra`).** Aria's request. **Pre-call amendment — no pilot call had been made**, so this is not a protocol deviation. No threshold, criterion or verdict rule changed; K3 still compares the frontier arm against the open-weight arm. Two consequences recorded rather than absorbed silently: (a) the frontier arm **publishes no dated snapshot id**, so it cannot be version-pinned — the id the API reports is recorded per call, which makes a silent model change detectable after the fact but not preventable, and this belongs in the manuscript's reproducibility section; (b) the pinned effort knob is now `reasoning_effort=high` rather than Anthropic's `effort=high` — comparable in role, not identical in meaning, so it is recorded per call as before | Requested change of what the experiment compares |

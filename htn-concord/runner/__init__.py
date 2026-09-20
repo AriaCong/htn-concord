@@ -19,6 +19,7 @@ from __future__ import annotations
 from runner.providers import (
     AnthropicProvider,
     OpenAICompatibleProvider,
+    OpenAIProvider,
     ProviderRequest,
     ProviderResponse,
     ReplayProvider,
@@ -40,6 +41,7 @@ __all__ = [
     "AnthropicProvider",
     "MalformedOutputError",
     "OpenAICompatibleProvider",
+    "OpenAIProvider",
     "ProviderRequest",
     "RefusalError",
     "ProviderResponse",

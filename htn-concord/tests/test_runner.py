@@ -324,7 +324,11 @@ def test_anthropic_provider_reports_real_usage():
     client = _FakeClient(_valid_json_text())
     result = run_case(model="claude-opus-4-8", prompt_input=PROMPT, profile=None,
                       provider=AnthropicProvider(client=client))
-    assert result.transcript["usage"] == {"input_tokens": 11, "output_tokens": 22}
+    # `reasoning_tokens` is 0 on this arm rather than absent: Anthropic counts
+    # thinking tokens inside `output_tokens` and does not break them out, so the
+    # field is present-and-zero to keep one transcript shape across providers.
+    assert result.transcript["usage"] == {
+        "input_tokens": 11, "output_tokens": 22, "reasoning_tokens": 0}
 
 
 # ---------------------------------------------------------------------------
@@ -686,3 +690,171 @@ def test_the_full_schema_still_uses_refs_and_still_validates():
     full = load_output_schema()
     assert "$ref" in json.dumps(full)
     jsonschema.Draft7Validator(full).validate(_valid_output())
+
+
+# ---------------------------------------------------------------------------
+# OpenAI as the FRONTIER arm (2026-09-20, replacing Claude at Aria's request)
+#
+# Hermetic, as everywhere else. The shapes below come from the installed
+# openai==3.16.2 type definitions, not from memory:
+#   - `max_tokens` is deprecated and incompatible with reasoning models, so the
+#     parameter is `max_completion_tokens`;
+#   - `reasoning_effort` is the analogue of Anthropic's `effort` and is the thing
+#     this project pins and records in place of an unpinnable temperature;
+#   - a structured-output refusal arrives in `message.refusal` with `content`
+#     null -- reading only `content` would score a refusal as malformed JSON.
+# ---------------------------------------------------------------------------
+
+class _OAIMessage:
+    def __init__(self, content=None, refusal=None):
+        self.content = content
+        self.refusal = refusal
+
+
+class _OAIChoice:
+    def __init__(self, message, finish_reason="stop"):
+        self.message = message
+        self.finish_reason = finish_reason
+
+
+class _OAIUsage:
+    prompt_tokens = 130
+    completion_tokens = 60
+
+    class completion_tokens_details:      # noqa: N801 - mirrors the SDK shape
+        reasoning_tokens = 40
+
+
+class _OAICompletion:
+    def __init__(self, message, finish_reason, model):
+        self.choices = [_OAIChoice(message, finish_reason)]
+        self.usage = _OAIUsage()
+        self.model = model
+
+
+class _OAIClient:
+    def __init__(self, message, finish_reason="stop", model="gpt-6-astra"):
+        self.kwargs = None
+        outer = self
+
+        class _Completions:
+            def create(self, **kwargs):
+                outer.kwargs = kwargs
+                return _OAICompletion(message, finish_reason, model)
+
+        class _Chat:
+            completions = _Completions()
+
+        self.chat = _Chat()
+
+
+def _openai_provider(message, *, finish_reason="stop", model="gpt-6-astra", **kw):
+    from runner import OpenAIProvider
+
+    client = _OAIClient(message, finish_reason, model)
+    return OpenAIProvider(client=client, **kw), client
+
+
+def test_openai_provider_sends_max_completion_tokens_not_max_tokens():
+    """`max_tokens` is deprecated and rejected by reasoning models. Sending it
+    would fail the first live call, and gpt-6-astra is a reasoning model."""
+    provider, client = _openai_provider(_OAIMessage(_valid_json_text()))
+    run_case(model="gpt-6-astra", prompt_input=PROMPT, profile=None,
+             provider=provider, max_tokens=16000)
+    assert client.kwargs["max_completion_tokens"] == 16000
+    assert "max_tokens" not in client.kwargs
+
+
+def test_openai_provider_pins_and_sends_reasoning_effort():
+    provider, client = _openai_provider(_OAIMessage(_valid_json_text()),
+                                        effort="high")
+    run_case(model="gpt-6-astra", prompt_input=PROMPT, profile=None,
+             provider=provider)
+    assert client.kwargs["reasoning_effort"] == "high"
+
+
+def test_openai_provider_sends_a_strict_json_schema():
+    provider, client = _openai_provider(_OAIMessage(_valid_json_text()))
+    run_case(model="gpt-6-astra", prompt_input=PROMPT, profile=None,
+             provider=provider)
+    fmt = client.kwargs["response_format"]
+    assert fmt["type"] == "json_schema"
+    assert fmt["json_schema"]["strict"] is True
+    assert "$ref" not in json.dumps(fmt["json_schema"]["schema"])
+
+
+def test_openai_provider_sends_no_sampling_parameters():
+    """Same position as the Anthropic arm (HC-64): reproducibility rests on the
+    transcript, not on sampling control, and an unsent parameter cannot be an
+    unrecorded one."""
+    provider, client = _openai_provider(_OAIMessage(_valid_json_text()))
+    run_case(model="gpt-6-astra", prompt_input=PROMPT, profile=None,
+             provider=provider)
+    for banned in ("temperature", "top_p", "seed", "verbosity"):
+        assert banned not in client.kwargs
+
+
+def test_openai_structured_output_refusal_is_a_refusal_not_bad_json():
+    """The trap unique to this API: on a refusal `content` is null and the text
+    lands in `message.refusal`. Reading only `content` yields an empty string,
+    which parses as malformed JSON -- scoring a declined clinical question as a
+    formatting failure."""
+    from runner import RefusalError
+
+    provider, _ = _openai_provider(
+        _OAIMessage(None, refusal="I can't help with treatment decisions."))
+    with pytest.raises(RefusalError) as exc:
+        run_case(model="gpt-6-astra", prompt_input=PROMPT, profile=None,
+                 provider=provider)
+    assert "treatment decisions" in str(exc.value)
+
+
+def test_openai_content_filter_is_also_a_refusal():
+    from runner import RefusalError
+
+    provider, _ = _openai_provider(_OAIMessage(""), finish_reason="content_filter")
+    with pytest.raises(RefusalError):
+        run_case(model="gpt-6-astra", prompt_input=PROMPT, profile=None,
+                 provider=provider)
+
+
+def test_openai_length_finish_reason_is_truncation():
+    from runner import TruncatedOutputError
+
+    provider, _ = _openai_provider(_OAIMessage(_valid_json_text()[:40]),
+                                   finish_reason="length")
+    with pytest.raises(TruncatedOutputError):
+        run_case(model="gpt-6-astra", prompt_input=PROMPT, profile=None,
+                 provider=provider)
+
+
+def test_openai_reasoning_tokens_are_recorded():
+    """Reasoning tokens are billed as output and are the analogue of thinking
+    tokens; a cost that ignores them understates the run."""
+    provider, _ = _openai_provider(_OAIMessage(_valid_json_text()))
+    result = run_case(model="gpt-6-astra", prompt_input=PROMPT, profile=None,
+                      provider=provider)
+    assert result.transcript["usage"]["reasoning_tokens"] == 40
+
+
+def test_openai_frontier_models_are_priced():
+    from runner.run_case import _PRICES
+
+    for model in ("gpt-6-astra", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.5"):
+        assert model in _PRICES, f"{model} would record a null cost"
+
+
+def test_gpt_6_astra_cost_matches_published_pricing():
+    """$10/MTok in, $50/MTok out (short-context tier)."""
+    from runner.run_case import _cost_usd
+
+    assert _cost_usd("gpt-6-astra", 1_000_000, 0) == pytest.approx(10.0)
+    assert _cost_usd("gpt-6-astra", 0, 1_000_000) == pytest.approx(50.0)
+
+
+def test_openai_provider_records_the_model_the_api_reports():
+    provider, _ = _openai_provider(_OAIMessage(_valid_json_text()),
+                                   model="gpt-6-astra")
+    result = run_case(model="requested", prompt_input=PROMPT, profile=None,
+                      provider=provider)
+    assert result.transcript["model"] == "gpt-6-astra"

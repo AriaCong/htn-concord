@@ -8,10 +8,15 @@
 Credentials come from `htn-concord/.env` (gitignored) or the environment. A key
 is never written to a transcript, a log line, or any file this script produces.
 
-    ANTHROPIC_API_KEY=sk-ant-...
-    OPENWEIGHT_API_KEY=...
+    OPENAI_API_KEY=...                # frontier arm
+    OPENWEIGHT_API_KEY=...            # open-weight arm
     OPENWEIGHT_HOST=together          # together | fireworks | groq | openrouter
     OPENWEIGHT_MODEL=<exact version string, never a floating alias>
+
+Optional, to run the Anthropic arm instead of or alongside OpenAI:
+
+    ANTHROPIC_API_KEY=sk-ant-...
+    FRONTIER_MODEL=claude-opus-5      # default: gpt-6-astra
 
 Every number this prints is labelled provisional until HC-57 closes: that gate is
 the reviewer's, not ours.
@@ -29,14 +34,27 @@ sys.path.insert(0, str(ROOT))
 
 from experiments.kill_criteria import evaluate_criteria            # noqa: E402
 from experiments.pilot import PilotSpec, load_records, run_pilot, summarize  # noqa: E402
-from runner import AnthropicProvider, OpenAICompatibleProvider, run_case  # noqa: E402
+from runner import (                                                # noqa: E402
+    AnthropicProvider,
+    OpenAICompatibleProvider,
+    OpenAIProvider,
+    run_case,
+)
 from tasks import load_profiles_csv                                # noqa: E402
 from tasks.task_b import INPUTS_FILE                               # noqa: E402
 
 CORPUS = ROOT / "data" / "tasks" / "task_b"
 PROFILES = ROOT / "data" / "nhanes" / "processed" / "nhanes_profiles_J.csv"
 OUT = ROOT / "data" / "pilot"
-FRONTIER = "claude-opus-5"
+#: The frontier arm. Changed from Claude to OpenAI on 2026-09-20 at Aria's
+#: request -- a change to what the experiment compares, recorded as a pre-call
+#: amendment in docs/HTN-Concord_Pilot_Kill_Criteria.md.
+#:
+#: NOTE: this id has no dated snapshot. It is the only id the model publishes, so
+#: the arm cannot be version-pinned the way the open-weight arm can; the id the
+#: API reports back is recorded per call so a silent change is at least
+#: detectable after the fact. See runner/README.md.
+FRONTIER = os.environ.get("FRONTIER_MODEL", "gpt-6-astra")
 
 
 def load_env(path: Path = ROOT / ".env") -> None:
@@ -63,9 +81,18 @@ def _profiles() -> dict:
     return {str(r["SEQN"]): r for r in load_profiles_csv(PROFILES)}
 
 
+def _frontier_provider():
+    """Pick the frontier provider from the model id, and require its key."""
+    if FRONTIER.startswith("claude"):
+        _require("ANTHROPIC_API_KEY")
+        return AnthropicProvider(effort="high")
+    _require("OPENAI_API_KEY")
+    return OpenAIProvider(effort="high")
+
+
 def _arms() -> dict:
     """Both model arms, keyed by the id the pilot records."""
-    arms = {FRONTIER: lambda: AnthropicProvider(effort="high")}
+    arms = {FRONTIER: _frontier_provider}
     label = os.environ.get("OPENWEIGHT_MODEL")
     if label:
         host = os.environ.get("OPENWEIGHT_HOST", "together")
@@ -83,7 +110,7 @@ def cmd_smoke(args) -> int:
     cannot enforce "abstain_reason is required exactly when decision == abstain",
     the rule separating a real abstention from a silent one.
     """
-    _require("ANTHROPIC_API_KEY")
+    provider = _frontier_provider()
     record = next(json.loads(l) for l in
                   (CORPUS / INPUTS_FILE).read_text().splitlines()
                   if l and json.loads(l)["level"] == "moderate")
@@ -94,7 +121,7 @@ def cmd_smoke(args) -> int:
     print(f"vignette  : {len(record['vignette'])} chars\n")
 
     result = run_case(model=args.model, prompt_input=record["vignette"],
-                      profile=profile, provider=AnthropicProvider(effort="high"),
+                      profile=profile, provider=provider,
                       case_id=record["case_id"], task="B")
     t = result.transcript
     print("ACCEPTED. The API took the stripped schema and the reply validates "
@@ -105,7 +132,8 @@ def cmd_smoke(args) -> int:
     print(f"  attempts        : {result.attempts} "
           f"(malformed: {result.malformed_attempts})")
     print(f"  attempt_log     : {[a['outcome'] for a in t['attempt_log']]}")
-    print(f"  effort/thinking : {t['request']['effort']} / {t['request']['thinking']}")
+    print(f"  effort          : {t['request']['effort']}")
+    print(f"  thinking        : {t['request']['thinking']}")
     print(f"  tokens          : {t['usage']}")
     print(f"  cost_usd        : {t['cost_usd']}")
     print(f"  latency_ms      : {t['latency_ms']}")
@@ -124,7 +152,6 @@ def cmd_run(args) -> int:
                  "exists to answer -- cannot be evaluated with one arm. Set "
                  "OPENWEIGHT_MODEL, or pass --allow-single-arm knowing no GO "
                  "verdict is possible.")
-    _require("ANTHROPIC_API_KEY")
     spec = PilotSpec(models=tuple(arms), n_patients=args.patients,
                      replicates=args.replicates)
     print(f"spec: {spec.n_patients} patients x {len(spec.levels)} levels x "

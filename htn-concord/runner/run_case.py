@@ -51,6 +51,16 @@ _PRICES: dict[str, tuple[float, float]] = {
     "claude-sonnet-5": (2e-6, 10e-6),
     "claude-sonnet-4-6": (3e-6, 15e-6),
     "claude-haiku-4-5": (1e-6, 5e-6),
+    # OpenAI (frontier arm from 2026-09-20). Short-context tier: the published
+    # table prices long-context variants higher, and Task B vignettes are ~1-2k
+    # tokens, so the short-context rate is the applicable one. Re-check before
+    # quoting in a paper, and re-check if an input ever grows.
+    "gpt-6-astra": (10e-6, 50e-6),
+    "gpt-5.6-sol": (4e-6, 20e-6),
+    "gpt-5.6-terra": (2e-6, 12e-6),
+    "gpt-5.6-luna": (0.2e-6, 1.2e-6),
+    "gpt-5.5": (5e-6, 30e-6),
+    "gpt-5.4": (2.5e-6, 15e-6),
 }
 
 DEFAULT_SYSTEM = (
@@ -251,11 +261,12 @@ def run_case(
         # A refusal is an answer, and retrying it buys the same answer again.
         if response.stop_reason == "refusal":
             details = response.stop_details or {}
+            said = (details.get("refusal") or details.get("explanation")
+                    or "no explanation given")
             raise RefusalError(
                 "model declined to answer "
-                f"(category={details.get('category')!r}): "
-                f"{details.get('explanation') or 'no explanation given'}",
-                category=details.get("category"),
+                f"(category={details.get('category')!r}): {said}",
+                category=details.get("category") or details.get("finish_reason"),
                 raw_text=response.text,
                 stop_details=response.stop_details,
             )
@@ -318,6 +329,9 @@ def run_case(
             "usage": {
                 "input_tokens": response.input_tokens,
                 "output_tokens": response.output_tokens,
+                # Billed as output and absent from the reply; a run that ignores
+                # them understates its own cost.
+                "reasoning_tokens": response.reasoning_tokens,
             },
             "cost_usd": _cost_usd(response.model, response.input_tokens,
                                   response.output_tokens),

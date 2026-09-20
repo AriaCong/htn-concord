@@ -35,6 +35,9 @@ class ProviderResponse:
     model: str
     input_tokens: int = 0
     output_tokens: int = 0
+    #: Thinking/reasoning tokens. Billed as output and invisible in the reply, so
+    #: a cost or a token budget that ignores them understates the run.
+    reasoning_tokens: int = 0
     stop_reason: str | None = None
     stop_details: Mapping[str, Any] | None = None
 
@@ -348,3 +351,92 @@ def _post_json(url: str, body: Mapping[str, Any], headers: Mapping[str, str],
     except urllib.error.HTTPError as exc:  # pragma: no cover - needs a live host
         detail = exc.read().decode("utf-8", "replace")[:2000]
         raise RuntimeError(f"{url} returned HTTP {exc.code}: {detail}") from exc
+
+
+class OpenAIProvider:
+    """The frontier arm (2026-09-20 onward): an OpenAI model in strict JSON mode.
+
+    Replaced `AnthropicProvider` as the frontier arm at Aria's request. That is a
+    change to *what the experiment compares*, not a transport detail, and it is
+    recorded as a pre-call amendment in
+    `docs/HTN-Concord_Pilot_Kill_Criteria.md`.
+
+    Three shapes here differ from the OpenAI-compatible arm, and each one would
+    have broken or silently corrupted the first live call. All three are taken
+    from the installed SDK's own type definitions rather than from memory:
+
+    * **`max_completion_tokens`, never `max_tokens`.** The SDK marks `max_tokens`
+      deprecated and *incompatible with reasoning models* — and the flagship is a
+      reasoning model. The ceiling also has to cover reasoning tokens, exactly as
+      the Anthropic arm's had to cover thinking tokens.
+    * **`reasoning_effort`.** The analogue of Anthropic's `effort`, and the thing
+      this project pins and records in place of a temperature it cannot pin
+      (HC-64). Accepted values on the flagship are `low`…`max`.
+    * **`message.refusal`.** On a refusal the API returns `content: null` and puts
+      the text in a separate `refusal` field. Reading only `content` yields an
+      empty string, which parses as malformed JSON — scoring a declined clinical
+      question as a formatting failure. On a clinical benchmark that is the
+      difference between a finding and a bug.
+
+    **Version pinning is not fully achievable here, and the limitation is real.**
+    The flagship publishes no dated snapshot id — only the floating name — so the
+    model behind it can change without the string changing. The mitigation is to
+    record the id the API reports back on every call and to keep the transcript;
+    that detects a change after the fact but cannot prevent one. Stated in
+    `runner/README.md` rather than left for a reviewer to find.
+
+    ⚠️ Never executed against a live API. No credential exists on this machine.
+    """
+
+    name = "openai"
+
+    def __init__(self, client: Any = None, effort: str = "high") -> None:
+        if client is None:
+            import openai  # imported lazily: not needed for tests or CI
+
+            client = openai.OpenAI()
+        self._client = client
+        self.effort = effort
+
+    def complete(self, request: ProviderRequest) -> ProviderResponse:
+        messages: list[dict[str, Any]] = []
+        if request.system is not None:
+            messages.append({"role": "system", "content": request.system})
+        messages.append({"role": "user", "content": request.user})
+
+        completion = self._client.chat.completions.create(
+            model=request.model,
+            messages=messages,
+            # Covers reasoning tokens as well as the visible answer.
+            max_completion_tokens=request.max_tokens,
+            reasoning_effort=self.effort,
+            response_format={
+                "type": "json_schema",
+                "json_schema": {"name": "llm_output", "strict": True,
+                                "schema": dict(request.output_schema)},
+            },
+        )
+
+        choice = completion.choices[0]
+        message = choice.message
+        refusal = getattr(message, "refusal", None)
+        finish = getattr(choice, "finish_reason", None)
+
+        usage = getattr(completion, "usage", None)
+        details = getattr(usage, "completion_tokens_details", None)
+        stop_details: dict[str, Any] = {"finish_reason": finish}
+        if refusal:
+            # Surface it as a refusal even when finish_reason says "stop": the
+            # model answered, just not with an answer.
+            stop_details["refusal"] = refusal
+
+        return ProviderResponse(
+            text=(message.content or ""),
+            model=getattr(completion, "model", request.model),
+            input_tokens=getattr(usage, "prompt_tokens", 0) or 0,
+            output_tokens=getattr(usage, "completion_tokens", 0) or 0,
+            reasoning_tokens=getattr(details, "reasoning_tokens", 0) or 0,
+            stop_reason=("refusal" if refusal
+                         else _NORMALIZED_FINISH.get(finish, finish)),
+            stop_details=stop_details,
+        )
