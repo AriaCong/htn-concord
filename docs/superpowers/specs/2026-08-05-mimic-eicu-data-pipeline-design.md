@@ -186,9 +186,9 @@ definition.
 | `bp_stage` | `common.derive` | from `vocab.BP_THRESHOLDS`; never computed locally |
 | `bp_context` | constant `"office"` | OMR is outpatient; engine stages office/chronic, abstains on `admission` |
 | `bp_n_readings` | count of qualifying OMR dates | provenance |
-| `creatinine` | `labevents` `50912` (verify `52546`, `52024`) | → `egfr` |
+| `creatinine` | `labevents` `50912` (+ `52546`, `52024`, both verified but rare) | → `egfr` |
 | `potassium` | `labevents` `50971` | → hyperkalemia contraindication |
-| `uacr` | `labevents` `51070` | **currently absent from the itemid set — CKD under-fires without it** |
+| `uacr` | `labevents` `51070` | ✅ **verified present** 2026-09-20, units `mg/g`. MIMIC CKD keeps BOTH limbs |
 | `hba1c` | `labevents` `50852` | |
 | `total_chol` | `labevents` `50907` | PREVENT |
 | `hdl` | `labevents` `50904` | PREVENT |
@@ -241,6 +241,43 @@ to infer it.
 - Take the **most recent** qualifying value.
 - No qualifying value → `NA` → engine abstains. Never carried forward.
 - **730 d pre-registered as a sensitivity analysis.**
+
+#### 4.3.1 Itemid verification result (closes O1)
+
+Run 2026-09-20 by `scripts/verify_mimic_itemids.py`, which reads `d_labitems` whole and
+samples the first chunk of `labevents` for units. Full output in
+`data/mimic/qa/itemid_verification.json`.
+
+| Analyte | itemid | In `d_labitems` | Label | Units observed | Rows in sample |
+|---|---|---|---|---|---:|
+| creatinine | `50912` | yes | Creatinine | `mg/dL` | 136,466 |
+| creatinine | `52546` | yes | Creatinine | `mg/dL` | 42 |
+| creatinine | `52024` | yes | Creatinine, Whole Blood | `mg/dL` | 482 |
+| potassium | `50971` | yes | Potassium | `mEq/L` | 131,096 |
+| uacr | `51070` | yes | Albumin/Creatinine, Urine | `mg/g` | 2,338 |
+| hba1c | `50852` | yes | % Hemoglobin A1c | `%` | 9,609 |
+| total_chol | `50907` | yes | Cholesterol, Total | `mg/dL` | 10,697 |
+| hdl | `50904` | yes | Cholesterol, HDL | `mg/dL` | 10,496 |
+
+**Every itemid exists and every unit matches.** Three consequences:
+
+1. **UACR is available.** Earlier drafts — and the 2026-09-20 handoff — recorded `51070` as
+   *missing*, and concluded MIMIC's `ckd_albuminuria` would collapse to the eGFR limb and
+   under-fire. That is now known to be wrong: MIMIC keeps both limbs of the
+   `eGFR < 60 OR UACR ≥ 30` rule, the same as NHANES. The under-treatment bias that finding
+   implied does not apply, and §8's risk row is closed.
+2. **Potassium reads `mEq/L`, not `mmol/L`.** Numerically identical for a monovalent ion, so
+   no conversion is needed, but the loader must accept `mEq/L` rather than assert `mmol/L` —
+   a naive unit assertion copied from the NHANES wording would reject every MIMIC potassium.
+   Recorded here because it is a silent-failure shape, not a cosmetic difference.
+3. **The two secondary creatinine itemids are real but rare** — 42 and 482 rows against
+   136,466 for `50912` in the same sample. Including them is close to free and slightly
+   raises coverage; they must not be treated as interchangeable with `50912` in a way that
+   lets a whole-blood creatinine silently outrank a more recent serum one. Prefer by
+   recency, as §4.3 already specifies, not by itemid.
+
+The sample is the first chunk, not the full table, so these are existence-and-unit findings
+rather than a coverage audit. Per-subject coverage is counted in B2a proper.
 
 ### 4.4 MIMIC-specific missing-data handling
 
@@ -327,7 +364,7 @@ fixture written under this spec is synthetic, so this spec adds no new instance 
 |---|---|---|
 | Stage-1 abstention dominates the MIMIC label mix | Cohort cannot carry the RQ4 claim | **B2a gate before B2b** |
 | ICD absence→`False` reads incomplete coding as negative | **Under-treatment (unsafe)** | Both-ways sensitivity + HC-49 adjudication (§4.2) |
-| `uacr` itemid `51070` unverified | CKD under-fires | Verify in B2a; if absent, document CKD as eGFR-limb-only |
+| ~~`uacr` itemid `51070` unverified~~ | ~~CKD under-fires~~ | **Closed 2026-09-20: `51070` exists and carries `mg/g`.** MIMIC CKD retains the albuminuria limb, so it does not under-fire relative to NHANES |
 | Chunked labevents pass is slow | Developer friction only | Parquet cache under `data/mimic/interim/` |
 | Silver-label noise on Task C | Overstated concordance | Frame Task C as extraction fidelity, not concordance (Master Plan risk register) |
 | ICD-derived smoking is coarser than self-report | PREVENT input noise | Document as a MIMIC-vs-NHANES measurement difference; do not pool the two cohorts' PREVENT values |
@@ -338,7 +375,7 @@ fixture written under this spec is synthetic, so this spec adds no new instance 
 
 | # | Item | Needed by |
 |---|---|---|
-| O1 | Verify itemids `51070` (UACR), `52546`/`52024` (creatinine) exist and carry expected units | B2a |
+| ~~O1~~ | ✅ **Closed 2026-09-20.** All eight configured itemids exist in `d_labitems` and every observed unit matches expectation — see §4.3.1 | ~~B2a~~ |
 | O2 | Task-C silver-label spec (HC-54) — which structured fields define the silver standard | B4 |
 | O3 | Whether the OMR-only cohort's undiagnosed patients need a distinct `told_hypertension` treatment | B3 |
 | O4 | HC-56 — the credentialed fixture row in `test_mimic_omr_bp.py` still blocks HC-90 | Before repo goes public |
