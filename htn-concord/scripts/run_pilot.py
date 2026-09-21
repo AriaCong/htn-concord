@@ -192,14 +192,25 @@ def cmd_run(args) -> int:
           f"{len(spec.models)} models x {spec.replicates} replicates "
           f"= {spec.n_calls} calls")
 
+    started = time.monotonic()
+
     def progress(record, index, total):
         mark = "." if record.outcome == "ok" else record.outcome[0].upper()
-        end = "\n" if index % 50 == 0 or index == total else ""
-        print(mark, end=end, flush=True)
+        print(mark, end="", flush=True)
+        if index % 25 == 0 or index == total:
+            done = time.monotonic() - started
+            rate = done / index
+            print(f"  {index}/{total}  {done/60:.0f}m elapsed, "
+                  f"~{rate * (total - index) / 60:.0f}m left", flush=True)
+
+    def failed(call, exc):
+        print(f"\n  ! {call['case_id']} {call['model']} rep{call['replicate']}: "
+              f"{type(exc).__name__}: {str(exc)[:120]} "
+              f"(no record written; a resume will retry it)", flush=True)
 
     out = OUT / "pilot_calls.jsonl"
     run_pilot(CORPUS, spec, out, lambda m: arms[m](), profiles=_profiles(),
-              on_call=progress)
+              on_call=progress, on_error=failed)
     print(f"\nrecords -> {out}")
     return cmd_report(args)
 

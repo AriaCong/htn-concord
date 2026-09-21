@@ -310,3 +310,81 @@ def test_thresholds_are_the_ones_that_were_signed():
             kc.FLOOR_MARGIN) == (0.90, 0.05, 0.05, 0.05)
     assert (kc.MAX_MALFORMED_RATE, kc.MAX_REFUSAL_RATE, kc.MAX_TRUNCATION_RATE,
             kc.MAX_MEDIAN_REPLICATE_SD) == (0.05, 0.02, 0.01, 0.05)
+
+
+# ---------------------------------------------------------------------------
+# Surviving the network over a 600-call run
+# ---------------------------------------------------------------------------
+
+class _FlakyProvider:
+    """Raises a transport-level error for the first `fails` calls of each case."""
+    name = "flaky"
+
+    def __init__(self, payload, fails=0, always=False):
+        self.payload = payload
+        self.fails = fails
+        self.always = always
+        self.calls = 0
+
+    def complete(self, request):
+        from runner.providers import ProviderResponse
+
+        self.calls += 1
+        if self.always or self.calls <= self.fails:
+            raise RuntimeError("503 Service Unavailable")
+        return ProviderResponse(text=self.payload, model=request.model,
+                                input_tokens=10, output_tokens=10,
+                                stop_reason="end_turn")
+
+
+def test_a_transient_api_error_is_retried_rather_than_killing_the_run(corpus, tmp_path):
+    """A 429 or 5xx mid-run used to propagate and end a multi-hour run.
+
+    The three outcome errors are model behaviour; a transport failure is not,
+    and it must not be recorded as one either.
+    """
+    corpus_dir, profiles = corpus
+    spec = _spec(n_patients=2, replicates=1)
+    provider = _FlakyProvider(json.dumps(_valid_output()), fails=2)
+    records = run_pilot(corpus_dir, spec, tmp_path / "p.jsonl",
+                        lambda _m: provider, profiles=profiles,
+                        api_retries=3, sleep=lambda _s: None)
+    assert len(records) == spec.n_calls
+    assert {r.outcome for r in records} == {"ok"}
+
+
+def test_a_persistent_api_error_leaves_no_record_so_a_resume_retries_it(
+        corpus, tmp_path):
+    """Recording an infrastructure failure would bake it in permanently: the
+    resume check skips keys already present, so a transient outage would become
+    a permanent hole in the denominator. Better to write nothing and let the
+    next resume pick it up."""
+    corpus_dir, profiles = corpus
+    spec = _spec(n_patients=2, replicates=1)
+    out = tmp_path / "p.jsonl"
+    dead = _FlakyProvider(json.dumps(_valid_output()), always=True)
+    failures: list = []
+    records = run_pilot(corpus_dir, spec, out, lambda _m: dead,
+                        profiles=profiles, api_retries=2,
+                        sleep=lambda _s: None,
+                        on_error=lambda call, exc: failures.append(call["case_id"]))
+    assert records == []
+    assert not out.exists() or out.read_text().strip() == ""
+    assert len(failures) == spec.n_calls
+
+    # A later resume with a working provider fills every gap.
+    good = ScriptedProvider([json.dumps(_valid_output())] * spec.n_calls)
+    resumed = run_pilot(corpus_dir, spec, out, lambda _m: good, profiles=profiles)
+    assert len(resumed) == spec.n_calls
+
+
+def test_a_model_level_failure_is_still_recorded_not_retried_as_transport(
+        corpus, tmp_path):
+    """Malformed output is the model's behaviour and belongs in the denominator."""
+    corpus_dir, profiles = corpus
+    spec = _spec(n_patients=1, replicates=1)
+    provider = ScriptedProvider(["not json"] * (spec.n_calls * 3))
+    records = run_pilot(corpus_dir, spec, tmp_path / "p.jsonl",
+                        lambda _m: provider, profiles=profiles,
+                        api_retries=3, sleep=lambda _s: None)
+    assert {r.outcome for r in records} == {"malformed"}

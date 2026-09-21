@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import random
+import time
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping, Sequence
@@ -144,13 +145,24 @@ def run_pilot(corpus_dir: str | Path, spec: PilotSpec, out_path: str | Path,
               provider_for: Callable[[str], Provider], *,
               profiles: Mapping[str, Mapping[str, Any]] | None = None,
               on_call: Callable[[CallRecord, int, int], None] | None = None,
-              max_attempts: int = 3) -> list[CallRecord]:
+              on_error: Callable[[Mapping[str, Any], Exception], None] | None = None,
+              max_attempts: int = 3,
+              api_retries: int = 3,
+              sleep: Callable[[float], None] = time.sleep) -> list[CallRecord]:
     """Run (or resume) the pilot, appending one JSON line per call.
 
     The hidden profile is passed to `run_case` only to be hashed into the
     transcript for linkage. It is never serialized into a request — that is the
     runner's half of the anti-leakage discipline, and `ScriptedProvider` records
     every request so a test can assert it.
+
+    **Transport failures are not model behaviour.** A 429 or a 5xx mid-run used
+    to propagate and end a multi-hour run. It is now retried with backoff, and if
+    it still fails **no record is written**: the resume check skips keys already
+    present, so recording an outage would bake a permanent hole into the
+    denominator instead of letting the next resume fill it. Only outcomes the
+    model is responsible for — refusal, truncation, malformed output — are
+    recorded and counted.
     """
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -164,28 +176,42 @@ def run_pilot(corpus_dir: str | Path, spec: PilotSpec, out_path: str | Path,
             if key in done:
                 continue
             profile = (profiles or {}).get(call["patient_id"])
-            try:
-                result = run_case(
-                    model=call["model"],
-                    prompt_input=call["vignette"],
-                    profile=profile,
-                    provider=provider_for(call["model"]),
-                    case_id=call["case_id"],
-                    task="B",
-                    max_attempts=max_attempts,
-                )
-                record = CallRecord(
-                    case_id=call["case_id"], patient_id=call["patient_id"],
-                    level=call["level"], model=call["model"],
-                    replicate=call["replicate"], outcome="ok",
-                    output=result.output, transcript=result.transcript,
-                )
-            except RefusalError as exc:
-                record = _failure(call, "refusal", f"{exc} category={exc.category!r}")
-            except TruncatedOutputError as exc:
-                record = _failure(call, "truncated", str(exc))
-            except MalformedOutputError as exc:
-                record = _failure(call, "malformed", str(exc))
+            record: CallRecord | None = None
+            for api_attempt in range(1, api_retries + 1):
+                try:
+                    result = run_case(
+                        model=call["model"],
+                        prompt_input=call["vignette"],
+                        profile=profile,
+                        provider=provider_for(call["model"]),
+                        case_id=call["case_id"],
+                        task="B",
+                        max_attempts=max_attempts,
+                    )
+                    record = CallRecord(
+                        case_id=call["case_id"], patient_id=call["patient_id"],
+                        level=call["level"], model=call["model"],
+                        replicate=call["replicate"], outcome="ok",
+                        output=result.output, transcript=result.transcript,
+                    )
+                except RefusalError as exc:
+                    record = _failure(call, "refusal",
+                                      f"{exc} category={exc.category!r}")
+                except TruncatedOutputError as exc:
+                    record = _failure(call, "truncated", str(exc))
+                except MalformedOutputError as exc:
+                    record = _failure(call, "malformed", str(exc))
+                except Exception as exc:          # transport, not the model
+                    if api_attempt >= api_retries:
+                        if on_error is not None:
+                            on_error(call, exc)
+                        break
+                    sleep(min(60.0, 5.0 * 2 ** (api_attempt - 1)))
+                    continue
+                break
+
+            if record is None:
+                continue        # nothing written, so a resume retries this call
 
             handle.write(record.to_json() + "\n")
             handle.flush()          # a crash must not lose calls already paid for
