@@ -36,7 +36,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from experiments.env import EnvError, load_env                     # noqa: E402
+from experiments.env import EnvError, hc57_signed, load_env        # noqa: E402
 from experiments.kill_criteria import evaluate_criteria            # noqa: E402
 from experiments.pilot import PilotSpec, load_records, run_pilot, summarize  # noqa: E402
 from runner import (                                                # noqa: E402
@@ -48,6 +48,7 @@ from runner import (                                                # noqa: E402
 from tasks import load_profiles_csv                                # noqa: E402
 from tasks.task_b import INPUTS_FILE                               # noqa: E402
 
+SIGNOFF = ROOT.parent / "docs" / "signoffs" / "HC-57_facts-only_spotcheck_signoff.md"
 CORPUS = ROOT / "data" / "tasks" / "task_b"
 PROFILES = ROOT / "data" / "nhanes" / "processed" / "nhanes_profiles_J.csv"
 OUT = ROOT / "data" / "pilot"
@@ -225,7 +226,14 @@ def cmd_report(args) -> int:
     levels = ("simple", "moderate", "hard")
     verdict = evaluate_criteria(summary, models=models, levels=levels)
 
-    print("\nPROVISIONAL -- HC-57 (human facts-only sign-off) has not closed.\n")
+    signed = hc57_signed(SIGNOFF)
+    if signed:
+        print("\nHC-57 (human facts-only gate) is SIGNED, so these numbers are "
+              "not provisional on that account.\nThey remain a smoke test for "
+              "gross failure: n = 20 patients, 95% CI half-width ~18pp.\n")
+    else:
+        print("\nPROVISIONAL -- HC-57 (human facts-only sign-off) has not "
+              "closed.\n")
     print(f"{'model':<34}{'level':<10}{'concord':>9}{'baseline':>10}"
           f"{'extract':>9}{'n':>6}")
     for model in models:
@@ -261,8 +269,12 @@ def cmd_report(args) -> int:
     path.write_text(json.dumps(
         {"summary": summary, "verdict": verdict.verdict,
          "reason": verdict.reason, "fired": verdict.fired,
-         "provisional": True,
-         "provisional_reason": "HC-57 human facts-only sign-off has not closed"},
+         "hc57_signed": signed,
+         "provisional": not signed,
+         "provisional_reason": (
+             "smoke test only: n = 20 patients, 95% CI half-width ~18pp"
+             if signed else
+             "HC-57 human facts-only sign-off has not closed")},
         indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nsummary -> {path}")
     return 0

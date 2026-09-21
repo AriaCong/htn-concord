@@ -206,7 +206,13 @@ def run_pilot(corpus_dir: str | Path, spec: PilotSpec, out_path: str | Path,
                         if on_error is not None:
                             on_error(call, exc)
                         break
-                    sleep(min(60.0, 5.0 * 2 ** (api_attempt - 1)))
+                    # Honour the host's own Retry-After when it sends one: on a
+                    # shared endpoint a rate limit is routine, and guessing a
+                    # shorter backoff just spends the quota re-asking too early.
+                    advised = getattr(exc, "retry_after", None)
+                    wait = (float(advised) + 1.0 if advised is not None
+                            else min(60.0, 5.0 * 2 ** (api_attempt - 1)))
+                    sleep(min(wait, 120.0))
                     continue
                 break
 

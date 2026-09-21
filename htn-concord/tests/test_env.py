@@ -73,3 +73,30 @@ def test_load_env_raises_before_setting_a_bad_credential(tmp_path):
     path.write_text('OPENWEIGHT_API_KEY="gsk_abc 的"\n')
     with pytest.raises(EnvError):
         load_env(path, {})
+
+
+def test_hc57_gate_is_read_from_the_artifact_not_hardcoded(tmp_path):
+    """The report must not claim a gate is closed on its own say-so."""
+    from experiments.env import hc57_signed
+
+    path = tmp_path / "signoff.md"
+    assert hc57_signed(path) is False           # missing file
+
+    path.write_text("- **Outcome:** ☐ pass, no flags ☐ fail\n")
+    assert hc57_signed(path) is False           # present but unsigned
+
+    path.write_text("- **Outcome:** ☑ **pass, no flags** ☐ fail\n")
+    assert hc57_signed(path) is True
+
+
+def test_the_real_signoff_form_reads_as_signed():
+    """Pins the marker against the actual artifact, so a reformat of the form
+    cannot silently flip the pilot report back to 'provisional'."""
+    from pathlib import Path
+
+    from experiments.env import hc57_signed
+
+    form = (Path(__file__).resolve().parents[2] / "docs" / "signoffs"
+            / "HC-57_facts-only_spotcheck_signoff.md")
+    assert form.exists(), form
+    assert hc57_signed(form) is True

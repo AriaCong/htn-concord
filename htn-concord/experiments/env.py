@@ -84,3 +84,20 @@ def load_env(path: str | Path, environ: Mapping[str, str] | None = None) -> dict
         check_value(key, value)
         target.setdefault(key, value)
     return parsed
+
+
+#: Marker the HC-57 sign-off form carries once the reviewer has signed.
+_SIGNED = "☑ **pass, no flags**"
+
+
+def hc57_signed(signoff_path: str | Path) -> bool:
+    """Has the human facts-only gate (HC-57) been signed?
+
+    Read from the artifact rather than hardcoded, so the pilot report cannot
+    claim a gate is closed after someone reverts the sign-off, and cannot keep
+    stamping numbers "provisional" after it is closed.
+    """
+    path = Path(signoff_path)
+    if not path.exists():
+        return False
+    return _SIGNED in path.read_text(encoding="utf-8")

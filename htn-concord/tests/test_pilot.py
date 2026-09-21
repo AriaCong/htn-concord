@@ -388,3 +388,51 @@ def test_a_model_level_failure_is_still_recorded_not_retried_as_transport(
                         lambda _m: provider, profiles=profiles,
                         api_retries=3, sleep=lambda _s: None)
     assert {r.outcome for r in records} == {"malformed"}
+
+
+class _RateLimited:
+    """Rate-limits the first `n` calls, advising a Retry-After each time."""
+    name = "ratelimited"
+
+    def __init__(self, payload, n, retry_after=7.0):
+        from runner.providers import TransientHTTPError
+
+        self.payload, self.left, self.retry_after = payload, n, retry_after
+        self._exc = TransientHTTPError
+        self.waits: list = []
+
+    def complete(self, request):
+        from runner.providers import ProviderResponse
+
+        if self.left > 0:
+            self.left -= 1
+            raise self._exc("429 rate limited", status=429,
+                            retry_after=self.retry_after)
+        return ProviderResponse(text=self.payload, model=request.model,
+                                input_tokens=10, output_tokens=10,
+                                stop_reason="end_turn")
+
+
+def test_a_rate_limit_waits_as_long_as_the_host_advised(corpus, tmp_path):
+    """Nearly half the open-weight calls were being dropped to 429s because the
+    backoff guessed shorter than the host's own advice."""
+    corpus_dir, profiles = corpus
+    spec = _spec(n_patients=1, replicates=1)
+    provider = _RateLimited(json.dumps(_valid_output()), n=1, retry_after=7.0)
+    waits: list[float] = []
+    records = run_pilot(corpus_dir, spec, tmp_path / "p.jsonl",
+                        lambda _m: provider, profiles=profiles,
+                        api_retries=3, sleep=waits.append)
+    assert [r.outcome for r in records][:1] == ["ok"]
+    assert waits and waits[0] >= 7.0, f"waited {waits}, host advised 7s"
+
+
+def test_retry_after_is_capped_so_one_bad_header_cannot_stall_the_run(
+        corpus, tmp_path):
+    corpus_dir, profiles = corpus
+    spec = _spec(n_patients=1, replicates=1)
+    provider = _RateLimited(json.dumps(_valid_output()), n=1, retry_after=9999.0)
+    waits: list[float] = []
+    run_pilot(corpus_dir, spec, tmp_path / "p.jsonl", lambda _m: provider,
+              profiles=profiles, api_retries=3, sleep=waits.append)
+    assert max(waits) <= 120.0

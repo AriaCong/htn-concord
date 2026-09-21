@@ -366,6 +366,21 @@ _NORMALIZED_FINISH: Mapping[str, str] = MappingProxyType({
 })
 
 
+class TransientHTTPError(RuntimeError):
+    """A retryable HTTP failure, carrying the host's own advice on when to retry.
+
+    Rate limits are the normal case on a shared endpoint, and a host that sends
+    `Retry-After` has told us exactly how long to wait. Guessing a backoff
+    instead throws away that information and burns the quota re-asking too soon.
+    """
+
+    def __init__(self, message: str, *, status: int,
+                 retry_after: float | None = None) -> None:
+        super().__init__(message)
+        self.status = status
+        self.retry_after = retry_after
+
+
 def _post_json(url: str, body: Mapping[str, Any], headers: Mapping[str, str],
                timeout: float) -> dict[str, Any]:
     """POST JSON with the standard library. No vendor SDK, no new dependency."""
@@ -377,9 +392,36 @@ def _post_json(url: str, body: Mapping[str, Any], headers: Mapping[str, str],
     try:
         with urllib.request.urlopen(req, timeout=timeout) as response:
             return json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:  # pragma: no cover - needs a live host
+    except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", "replace")[:2000]
-        raise RuntimeError(f"{url} returned HTTP {exc.code}: {detail}") from exc
+        message = f"{url} returned HTTP {exc.code}: {detail}"
+        if exc.code in (408, 409, 429) or exc.code >= 500:
+            raise TransientHTTPError(
+                message, status=exc.code,
+                retry_after=_retry_after_seconds(exc.headers)) from exc
+        raise RuntimeError(message) from exc
+
+
+def _retry_after_seconds(headers: Any) -> float | None:
+    """Parse `Retry-After`, which may be seconds or an HTTP date."""
+    if headers is None:
+        return None
+    raw = headers.get("Retry-After") or headers.get("retry-after")
+    if not raw:
+        return None
+    try:
+        return float(raw)
+    except (TypeError, ValueError):
+        pass
+    from email.utils import parsedate_to_datetime
+    try:
+        import datetime as _dt
+
+        when = parsedate_to_datetime(raw)
+        delta = (when - _dt.datetime.now(_dt.timezone.utc)).total_seconds()
+        return max(0.0, delta)
+    except Exception:
+        return None
 
 
 class OpenAIProvider:

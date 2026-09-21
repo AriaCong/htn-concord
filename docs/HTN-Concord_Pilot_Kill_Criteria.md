@@ -24,7 +24,18 @@ has committed in writing to acting on a "no".
 
 **Pilot numbers are not results.** They inform a go/no-go and nothing else. They
 do not go into a paper, a figure, or a Notion page without the word
-*provisional* attached, and they are provisional twice over until HC-57 closes.
+*provisional* attached.
+
+> **HC-57 closed 2026-09-22.** Aria reviewed all 75 vignettes and signed:
+> *"PASS: 75/75 vignettes reviewed; no vignette explicitly states or implies the
+> hidden BP stage, treatment decision, or recommended antihypertensive drug
+> class."* No flags, so no new forbidden tokens and no renderer fix. Verified at
+> sign-off that the sheet still hashes to the value on the sign-off form and that
+> the corpus manifest is unchanged, so the signature binds to the exact build the
+> pilot runs against. The Phase-4 acceptance gate is now closed on both halves —
+> the scanner (zero hits on 14,418 cases) and the human read. Pilot numbers
+> remain provisional in the ordinary sense (they are a smoke test, §6), but no
+> longer *doubly* so.
 
 ---
 

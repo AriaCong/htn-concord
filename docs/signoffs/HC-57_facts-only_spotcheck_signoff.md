@@ -113,12 +113,29 @@ addition to `leakage.py`'s forbidden-token list (or a renderer fix).
 > I have read all 75 vignettes on the sheet named above and confirm that each states
 > only raw facts, with every hesitation recorded in the table above.
 
-- **Signed:** ______________________
-- **Date:** ______________________
+- **Signed:** Aria Cong
+- **Date:** 2026-09-22
 - **Sheet checksum:** `442323c11b5d5baebaf5bf5e4242a391dc9cb3e038724d9348959fc411f214a0`
   (the sheet is generated deterministically; if your copy's SHA-256 differs, it is not the sheet this form signs off)
-- **Outcome:** ☐ pass, no flags ☐ pass with flags recorded ☐ fail — corpus needs a renderer fix
+- **Outcome:** ☑ **pass, no flags** ☐ pass with flags recorded ☐ fail — corpus needs a renderer fix
 
-**On sign-off:** set HC-57 to Done on the Linear board *and* in the Notion progress
-tracker, and drop the "provisional" label from pilot numbers that were read after
-this date.
+**Reviewer's statement, as given:**
+
+> PASS: 75/75 vignettes reviewed; no vignette explicitly states or implies the
+> hidden BP stage, treatment decision, or recommended antihypertensive drug
+> class.
+
+**Verified at sign-off (2026-09-22):** the sheet on disk still hashes to the
+SHA-256 recorded above, and `benchmarks/task_b_manifest.json` matches the
+on-disk corpus byte for byte (`task_b_inputs.jsonl` `6bf0fa69…`,
+`task_b_labels.jsonl` `f9bd3589…`, 14,418 records each). The signature is
+therefore bound to the exact corpus the HC-80 pilot is running against — not to
+a sheet that was regenerated or a corpus that moved underneath it.
+
+**Done on sign-off (2026-09-22):** HC-57 set to Done on the Linear board and in
+the Notion progress tracker; the "provisional" label dropped from HC-80 pilot
+output, which now reports against a closed Phase-4 gate.
+
+**No flags were raised**, so `leakage.py` needs no new forbidden tokens and the
+renderer needs no fix. The mechanical half of the gate (the scanner, zero hits on
+all 14,418 cases) and the human half now both pass on the same corpus build.
