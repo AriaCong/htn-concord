@@ -25,14 +25,18 @@ the reviewer's, not ours.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import sys
+import threading
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from experiments.env import EnvError, load_env                     # noqa: E402
 from experiments.kill_criteria import evaluate_criteria            # noqa: E402
 from experiments.pilot import PilotSpec, load_records, run_pilot, summarize  # noqa: E402
 from runner import (                                                # noqa: E402
@@ -58,16 +62,29 @@ OUT = ROOT / "data" / "pilot"
 FRONTIER = os.environ.get("FRONTIER_MODEL", "gpt-6-astra")
 
 
-def load_env(path: Path = ROOT / ".env") -> None:
-    """Minimal .env reader. No dependency, and it never overrides a real env var."""
-    if not path.exists():
-        return
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+@contextlib.contextmanager
+def _heartbeat(label: str, every: float = 15.0):
+    """Print elapsed seconds while a long call is in flight.
+
+    A reasoning model at high effort can take minutes on one case. Without this
+    the terminal shows nothing at all, and a normal wait is indistinguishable
+    from a hang -- which is exactly what it looked like the first time.
+    """
+    done = threading.Event()
+    started = time.monotonic()
+
+    def tick():
+        while not done.wait(every):
+            print(f"  ... {label}: {time.monotonic() - started:.0f}s elapsed",
+                  flush=True)
+
+    thread = threading.Thread(target=tick, daemon=True)
+    thread.start()
+    try:
+        yield
+    finally:
+        done.set()
+        thread.join(timeout=1)
 
 
 def _require(name: str) -> str:
@@ -115,19 +132,31 @@ def cmd_smoke(args) -> int:
     cannot enforce "abstain_reason is required exactly when decision == abstain",
     the rule separating a real abstention from a silent one.
     """
-    provider = _frontier_provider()
+    if args.arm == "openweight":
+        label = os.environ.get("OPENWEIGHT_MODEL")
+        if not label:
+            sys.exit("OPENWEIGHT_MODEL is not set; nothing to smoke-test.")
+        provider, model = _arms()[label](), label
+    else:
+        provider, model = _frontier_provider(), args.model
+
     record = next(json.loads(l) for l in
                   (CORPUS / INPUTS_FILE).read_text().splitlines()
                   if l and json.loads(l)["level"] == "moderate")
     profile = _profiles().get(str(record["patient_id"]))
 
     print(f"case      : {record['case_id']}")
-    print(f"model     : {args.model}")
+    print(f"arm       : {args.arm}")
+    print(f"model     : {model}")
     print(f"vignette  : {len(record['vignette'])} chars\n")
 
-    result = run_case(model=args.model, prompt_input=record["vignette"],
-                      profile=profile, provider=provider,
-                      case_id=record["case_id"], task="B")
+    print("calling the model (reasoning at high effort routinely takes "
+          "1-5 minutes for one case; Ctrl-C only aborts the wait, not the "
+          "billing)...", flush=True)
+    with _heartbeat("waiting for first response headers"):
+        result = run_case(model=model, prompt_input=record["vignette"],
+                          profile=profile, provider=provider,
+                          case_id=record["case_id"], task="B")
     t = result.transcript
     print("ACCEPTED. The API took the stripped schema and the reply validates "
           "against the full one.\n")
@@ -144,7 +173,7 @@ def cmd_smoke(args) -> int:
     print(f"  latency_ms      : {t['latency_ms']}")
 
     OUT.mkdir(parents=True, exist_ok=True)
-    path = OUT / "smoke_transcript.json"
+    path = OUT / f"smoke_transcript_{args.arm}.json"
     path.write_text(json.dumps(t, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\ntranscript -> {path}")
     return 0
@@ -229,7 +258,10 @@ def cmd_report(args) -> int:
 
 
 def main() -> int:
-    load_env()
+    try:
+        load_env(ROOT / ".env")
+    except EnvError as exc:
+        sys.exit(f"{ROOT / '.env'}: {exc}")
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -237,6 +269,9 @@ def main() -> int:
 
     smoke = subs.add_parser("smoke", help="one real call, end to end")
     smoke.add_argument("--model", default=FRONTIER)
+    smoke.add_argument("--arm", choices=("frontier", "openweight"),
+                       default="frontier",
+                       help="which arm to smoke-test (default: frontier)")
     smoke.set_defaults(func=cmd_smoke)
 
     run = subs.add_parser("run", help="the pilot (resumable)")

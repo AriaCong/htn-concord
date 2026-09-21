@@ -61,6 +61,11 @@ _PRICES: dict[str, tuple[float, float]] = {
     "gpt-5.6-luna": (0.2e-6, 1.2e-6),
     "gpt-5.5": (5e-6, 30e-6),
     "gpt-5.4": (2.5e-6, 15e-6),
+    # Open-weight arm, priced by its HOST. This table is keyed by model id
+    # alone, so a model served by two hosts at two prices would collide here --
+    # revisit if the open-weight arm ever moves off Groq.
+    "openai/gpt-oss-120b": (0.15e-6, 0.60e-6),   # Groq, verified 2026-09-22
+    "openai/gpt-oss-20b": (0.10e-6, 0.50e-6),    # Groq
 }
 
 DEFAULT_SYSTEM = (

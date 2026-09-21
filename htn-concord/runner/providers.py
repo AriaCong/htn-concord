@@ -212,6 +212,9 @@ def _as_mapping(value: Any) -> dict[str, Any] | None:
 # The open-weight arm (HC-61, decision D3)
 # ---------------------------------------------------------------------------
 
+#: Sent on every raw-HTTP request. A benchmark should say what it is.
+USER_AGENT = "htn-concord-runner/1.0 (research benchmark)"
+
 #: Hosted endpoints that speak the OpenAI-compatible chat-completions shape.
 #: The *provider* is configuration; the *model version* is an experimental
 #: variable and must be written out in full, never as a floating alias like
@@ -321,23 +324,38 @@ class OpenAICompatibleProvider:
             f"{self.base_url}/chat/completions",
             body,
             {"Authorization": f"Bearer {self._api_key}",
-             "Content-Type": "application/json"},
+             "Content-Type": "application/json",
+             # Identify the client. Some hosts sit behind a CDN that rejects
+             # urllib's default UA outright (Cloudflare 1010), which surfaces as
+             # a 403 with no useful body.
+             "User-Agent": USER_AGENT},
             self.timeout,
         )
 
         choice = (payload.get("choices") or [{}])[0]
-        text = ((choice.get("message") or {}).get("content")) or ""
+        message = choice.get("message") or {}
+        text = message.get("content") or ""
         usage = payload.get("usage") or {}
+        # Some hosts break reasoning tokens out the way OpenAI does; they are
+        # billed as output either way, so record them when they are offered.
+        details = usage.get("completion_tokens_details") or {}
         finish = choice.get("finish_reason")
+
+        # A structured-output refusal may arrive in its own field here too.
+        refusal = message.get("refusal")
         return ProviderResponse(
             text=text,
             model=payload.get("model") or self.model_label,
             input_tokens=usage.get("prompt_tokens", 0) or 0,
             output_tokens=usage.get("completion_tokens", 0) or 0,
+            reasoning_tokens=details.get("reasoning_tokens", 0) or 0,
             # Normalized to the vocabulary run_case branches on, so one chain of
-            # outcome handling covers both arms.
-            stop_reason=_NORMALIZED_FINISH.get(finish, finish),
-            stop_details={"finish_reason": finish} if finish else None,
+            # outcome handling covers every arm.
+            stop_reason=("refusal" if refusal
+                         else _NORMALIZED_FINISH.get(finish, finish)),
+            stop_details=({"finish_reason": finish, "refusal": refusal}
+                          if refusal else
+                          {"finish_reason": finish} if finish else None),
         )
 
 
@@ -401,13 +419,19 @@ class OpenAIProvider:
 
     name = "openai"
 
-    def __init__(self, client: Any = None, effort: str = "high") -> None:
+    def __init__(self, client: Any = None, effort: str = "high",
+                 timeout: float = 900.0) -> None:
         if client is None:
             import openai  # imported lazily: not needed for tests or CI
 
-            client = openai.OpenAI()
+            # Explicit, and generous: a reasoning model at high effort can spend
+            # minutes on one case. The SDK's own default would otherwise decide
+            # this silently, and a benchmark that gives up early records a
+            # timeout where there was an answer.
+            client = openai.OpenAI(timeout=timeout)
         self._client = client
         self.effort = effort
+        self.timeout = timeout
 
     def complete(self, request: ProviderRequest) -> ProviderResponse:
         messages: list[dict[str, Any]] = []

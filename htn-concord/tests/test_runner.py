@@ -947,3 +947,26 @@ def test_groq_is_a_known_host():
     provider = OpenAICompatibleProvider.for_host(
         "groq", "openai/gpt-oss-120b", api_key="k")
     assert provider.base_url.endswith("/openai/v1")
+
+
+def test_open_weight_model_is_priced():
+    """The pilot reports cost; the first live call recorded `None` because this
+    model was absent from the table."""
+    from runner.run_case import _cost_usd
+
+    assert _cost_usd("openai/gpt-oss-120b", 1_000_000, 0) == pytest.approx(0.15)
+    assert _cost_usd("openai/gpt-oss-120b", 0, 1_000_000) == pytest.approx(0.60)
+
+
+def test_open_weight_provider_records_reasoning_tokens_when_offered():
+    from runner.providers import OpenAICompatibleProvider
+
+    captured: dict = {}
+    payload = _chat_payload(_valid_json_text())
+    payload["usage"]["completion_tokens_details"] = {"reasoning_tokens": 2600}
+    provider = OpenAICompatibleProvider(
+        "m", base_url="https://x.test/v1", api_key="k",
+        transport=_fake_transport(payload, captured))
+    result = run_case(model="m", prompt_input=PROMPT, profile=None,
+                      provider=provider)
+    assert result.transcript["usage"]["reasoning_tokens"] == 2600
