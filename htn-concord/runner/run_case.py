@@ -141,7 +141,30 @@ def api_safe_schema(schema: Mapping[str, Any]) -> dict[str, Any]:
     out = _strip(schema, definitions)
     for key in ("$schema", "$id", "definitions"):
         out.pop(key, None)
-    return out
+    return _require_all_properties(out)
+
+
+def _require_all_properties(node: Any) -> Any:
+    """Mark every property of every object as `required`, recursively.
+
+    Strict structured outputs rejects a schema with optional properties: the
+    documented way to express "may be absent" is a nullable union, not omission
+    from `required`. `TraceStep.citation` is the one such property here, and it
+    is already `["string", "null"]`, so requiring it costs nothing.
+
+    This does **not** tighten the contract. The full local schema still treats
+    `citation` as optional, and a trace step that omits it still validates.
+    Constraining the request copy only changes what the model is asked to emit.
+    """
+    if isinstance(node, Mapping):
+        out = {k: _require_all_properties(v) for k, v in node.items()}
+        properties = out.get("properties")
+        if isinstance(properties, Mapping) and properties:
+            out["required"] = sorted(properties)
+        return out
+    if isinstance(node, list):
+        return [_require_all_properties(v) for v in node]
+    return node
 
 
 def _strip(node: Any, definitions: Mapping[str, Any], _depth: int = 0) -> Any:

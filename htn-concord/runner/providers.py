@@ -255,6 +255,7 @@ class OpenAICompatibleProvider:
 
     def __init__(self, model_label: str, *, base_url: str, api_key: str,
                  temperature: float | None = None,
+                 effort: str | None = None,
                  structured_outputs: bool = True,
                  timeout: float = 600.0,
                  transport: Callable[[str, Mapping[str, Any], Mapping[str, str], float],
@@ -263,6 +264,7 @@ class OpenAICompatibleProvider:
         self.base_url = base_url.rstrip("/")
         self._api_key = api_key
         self.temperature = temperature
+        self.effort = effort
         self.structured_outputs = structured_outputs
         self.timeout = timeout
         self._transport = transport or _post_json
@@ -288,9 +290,18 @@ class OpenAICompatibleProvider:
 
         body: dict[str, Any] = {
             "model": self.model_label,
-            "max_tokens": request.max_tokens,
+            # `max_tokens` is the deprecated spelling and reasoning models reject
+            # it; the ceiling also has to cover reasoning tokens.
+            "max_completion_tokens": request.max_tokens,
             "messages": messages,
         }
+        # Pinned and recorded when the served model is a reasoning model. Leaving
+        # it unset would run this arm at the host's default while the frontier arm
+        # ran at a pinned effort -- an unrecorded variable between the two arms
+        # the whole comparison rests on. Omitted when None, because hosts serving
+        # non-reasoning models reject the parameter.
+        if self.effort is not None:
+            body["reasoning_effort"] = self.effort
         if self.structured_outputs:
             body["response_format"] = {
                 "type": "json_schema",

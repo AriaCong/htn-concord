@@ -38,7 +38,7 @@ the backlog. See §7 for the reasoning and the doc changes.
 | Condition | **C1 only** (rendered vignette, parametric memory, model's own arithmetic) |
 | Patients | **20**, drawn from the **test** split, stratified by engine decision |
 | Levels | **all three** — simple, moderate, hard |
-| Models | **2** — one frontier (`gpt-6-astra`), one open-weight (D3) |
+| Models | **2** — frontier `gpt-6-astra`, open-weight `openai/gpt-oss-120b` on Groq (D3). Both OpenAI — see the same-lab limitation in §6.4 |
 | Replicates | **k = 5** per case per model (design §4.4) |
 | Total calls | **20 × 3 × 2 × 5 = 600** |
 
@@ -178,6 +178,26 @@ read:
    invisible even at this sample size, it is genuinely small. Passing is weak
    evidence; failing is strong evidence. The gate is asymmetric on purpose.
 
+4. **Both arms now come from the same lab, which weakens what a replication
+   means.** The frontier arm is `gpt-6-astra` and the open-weight arm is
+   `openai/gpt-oss-120b` — both OpenAI. The design reports a failure mode as a
+   finding only if it **replicates across models**, and the purpose of that rule
+   is to exclude single-model quirks. Two models sharing a lab, and plausibly
+   sharing pretraining data and post-training methodology, can share a quirk —
+   which would replicate across both arms and read as a mechanism finding when it
+   is a lab-level artefact. K3 is affected in the same direction: if the two arms
+   agree closely, "the corpus cannot separate models" and "these two models are
+   siblings" are not distinguishable from this pilot.
+
+   This does not invalidate the pilot — the capability gap between a frontier
+   model and a 120B open-weight model is real, and that gap is what K3 measures.
+   But **the cross-model replication bar is not met by this pair**, and any RQ2
+   mechanism claim resting on "it replicates across models" needs a third arm
+   from a different lab before it can be made. Recorded here rather than
+   discovered at review. Different-lab candidates with structured-output support:
+   `deepseek-ai/DeepSeek-V4-Pro-0813` (which also carries a dated snapshot),
+   `moonshotai/Kimi-K3`, `zai-org/GLM-5.3`.
+
 CIs are reported beside every pilot number (patient-level cluster bootstrap,
 B = 2000 per design §4.2–4.3) so this is visible rather than asserted.
 
@@ -222,11 +242,12 @@ the verdict they produce will be accepted — **including if it is *stop***.
 - **Frontier arm:** `gpt-6-astra`. Changed from `claude-opus-5` on 2026-09-20
   (see the change log below); the change was made before any pilot call, and
   altered no criterion, threshold or verdict rule
-- **Open-weight arm (D3):** a large open-weight model through a hosted API,
-  pinned by exact version string at run time and recorded per call. Family and
-  provider selected by the implementer; the decision to use a *hosted frontier-class
-  open-weight* model rather than a small local one is Aria's, taken so that K3 is a
-  real test rather than one a weak model passes trivially
+- **Open-weight arm (D3):** `openai/gpt-oss-120b` served by Groq, chosen by Aria
+  2026-09-22. Reasoning effort pinned at `high` and recorded per call, matching
+  the frontier arm. The decision to use a *hosted frontier-class open-weight*
+  model rather than a small local one is Aria's, taken so that K3 is a real test
+  rather than one a weak model passes trivially. **Known limitation of this
+  specific pairing: both arms are OpenAI models — see §6.4**
 - **Deviations agreed at sign-off:** none
 
 *Any change to this document after the first pilot call is made must be recorded
@@ -236,4 +257,5 @@ here with its reason and its date, not edited silently.*
 |---|---|---|
 | 2026-09-20 | Created | Pre-registration before any call |
 | 2026-09-20 | Signed by Aria, approved as written; D3 resolved to a hosted open-weight arm | Sign-off obtained before any pilot call, per HC-80 |
+| 2026-09-22 | **Open-weight arm set to `openai/gpt-oss-120b` on Groq.** Aria's choice. Pre-call. Reasoning effort pinned at `high` to match the frontier arm, since leaving it at a host default would have made this arm the only unrecorded variable in the comparison. **Limitation recorded in §6.4 rather than absorbed: both arms are now OpenAI models, so the design's "replicates across models" bar is not met by this pair** — a lab-level quirk would replicate across both and read as a mechanism finding. A third arm from a different lab is needed before any such claim | Requested choice of the second arm |
 | 2026-09-20 | **Frontier arm changed from Claude (`claude-opus-5`) to OpenAI (`gpt-6-astra`).** Aria's request. **Pre-call amendment — no pilot call had been made**, so this is not a protocol deviation. No threshold, criterion or verdict rule changed; K3 still compares the frontier arm against the open-weight arm. Two consequences recorded rather than absorbed silently: (a) the frontier arm **publishes no dated snapshot id**, so it cannot be version-pinned — the id the API reports is recorded per call, which makes a silent model change detectable after the fact but not preventable, and this belongs in the manuscript's reproducibility section; (b) the pinned effort knob is now `reasoning_effort=high` rather than Anthropic's `effort=high` — comparable in role, not identical in meaning, so it is recorded per call as before | Requested change of what the experiment compares |

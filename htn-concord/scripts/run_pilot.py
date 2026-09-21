@@ -10,8 +10,9 @@ is never written to a transcript, a log line, or any file this script produces.
 
     OPENAI_API_KEY=...                # frontier arm
     OPENWEIGHT_API_KEY=...            # open-weight arm
-    OPENWEIGHT_HOST=together          # together | fireworks | groq | openrouter
+    OPENWEIGHT_HOST=groq              # together | fireworks | groq | openrouter
     OPENWEIGHT_MODEL=<exact version string, never a floating alias>
+    OPENWEIGHT_EFFORT=high            # reasoning models only; set empty to omit
 
 Optional, to run the Anthropic arm instead of or alongside OpenAI:
 
@@ -95,10 +96,14 @@ def _arms() -> dict:
     arms = {FRONTIER: _frontier_provider}
     label = os.environ.get("OPENWEIGHT_MODEL")
     if label:
-        host = os.environ.get("OPENWEIGHT_HOST", "together")
+        host = os.environ.get("OPENWEIGHT_HOST", "groq")
         key = _require("OPENWEIGHT_API_KEY")
+        # Pinned by default so this arm is not the only unrecorded variable in
+        # the comparison. Set OPENWEIGHT_EFFORT empty for a non-reasoning model,
+        # whose host would reject the parameter.
+        effort = os.environ.get("OPENWEIGHT_EFFORT", "high") or None
         arms[label] = lambda: OpenAICompatibleProvider.for_host(
-            host, label, api_key=key)
+            host, label, api_key=key, effort=effort)
     return arms
 
 

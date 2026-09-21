@@ -681,8 +681,11 @@ def test_inlining_preserves_the_shapes_the_refs_pointed_at():
     assert recommendation["additionalProperties"] is False
 
     step = safe["properties"]["trace"]["items"]
-    assert set(step["required"]) == {"rule", "detail"}
-    assert "citation" in step["properties"]
+    assert set(step["properties"]) == {"rule", "detail", "citation"}
+    # `citation` is optional in the full schema but required here: strict mode
+    # rejects optional properties. See
+    # test_api_safe_schema_marks_every_property_required.
+    assert set(step["required"]) == {"rule", "detail", "citation"}
 
 
 def test_the_full_schema_still_uses_refs_and_still_validates():
@@ -858,3 +861,89 @@ def test_openai_provider_records_the_model_the_api_reports():
     result = run_case(model="requested", prompt_input=PROMPT, profile=None,
                       provider=provider)
     assert result.transcript["model"] == "gpt-6-astra"
+
+
+# ---------------------------------------------------------------------------
+# Groq + openai/gpt-oss-120b as the open-weight arm (2026-09-22)
+#
+# Three requirements taken from the host's own documentation, each of which
+# would have broken or silently degraded the first live call.
+# ---------------------------------------------------------------------------
+
+def _all_objects(node):
+    """Every object schema in the tree, for the strict-mode checks below."""
+    if isinstance(node, dict):
+        if node.get("type") == "object" and "properties" in node:
+            yield node
+        for value in node.values():
+            yield from _all_objects(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from _all_objects(value)
+
+
+def test_api_safe_schema_marks_every_property_required():
+    """Strict structured outputs requires *all* properties to be in `required`.
+
+    `TraceStep.citation` is optional in the full schema, so the request copy
+    would have been rejected. The documented workaround for an optional field is
+    a nullable union, which `citation` already is -- so requiring it costs
+    nothing and the full local schema, which still treats it as optional, remains
+    the contract.
+    """
+    safe = api_safe_schema(load_output_schema())
+    for obj in _all_objects(safe):
+        assert set(obj["required"]) == set(obj["properties"]), (
+            f"{sorted(set(obj['properties']) - set(obj.get('required', [])))} "
+            "not marked required; strict mode rejects this")
+
+
+def test_every_object_in_the_request_copy_is_closed():
+    """The other strict-mode requirement: additionalProperties false everywhere."""
+    safe = api_safe_schema(load_output_schema())
+    for obj in _all_objects(safe):
+        assert obj.get("additionalProperties") is False
+
+
+def test_requiring_citation_does_not_change_what_validates_locally():
+    """A trace step that omits `citation` must still pass the full schema."""
+    output = _valid_output()
+    output["trace"] = [{"rule": "bp_staging", "detail": "staged"}]
+    jsonschema.Draft7Validator(load_output_schema()).validate(output)
+
+    output["trace"] = [{"rule": "bp_staging", "detail": "staged", "citation": None}]
+    jsonschema.Draft7Validator(load_output_schema()).validate(output)
+
+
+def test_open_weight_provider_sends_max_completion_tokens():
+    """Groq documents `max_completion_tokens`, not the deprecated `max_tokens`."""
+    provider, captured = _openweight(_valid_json_text())
+    run_case(model="openai/gpt-oss-120b", prompt_input=PROMPT, profile=None,
+             provider=provider, max_tokens=16000)
+    assert captured["body"]["max_completion_tokens"] == 16000
+    assert "max_tokens" not in captured["body"]
+
+
+def test_open_weight_provider_pins_reasoning_effort_when_given():
+    """gpt-oss is a reasoning model. Leaving effort unset would mean the
+    open-weight arm ran at the host's default while the frontier arm ran at a
+    pinned one -- an unrecorded variable across the two arms being compared."""
+    provider, captured = _openweight(_valid_json_text(), effort="high")
+    run_case(model="openai/gpt-oss-120b", prompt_input=PROMPT, profile=None,
+             provider=provider)
+    assert captured["body"]["reasoning_effort"] == "high"
+
+
+def test_open_weight_provider_omits_reasoning_effort_when_not_set():
+    """Hosts serving non-reasoning models reject the parameter."""
+    provider, captured = _openweight(_valid_json_text(), effort=None)
+    run_case(model="m", prompt_input=PROMPT, profile=None, provider=provider)
+    assert "reasoning_effort" not in captured["body"]
+
+
+def test_groq_is_a_known_host():
+    from runner.providers import OpenAICompatibleProvider
+
+    provider = OpenAICompatibleProvider.for_host(
+        "groq", "openai/gpt-oss-120b", api_key="k")
+    assert provider.base_url.endswith("/openai/v1")
