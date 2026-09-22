@@ -1,6 +1,8 @@
 """`.env` parsing -- the loader that once passed a commented key into a header."""
 from __future__ import annotations
 
+import hashlib
+
 import pytest
 
 from experiments.env import EnvError, check_value, load_env, parse_env
@@ -115,3 +117,42 @@ def test_a_whitespace_separated_comment_is_still_just_stripped():
     env = parse_env("OPENWEIGHT_API_KEY=sk-or-v1-abc123   # a note\n")
     assert env["OPENWEIGHT_API_KEY"] == "sk-or-v1-abc123"
     check_value("OPENWEIGHT_API_KEY", env["OPENWEIGHT_API_KEY"])
+
+
+def test_human_gate_is_not_closed_by_a_signature_bound_to_a_different_corpus(tmp_path):
+    """HC-101: a signed form only closes the gate for the corpus it names.
+
+    `hc57_signed` asks one question -- is the marker present? -- so any signed
+    form kept the numbers non-provisional even after the corpus underneath it
+    was rebuilt. That is the failure the HC-57 signature was deliberately bound
+    to checksums to prevent, and nothing was checking the binding.
+
+    Erring toward "provisional" is the safe direction, so a form that does not
+    name the corpus digest in full does not close the gate.
+    """
+    from experiments.env import human_gate_closed
+
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    inputs = corpus / "task_b_inputs.jsonl"
+    inputs.write_text('{"case_id": "taskb-1-simple"}\n', encoding="utf-8")
+    digest = hashlib.sha256(inputs.read_bytes()).hexdigest()
+
+    signoffs = tmp_path / "signoffs"
+    signoffs.mkdir()
+
+    signed_other = signoffs / "HC-57_facts-only_spotcheck_signoff.md"
+    signed_other.write_text("Outcome: ☑ **pass, no flags**\ncorpus `deadbeef`\n",
+                            encoding="utf-8")
+    assert human_gate_closed(signoffs, corpus) is False, \
+        "a signature naming another corpus must not close the gate"
+
+    unsigned_match = signoffs / "HC-101_hard-level_rereview_signoff.md"
+    unsigned_match.write_text(f"Outcome: ☐ pass, no flags\ncorpus `{digest}`\n",
+                              encoding="utf-8")
+    assert human_gate_closed(signoffs, corpus) is False, \
+        "naming the corpus is not enough; the form must also be signed"
+
+    unsigned_match.write_text(f"Outcome: ☑ **pass, no flags**\ncorpus `{digest}`\n",
+                              encoding="utf-8")
+    assert human_gate_closed(signoffs, corpus) is True

@@ -178,3 +178,29 @@ def test_spotcheck_stays_deterministic_with_supplementary_strata(wide_corpus):
     a = build_spotcheck(corpus, per_decision=2, seed=4, profiles=profiles)
     b = build_spotcheck(corpus, per_decision=2, seed=4, profiles=profiles)
     assert a == b
+
+
+def test_sheet_states_the_same_drug_class_standard_as_the_signoff_form(corpus, tmp_path):
+    """HC-104: the sheet and the form must not state two different standards.
+
+    The form allows a drug class named as a *fact about what the patient takes*
+    and forbids it only as a recommendation -- that carve-out is what lets the
+    renderer say "she also takes a statin for cholesterol", which it must,
+    because `statin_use` is a required PREVENT input and withholding it would
+    make Stage-1 risk incomputable.
+
+    The sheet's own header dropped the qualifier and said a vignette fails if it
+    "names a drug class" at all. Found by the HC-101 reviewer, who read the
+    sheet, hit the five `statin` vignettes, and could not sign 25/25 against
+    wording the corpus provably cannot satisfy. The reviewer was right and the
+    sheet was wrong.
+    """
+    from tasks.spotcheck import build_spotcheck
+
+    text = build_spotcheck(corpus, tmp_path / "sheet.md", per_decision=2)
+    header = text.split("---", 1)[0].lower().replace("*", "")
+
+    assert "drug class" in header, "fixture assumption: the sheet states the standard"
+    assert "recommend" in header, (
+        "the sheet must say a drug class is forbidden *as a recommendation*, not "
+        "outright -- a drug the patient already takes is a fact the vignette needs")
