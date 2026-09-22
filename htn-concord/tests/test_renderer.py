@@ -103,7 +103,21 @@ def test_pregnancy_is_stated_as_a_fact(profile):
 
 
 # --- 3. Information preservation ------------------------------------------
-_DECISION_RELEVANT = ("154", "91", "42", "4.8", "55", "7.4", "190", "48", "68")
+#: Values every level must still state verbatim: eGFR, potassium, UACR, HbA1c,
+#: total cholesterol, HDL, age.
+#:
+#: Blood pressure (154/91) was in this tuple until HC-101 and is deliberately
+#: no longer: `hard` now states the three readings and makes the reader average
+#: them. Substring presence was always a *proxy* for the property that matters
+#: -- that the decision-relevant value is recoverable -- and the two come apart
+#: exactly at the change K2 required. The proxy is replaced for BP, not dropped,
+#: by `test_bp_is_exactly_recoverable_at_every_level`, which is strictly
+#: stronger: it recomputes the mean of whatever readings the level states and
+#: asserts it equals the engine's own displayed value. A `hard` vignette that
+#: truly withheld BP, or stated readings averaging to anything else, fails that
+#: test at every level. Nothing here licenses removing another value from this
+#: tuple; a value leaves it only when a stronger check replaces it.
+_DECISION_RELEVANT = ("42", "4.8", "55", "7.4", "190", "48", "68")
 
 
 @pytest.mark.parametrize("level", LEVELS)
@@ -256,3 +270,147 @@ def test_rendered_bp_stages_identically_to_profile_bp():
         != vocab.bp_stage_scalar(row["sbp"], row["dbp"])
     ]
     assert not mismatches, f"{len(mismatches)} profiles render a BP of a different stage"
+
+
+# ===========================================================================
+# 4. The `hard` extraction burden (HC-101 / kill criterion K2)
+# ===========================================================================
+# The HC-80 pilot found the ladder inert: extraction F1 was 0.918 at simple,
+# moderate AND hard, to three decimals, with identical per-field counts. Every
+# fact was stated in the same sentence with the same label and units at all
+# three levels, so reordering paragraphs and adding visit-logistics filler cost
+# a reader nothing.
+#
+# Two mechanisms now make `hard` cost something to read, both aimed at fields
+# the evaluator actually scores (`evaluator.metrics`: sbp, dbp, potassium among
+# the twelve). Neither removes information -- both change what it costs to
+# recover it, which is the line drawn in the renderer's module docstring.
+
+def _bp_pairs(text: str) -> list[tuple[int, int]]:
+    """Every `nnn/nn` blood-pressure pair in the rendered text."""
+    return [(int(s), int(d)) for s, d in re.findall(r"\b(\d{2,3})/(\d{2,3})\b", text)]
+
+
+def _mean(values):
+    return sum(values) / len(values)
+
+
+# --- mechanism (a): give the readings, not the average ---------------------
+def test_hard_states_each_reading_and_not_the_pre_averaged_value(profile):
+    """`hard` hands over the three readings; the average must be computed."""
+    profile.update(sbp=154.0, dbp=91.0, bp_n_readings=3.0)
+    pairs = _bp_pairs(render(profile, "hard", seed=5))
+    assert len(pairs) == 3, "hard must show every reading"
+    assert (154, 91) not in pairs, "the pre-averaged value must not be handed over"
+
+
+def test_simple_and_moderate_still_state_the_averaged_bp(profile):
+    """Only `hard` changes. The easier levels keep handing the value over."""
+    profile.update(sbp=154.0, dbp=91.0, bp_n_readings=3.0)
+    for level in ("simple", "moderate"):
+        assert "154/91" in render(profile, level, seed=5)
+
+
+@pytest.mark.parametrize("sbp,dbp,n", [
+    (154.0, 91.0, 3.0), (129.333333, 80.666667, 3.0), (119.0, 75.0, 3.0),
+    (167.5, 66.25, 3.0), (98.0, 61.0, 2.0), (142.0, 88.0, 1.0),
+])
+def test_hard_readings_average_exactly_to_the_displayed_value(profile, sbp, dbp, n):
+    """The readings must average to the value the evaluator compares against.
+
+    `evaluator.metrics` scores extraction against `display_bp(profile.sbp)` --
+    the floored value the vignette showed. If the readings averaged to anything
+    else, a model that read and averaged perfectly would score as an extraction
+    miss, and the level-over-level drop would measure our arithmetic rather than
+    its reading. Readings are integers summing to `n * displayed`, so the mean
+    is exact under any rounding convention the model might apply.
+    """
+    profile.update(sbp=sbp, dbp=dbp, bp_n_readings=n)
+    pairs = _bp_pairs(render(profile, "hard", seed=5))
+    assert len(pairs) == int(n)
+    assert _mean([s for s, _ in pairs]) == display_bp(sbp)
+    assert _mean([d for _, d in pairs]) == display_bp(dbp)
+
+
+def test_hard_readings_stay_physiologically_plausible(profile):
+    """A reading outside the cleaning gate would be a tell that the text is generated."""
+    for sbp, dbp in ((98.0, 61.0), (154.0, 91.0), (196.0, 104.0)):
+        profile.update(sbp=sbp, dbp=dbp, bp_n_readings=3.0)
+        for seed in range(12):
+            for s, d in _bp_pairs(render(profile, "hard", seed=seed)):
+                assert vocab.SBP_MIN <= s <= vocab.SBP_MAX
+                assert vocab.DBP_MIN <= d <= vocab.DBP_MAX
+                assert s > d, "systolic must exceed diastolic in every reading"
+
+
+# --- the invariant, restated ------------------------------------------------
+@pytest.mark.parametrize("level", LEVELS)
+def test_bp_is_exactly_recoverable_at_every_level(profile, level):
+    """BP is the one value `hard` no longer states verbatim, so the invariant
+    it must satisfy is restated in the form it always meant.
+
+    `test_every_level_carries_every_decision_relevant_value` checks substring
+    presence, which was the right check while every level stated every value in
+    the same words. It is a *proxy* for the property that matters -- that the
+    decision-relevant value is recoverable -- and the two come apart exactly at
+    the change K2 requires. This replaces the proxy for BP with the property
+    itself, and is strictly stronger: it verifies the recovery path arrives at
+    the engine's own displayed value, which substring presence never checked.
+    """
+    text = render(profile, level, seed=5)
+    pairs = _bp_pairs(text)
+    assert pairs, f"{level} vignette carries no blood pressure"
+    assert _mean([s for s, _ in pairs]) == display_bp(profile["sbp"])
+    assert _mean([d for _, d in pairs]) == display_bp(profile["dbp"])
+
+
+# --- mechanism (b): a temporal decoy on potassium ---------------------------
+# Potassium only, deliberately. Its single path to a label is
+# `k >= vocab.K_HYPERKALEMIA -> "hyperkalemia"` (pipelines/common/derive.py), so
+# a decoy on the same side of that one threshold is *provably* decision-inert.
+# eGFR was considered and rejected: it enters PREVENT as two continuous spline
+# terms, so any alternative value shifts `prevent_10yr` and can cross
+# PREVENT_STAGE1_TREAT. Conservative call, flagged for HC-49.
+
+def test_hard_states_a_prior_potassium_beside_the_current_one(profile):
+    profile["potassium"] = 4.0
+    text = render(profile, "hard", seed=5)
+    values = {float(v) for v in re.findall(r"\b(\d\.\d)\b", text)}
+    assert 4.0 in values, "the current value must still be stated"
+    assert len(values & {round(x * 0.1, 1) for x in range(25, 66)}) >= 2, \
+        "hard must state a second, earlier potassium"
+
+
+def test_simple_and_moderate_state_one_potassium_only(profile):
+    profile["potassium"] = 4.0
+    for level in ("simple", "moderate"):
+        text = render(profile, level, seed=5)
+        assert text.count("mmol/L") == 1
+
+
+def test_the_current_potassium_is_the_one_labelled_current(profile):
+    """A careless reader takes the wrong number; a careful one cannot be misled."""
+    profile["potassium"] = 4.0
+    text = render(profile, "hard", seed=5)
+    current = re.search(r"potassium[^.;]*?(\d\.\d)\s*mmol/L today", text)
+    assert current and float(current.group(1)) == 4.0
+
+
+@pytest.mark.parametrize("potassium", [3.0, 3.4, 4.0, 4.8, 5.4, 5.5, 5.9, 6.4])
+def test_potassium_decoy_never_crosses_the_hyperkalemia_threshold(profile, potassium):
+    """The decoy may not change the flag the engine derives from potassium."""
+    from renderer.render import potassium_decoy
+
+    for seed in range(40):
+        decoy = potassium_decoy(potassium, _case_rng_for(profile, seed))
+        if decoy is None:
+            continue
+        assert (decoy >= vocab.K_HYPERKALEMIA) == (potassium >= vocab.K_HYPERKALEMIA), \
+            f"decoy {decoy} crosses K_HYPERKALEMIA for a current value of {potassium}"
+        assert 1.5 < decoy < 9.0, "decoy must stay inside the cleaning plausibility range"
+        assert decoy != potassium, "an identical decoy is not a decoy"
+
+
+def _case_rng_for(profile, seed):
+    from renderer.render import _rng
+    return _rng(profile, "hard", seed)
