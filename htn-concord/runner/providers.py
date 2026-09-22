@@ -7,9 +7,24 @@ AnthropicProvider is the one class that talks to a real model.
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any, Callable, Mapping, Protocol
+
+
+#: Per-call wall-clock ceiling, in seconds (HC-103).
+#:
+#: 900s is generous on purpose: a reasoning model at high effort can spend
+#: minutes on one case, and a benchmark that gives up early records a timeout
+#: where there was an answer. But `run_pilot` wraps each call in
+#: `api_retries=3`, so the *effective* ceiling is ~45 minutes, and a hung socket
+#: cost 3h14m and then 73m of silent stall during the HC-101 measurement.
+#:
+#: Overridable so a long run can be tightened without editing code. Lowering it
+#: is a transport decision, not a model one: a timed-out call writes no record
+#: and the resume refills it, so nothing a model answered depends on this value.
+DEFAULT_CALL_TIMEOUT = float(os.environ.get("PILOT_CALL_TIMEOUT", "900"))
 
 
 @dataclass(frozen=True)
@@ -462,7 +477,8 @@ class OpenAIProvider:
     name = "openai"
 
     def __init__(self, client: Any = None, effort: str = "high",
-                 timeout: float = 900.0) -> None:
+                 timeout: float | None = None) -> None:
+        timeout = DEFAULT_CALL_TIMEOUT if timeout is None else timeout
         if client is None:
             import openai  # imported lazily: not needed for tests or CI
 
