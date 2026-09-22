@@ -146,7 +146,56 @@ give the answer away?* A vignette fails if it:
 
 | # | phrase | why it made you hesitate |
 |---|---|---|
-| | | |
+| 5 vignettes (patients 96754, 101393, 100388, 95492, 102866) | "She also takes a statin for cholesterol." | the sheet's header said a vignette fails if it "names a drug *class*", and `statin` is a class rather than a drug name |
+
+### Adjudication of the `statin` flag — resolved PASS, 2026-09-23
+
+**The reviewer was right to stop, and the sheet was wrong.** Two artifacts stated
+two different standards:
+
+| | wording |
+|---|---|
+| this form | "names a drug class **as a recommendation** (a drug the patient already takes, by name, is a fact and is fine)" |
+| the generated sheet | "nothing … names a drug *class*" — the qualifier was dropped |
+
+The reviewer read the sheet. Against that wording the corpus provably cannot
+pass, because five vignettes must say `statin`.
+
+**Resolved: `statin` is not leakage, on three independent grounds.**
+
+1. **It is not in the recommendation vocabulary.** `vocab.MED_CLASSES` is nine
+   antihypertensive classes (thiazide, acei, arb, dhp_ccb, nondhp_ccb,
+   beta_blocker, loop_diuretic, mra, alpha_blocker). `recommendation.drug_classes`
+   is schema-bound to those, so the engine can never recommend a statin and
+   naming one cannot disclose the answer.
+2. **It is a required input.** `statin_use` is a PREVENT term (`statin` and
+   `non_hdl_x_statin`). Withholding it would make the 10-year risk incomputable
+   and every Stage-1 case unanswerable — a worse failure than the one being
+   guarded against.
+3. **The scanner agrees**: 0 token hits across all 14,418 cases.
+
+The contrast is the point: the vignette says "lisinopril" rather than "an ACE
+inhibitor" *because* ACEI is recommendation vocabulary. "A statin" is safe for
+exactly the reason ACEI is not.
+
+**Fixed at source**, so no future reviewer hits this: the sheet generator now
+states the same standard as this form, pinned by
+`test_sheet_states_the_same_drug_class_standard_as_the_signoff_form`. The sheet
+already read was deliberately **not** regenerated, so its checksum below still
+matches what was reviewed.
+
+**The reviewer's other two calls are confirmed correct** and needed no change:
+
+- **Pregnancy** ("currently pregnant, in the second trimester", patients 96497
+  and 93929) — PASS. It is a raw patient fact, and the renderer states the
+  *event* rather than its interpretation by design. Withholding it would make
+  the pregnancy rule path untestable, which is the same failure as (2) above.
+- **Visit logistics** ("a follow-up appointment was arranged", "routine
+  follow-up", "outside records were requested") — PASS. Clinically inert by
+  construction and distributed across decision groups, so it cannot be
+  specifically informative.
+
+**Outcome: 25/25 PASS, no leakage found.**
 
 ---
 

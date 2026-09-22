@@ -111,8 +111,12 @@ def build_spotcheck(corpus_dir: str | Path, out_path: str | Path | None = None, 
         "Every patient is shown at all three difficulty levels.",
         "",
         "**What to check, per vignette:** every statement is a raw observation; nothing "
-        "names a BP stage, states or implies a treatment decision, or names a drug *class*; "
-        "and the three levels describe the same patient with the same facts.",
+        "names a BP stage, states or implies a treatment decision, or **recommends** a "
+        "drug *class*. A class named as a fact about what the patient already takes is "
+        "fine -- \"she also takes a statin for cholesterol\" is a PREVENT input the "
+        "vignette is required to carry, and `statin` is not a class this engine can "
+        "recommend. \"A beta-blocker would be appropriate\" is not fine. "
+        "The three levels describe the same patient with the same facts.",
         "",
         "The hidden label is shown here for the reviewer only. It is not in "
         f"`{INPUTS_FILE}`, which is the only file a model is ever given.",
