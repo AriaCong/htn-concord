@@ -67,6 +67,17 @@ def check_value(key: str, value: str) -> None:
             f"{key} contains whitespace, so it is not a bare key. "
             "Remove any trailing comment or stray text after the value."
         )
+    if "#" in value:
+        # An inline comment is only stripped when whitespace precedes the `#`,
+        # which is the dotenv convention. A `#` glued straight to the value
+        # therefore survives -- and no API key format contains one, so this is
+        # always pasted junk. Catching it here beats a 401 that says only
+        # "User not found".
+        raise EnvError(
+            f"{key} contains '#', which no API key format uses. Something is "
+            "stuck to the end of the value -- usually a comment pasted without "
+            "a space before the '#'. Keep only the key itself."
+        )
 
 
 def load_env(path: str | Path, environ: Mapping[str, str] | None = None) -> dict[str, str]:

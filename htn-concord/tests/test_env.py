@@ -100,3 +100,18 @@ def test_the_real_signoff_form_reads_as_signed():
             / "HC-57_facts-only_spotcheck_signoff.md")
     assert form.exists(), form
     assert hc57_signed(form) is True
+
+
+def test_a_hash_glued_to_a_key_is_rejected_rather_than_sent():
+    """Real failure: a comment pasted with no space before the '#' survived the
+    dotenv comment rule, went out in the Authorization header, and came back as
+    a bare 401 'User not found' that said nothing about .env."""
+    with pytest.raises(EnvError, match="#"):
+        check_value("OPENWEIGHT_API_KEY", "sk-or-v1-abc123#note_pasted_here")
+
+
+def test_a_whitespace_separated_comment_is_still_just_stripped():
+    """The convention still holds; only the glued case is an error."""
+    env = parse_env("OPENWEIGHT_API_KEY=sk-or-v1-abc123   # a note\n")
+    assert env["OPENWEIGHT_API_KEY"] == "sk-or-v1-abc123"
+    check_value("OPENWEIGHT_API_KEY", env["OPENWEIGHT_API_KEY"])

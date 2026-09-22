@@ -182,7 +182,18 @@ def cmd_smoke(args) -> int:
 
 def cmd_run(args) -> int:
     arms = _arms()
-    if len(arms) < 2 and not args.allow_single_arm:
+    if args.only:
+        # Staged runs: the arms are independent and the record file is keyed by
+        # (case, model, replicate), so one arm can be completed now and the other
+        # filled in later without re-paying for anything.
+        keep = (FRONTIER if args.only == "frontier"
+                else os.environ.get("OPENWEIGHT_MODEL"))
+        if keep not in arms:
+            sys.exit(f"--only {args.only}: that arm is not configured.")
+        arms = {keep: arms[keep]}
+        print(f"running ONE arm only ({keep}). K3 needs both, so no GO verdict "
+              "is possible until the other arm is filled in.")
+    elif len(arms) < 2 and not args.allow_single_arm:
         sys.exit("Only one model arm is configured. K3 -- the question the pilot "
                  "exists to answer -- cannot be evaluated with one arm. Set "
                  "OPENWEIGHT_MODEL, or pass --allow-single-arm knowing no GO "
@@ -301,6 +312,9 @@ def main() -> int:
     run.add_argument("--patients", type=int, default=20)
     run.add_argument("--replicates", type=int, default=5)
     run.add_argument("--allow-single-arm", action="store_true")
+    run.add_argument("--only", choices=("frontier", "openweight"),
+                     help="run just one arm; the other can be filled in later "
+                          "without re-paying for what is done")
     run.set_defaults(func=cmd_run)
 
     report = subs.add_parser("report", help="score what has been run so far")

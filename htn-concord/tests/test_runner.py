@@ -970,3 +970,63 @@ def test_open_weight_provider_records_reasoning_tokens_when_offered():
     result = run_case(model="m", prompt_input=PROMPT, profile=None,
                       provider=provider)
     assert result.transcript["usage"]["reasoning_tokens"] == 2600
+
+
+# ---------------------------------------------------------------------------
+# The two-schema design's standing obligation
+# ---------------------------------------------------------------------------
+
+def test_every_stripped_constraint_is_stated_in_the_prompt():
+    """A constraint we strip from the request but still enforce locally is a
+    hidden rule unless the prompt restates it.
+
+    Found live: `trace` carries `minItems: 1`, which structured outputs rejects,
+    so it was stripped -- and the system prompt never mentioned `trace` at all.
+    Two models happened to comply; a third returned `trace: []` on all three
+    attempts and scored as malformed output for breaking a rule it was never
+    given. That measures guessing, not guideline concordance.
+    """
+    from runner.run_case import DEFAULT_SYSTEM
+
+    full = load_output_schema()
+
+    def non_empty_arrays(node, path=()):
+        if isinstance(node, dict):
+            if node.get("type") == "array" and node.get("minItems", 0) >= 1:
+                yield path[-1] if path else "<root>"
+            for key, value in node.items():
+                yield from non_empty_arrays(value, path + (key,))
+        elif isinstance(node, list):
+            for value in node:
+                yield from non_empty_arrays(value, path)
+
+    required_non_empty = set(non_empty_arrays(full))
+    assert required_non_empty, "fixture assumption: some array requires minItems"
+    for field in required_non_empty:
+        assert field in DEFAULT_SYSTEM, (
+            f"{field!r} must be non-empty per the full schema, but the API copy "
+            "cannot say so and the prompt never mentions it")
+
+
+def test_the_conditional_abstain_rule_is_stated_in_the_prompt():
+    """The other stripped rule: abstain_reason required exactly on abstain."""
+    from runner.run_case import DEFAULT_SYSTEM
+
+    assert "abstain_reason" in DEFAULT_SYSTEM
+    assert "null otherwise" in DEFAULT_SYSTEM
+
+
+def test_an_empty_trace_is_still_rejected_locally():
+    """Stating the rule in the prompt does not relax the contract."""
+    bad = _valid_output()
+    bad["trace"] = []
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.Draft7Validator(load_output_schema()).validate(bad)
+
+
+def test_the_open_weight_arm_model_is_priced():
+    """The first DeepSeek call recorded a null cost; the pilot reports cost."""
+    from runner.run_case import _cost_usd
+
+    assert _cost_usd("deepseek-ai/DeepSeek-V4-Pro-0813", 1_000_000, 0) == pytest.approx(1.32)
+    assert _cost_usd("deepseek-ai/DeepSeek-V4-Pro-0813", 0, 1_000_000) == pytest.approx(3.96)

@@ -66,14 +66,37 @@ _PRICES: dict[str, tuple[float, float]] = {
     # revisit if the open-weight arm ever moves off Groq.
     "openai/gpt-oss-120b": (0.15e-6, 0.60e-6),   # Groq, verified 2026-09-22
     "openai/gpt-oss-20b": (0.10e-6, 0.50e-6),    # Groq
+    # Together, verified 2026-09-22. NOTE: hosts differ in whether they count the
+    # JSON schema in prompt_tokens (Groq reported ~1,500 input for the same case
+    # where Together reports ~255), so a cost compared across hosts is not
+    # like-for-like. Within one arm it is consistent, which is what the pilot
+    # needs.
+    "deepseek-ai/DeepSeek-V4-Pro-0813": (1.32e-6, 3.96e-6),
+    "zai-org/GLM-5.3": (1.40e-6, 4.40e-6),
+    "moonshotai/Kimi-K3": (3.00e-6, 15.00e-6),
 }
 
+#: The system prompt.
+#:
+#: **Every constraint stripped from the API-safe schema must be stated here.**
+#: `api_safe_schema()` removes `if`/`then`/`else` and `minItems` because
+#: structured outputs rejects them, but the *full* schema still enforces them
+#: locally. A constraint that is stripped and not restated is a rule the model
+#: was never told and is then judged against — which measures whether it can
+#: guess our hidden requirements, not whether it follows the guideline. Two rules
+#: are in that position, and both are spelled out below:
+#:   * `abstain_reason` required exactly when `decision == "abstain"` (the
+#:     `allOf`/`if`/`then` block), and
+#:   * `trace` must be non-empty (`minItems: 1`).
+#: `test_every_stripped_constraint_is_stated_in_the_prompt` holds this.
 DEFAULT_SYSTEM = (
     "You are answering a hypertension management question. Reply with a single "
     "JSON object conforming to the provided schema and nothing else. Report only "
     "facts stated in the input; use null for anything not stated rather than "
     "guessing. Set decision to \"abstain\" with an abstain_reason when a "
-    "determinant you need is unknown."
+    "determinant you need is unknown, and leave abstain_reason null otherwise. "
+    "Always include at least one step in trace, recording the reasoning you "
+    "actually used."
 )
 
 
