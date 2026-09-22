@@ -436,3 +436,58 @@ def test_retry_after_is_capped_so_one_bad_header_cannot_stall_the_run(
     run_pilot(corpus_dir, spec, tmp_path / "p.jsonl", lambda _m: provider,
               profiles=profiles, api_retries=3, sleep=waits.append)
     assert max(waits) <= 120.0
+
+
+# ---------------------------------------------------------------------------
+# The pilot's failure-mode table (the deliverable HC-80 is asked for)
+# ---------------------------------------------------------------------------
+
+from experiments.pilot import failure_mode                      # noqa: E402
+
+
+class _S:
+    """Minimal stand-in carrying just the fields failure_mode reads."""
+    def __init__(self, ok, extraction=1.0, citation=1.0):
+        self.decision_concordance = ok
+        self.extraction_f1 = extraction
+        self.citation_support = citation
+
+
+def test_a_right_answer_with_engine_anchors_is_correct():
+    assert failure_mode(_S(True, citation=1.0)) == "correct"
+
+
+def test_a_right_answer_it_cannot_support_is_its_own_mode():
+    """The finding a single accuracy score cannot express: right decision, no
+    guideline anchor behind it."""
+    assert failure_mode(_S(True, citation=0.0)) == "correct_unsupported"
+
+
+def test_a_wrong_answer_after_misreading_a_fact_is_extraction():
+    assert failure_mode(_S(False, extraction=0.9)) == "extraction"
+
+
+def test_a_wrong_answer_with_perfect_reading_is_reasoning():
+    """Read everything correctly, still got the guideline logic wrong."""
+    assert failure_mode(_S(False, extraction=1.0)) == "reasoning"
+
+
+def test_extraction_is_tested_before_reasoning():
+    """A model that misread the input cannot be said to have reasoned wrongly
+    about what it never saw, so a misread makes the case extraction-attributed
+    even though the decision is also wrong."""
+    assert failure_mode(_S(False, extraction=0.5, citation=0.0)) == "extraction"
+
+
+def test_summary_carries_a_failure_mode_table(corpus, tmp_path):
+    corpus_dir, profiles = corpus
+    spec = _spec()
+    provider = ScriptedProvider([json.dumps(_valid_output())] * spec.n_calls)
+    records = run_pilot(corpus_dir, spec, tmp_path / "p.jsonl",
+                        lambda _m: provider, profiles=profiles)
+    summary = summarize(records, corpus_dir, profiles)
+    assert "failure_modes" in summary
+    for cell in summary["failure_modes"].values():
+        assert cell["n"] == sum(cell[m] for m in
+                                ("correct", "correct_unsupported",
+                                 "extraction", "reasoning"))

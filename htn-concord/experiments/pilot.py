@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import random
 import time
+from collections import Counter
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping, Sequence
@@ -289,10 +290,63 @@ def summarize(records: Sequence[CallRecord], corpus_dir: str | Path,
     return {
         "by_model": by_model,
         "by_model_level": by_model_level,
+        "failure_modes": _failure_modes(scored),
         "harness": harness,
         "replicate_sd": _replicate_sd(per_case),
         "n_records": len(records),
     }
+
+
+#: How a single case's outcome is classified for the pilot's failure-mode table.
+#:
+#: This is the *pilot's* operationalization, not HC-71. HC-71 builds the real
+#: classifier over trace steps; this one is derived from evidence the evaluator
+#: already produces, so the pilot can report failure modes without waiting for
+#: a ticket it does not depend on. Stated as such wherever it is reported.
+FAILURE_MODES = ("correct", "correct_unsupported", "extraction", "reasoning")
+
+
+def failure_mode(score: Any, citation_floor: float = 0.5) -> str:
+    """Classify one scored case.
+
+    * `correct` — right decision, and the model cited anchors the engine used.
+    * `correct_unsupported` — right decision, but it could not point at the
+      guideline. The "right answer, wrong path" case RQ2 exists to surface, and
+      the reason a single accuracy score cannot make this project's argument.
+    * `extraction` — wrong decision *and* it misread at least one fact. The
+      error is upstream of the clinical reasoning.
+    * `reasoning` — wrong decision although every displayed fact was read
+      correctly. Reading was fine; the guideline logic was not.
+
+    Extraction is tested first because a misread fact makes the downstream
+    reasoning unattributable: a model that never saw the potassium cannot be
+    said to have reasoned wrongly about it.
+    """
+    if score.decision_concordance:
+        support = score.citation_support
+        if support is not None and support < citation_floor:
+            return "correct_unsupported"
+        return "correct"
+    if score.extraction_f1 is not None and score.extraction_f1 < 1.0:
+        return "extraction"
+    return "reasoning"
+
+
+def _failure_modes(scored: Mapping[tuple[str, str], Sequence[Any]]
+                   ) -> dict[str, dict[str, Any]]:
+    """Failure-mode counts per model and per model/level."""
+    out: dict[str, dict[str, Any]] = {}
+    per_model: dict[str, list[Any]] = {}
+    for (model, level), group in scored.items():
+        per_model.setdefault(model, []).extend(group)
+        counts = Counter(failure_mode(s) for s in group)
+        out[f"{model}|{level}"] = {m: counts.get(m, 0) for m in FAILURE_MODES}
+        out[f"{model}|{level}"]["n"] = len(group)
+    for model, group in per_model.items():
+        counts = Counter(failure_mode(s) for s in group)
+        out[model] = {m: counts.get(m, 0) for m in FAILURE_MODES}
+        out[model]["n"] = len(group)
+    return out
 
 
 def _replicate_sd(per_case: Mapping[tuple[str, str, str], Sequence[bool]]

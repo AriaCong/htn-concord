@@ -259,6 +259,20 @@ def cmd_report(args) -> int:
                   f"{(f'{extract:.3f}' if extract is not None else '-'):>9}"
                   f"{cell['n_cases']:>6}")
 
+    print("\nfailure modes (pilot's own classifier, not HC-71):")
+    print(f"  {'model / level':<40}{'correct':>9}{'unsupp.':>9}"
+          f"{'extract':>9}{'reason':>8}{'n':>6}")
+    for model in models:
+        for level in (*levels, None):
+            key = model if level is None else f"{model}|{level}"
+            cell = summary["failure_modes"].get(key)
+            if not cell:
+                continue
+            label = f"{model[:26]} {'(all)' if level is None else level}"
+            print(f"  {label:<40}{cell['correct']:>9}"
+                  f"{cell['correct_unsupported']:>9}{cell['extraction']:>9}"
+                  f"{cell['reasoning']:>8}{cell['n']:>6}")
+
     print("\nharness (denominator = attempted calls):")
     for model, counts in summary["harness"].items():
         print(f"  {model}: malformed {counts['malformed_output_rate']:.3f} "
