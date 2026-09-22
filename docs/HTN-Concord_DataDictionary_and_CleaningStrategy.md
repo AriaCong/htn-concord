@@ -99,30 +99,36 @@ and weights differ — do not mix J and P_ in one frame). Recommendation below a
    profiles now abstain, where 129 of their 135 rendered cases previously scored `lifestyle_only`.
    Anchor: `HTN-CONCORD:abstain-out-of-scope`. Drug-class consequences remain **HC-36**; the remaining
    out-of-scope guards (resistant/secondary HTN, ESRD, hypertensive emergency) remain **HC-28**.
-3. **BP summarization — use the MEDIAN (harmonized 2026-07-18).** Previously this doc said *mean* while
-   the Master Plan and the MIMIC cohort algorithm both said *median*; that contradiction is now resolved in
-   favour of **median everywhere**, so the headline Task-B comparison is not confounded by a different
-   summary statistic per source. In NHANES the choice is nearly free — **4,783 / 4,806 (99.5%)** have all
-   three readings, so mean and median differ trivially — while in MIMIC the OMR reading counts are irregular
-   and right-skewed, where the median is materially more robust. Require ≥1 valid pair. Range-check
+3. **BP summarization — use the MEAN (HC-23 resolved 2026-08-08).** Require ≥1 valid pair. Range-check
    SBP 60–290, DBP 30–200; implausible → `NA` (never clipped).
-   > 🚨 **DECIDED BUT NOT IMPLEMENTED (found 2026-07-18, ticket HC-23).** `pipelines/nhanes/clean.py`
-   > still computes `df[sys_cols].mean(axis=1)` / `df[dia_cols].mean(axis=1)`. Every document in this
-   > project — this file, the Master Plan, the MIMIC cohort algorithm, and both Notion trees — states
-   > that median was harmonized on 2026-07-18, but no code implements it. **The shipped
-   > `nhanes_profiles_J.csv` is therefore a mean-based artifact**, and every label/stage figure quoted
-   > anywhere (stage 1+2 = 42.8%, the 4,806-row label distribution) describes the *mean* pipeline.
-   > Switching to median re-emits the benchmark substrate and moves those figures, so it is a
-   > **benchmark-freeze decision, not a cleanup** — do it deliberately, then re-run and re-quote every
-   > downstream number in one pass. Until HC-23 lands, read "median" in this document as the *intended*
-   > rule, not the implemented one.
+   > ✅ **HC-23 resolved against the guideline source — the code was right and the documents were wrong.**
+   > This section previously instructed *median everywhere*, harmonized 2026-07-18, and flagged
+   > `pipelines/nhanes/clean.py` as non-compliant for computing the mean. Checked against
+   > `docs/guidelines/jones-et-al-2025-*` (2025 AHA/ACC, DOI `10.1161/HYP.0000000000000249`), the finding
+   > inverts: the guideline specifies **the average** throughout — *"Office BP should be based on the
+   > average of available readings"*, §5.2.7 *"an average of ≥2 readings at ≥2 visits"*, and the staging
+   > thresholds are stated as *"an average of SBP ≥130 mm Hg"*. The token "median" occurs once in the
+   > whole guideline, in an unrelated passage on weight regain.
+   >
+   > The 2026-07-18 rationale argued for *harmonization* and then concluded *median*, which does not
+   > follow — mean harmonizes identically. The one median-specific argument, robustness to MIMIC's
+   > irregular right-skewed OMR reading counts, is an engineering concern that would make the engine
+   > deviate from the guideline on `bp_stage`, the most load-bearing input in the pipeline. It is handled
+   > instead by the range gates, the MIMIC ≥2-distinct-dates requirement, and a **median sensitivity
+   > analysis** reported alongside the discard-reading-#1 sensitivity.
+   >
+   > **No re-emission, no figure moves.** The shipped `nhanes_profiles_J.csv` was always guideline-correct,
+   > and MIMIC uses the mean too, so the two arms agree. Like every encoded rule, the averaging rule is
+   > still in scope for HC-49 clinician face-validation.
+   >
+   > **Known limitation, unaffected by this:** NHANES is a single-visit protocol, so it satisfies "average
+   > of ≥2 readings" but not "at ≥2 visits" — already documented as slight over-triggering on Stage-1.
    *Still open — must be settled before the benchmark freeze:* whether to **discard reading #1**. The flag
    already exists (`clean.py`, `discard_first=False`). Discarding costs almost no sample (only 10 rows have a
    single reading) and the first oscillometric reading runs high, so retaining it inflates Stage 1/2 and
    therefore the initiation label. Report a stage-distribution sensitivity table under both settings.
 4. **Stage** (engine input, computed after cleaning): Elevated 120–129/<80; **Stage 1 130–139 or 80–89**;
-   **Stage 2 ≥140 or ≥90**. Use the **median** SBP/DBP (per §3 above — this line previously said *mean*,
-   contradicting §3 in the same document; corrected 2026-07-18).
+   **Stage 2 ≥140 or ≥90**. Use the **mean** SBP/DBP (per §3 above; HC-23 resolved 2026-08-08).
 5. **eGFR:** derive with **CKD-EPI 2021 race-free** from `LBXSCR`, age, sex (see §6). Do not use any
    race-based equation.
 6. **Potassium** is already SI (mmol/L) — no conversion; contraindication flag `K⁺ ≥ 5.5`.
@@ -245,7 +251,7 @@ These are engine inputs, computed **after** per-source cleaning so the `PatientP
 
 | Derived field | Definition | Inputs |
 |---|---|---|
-| `sbp`,`dbp` | **median** of valid readings (NHANES) / median of parsed OMR (MIMIC) / — (eICU acute) | source BP |
+| `sbp`,`dbp` | **mean** of valid readings (NHANES) / mean of qualifying pre-index OMR (MIMIC) / — (eICU acute) | source BP |
 | `bp_stage` | Elevated / Stage 1 / Stage 2 per 2025 AHA/ACC thresholds | `sbp`,`dbp` |
 | `egfr` | **CKD-EPI 2021 race-free**: 142·min(Scr/κ,1)^α·max(Scr/κ,1)^-1.200·0.9938^age·(1.012 if female); κ=0.7♀/0.9♂, α=-0.241♀/-0.302♂ | `LBXSCR`/creatinine, age, sex |
 | `ckd_albuminuria` | eGFR<60 **or** UACR≥30 mg/g | egfr, UACR |

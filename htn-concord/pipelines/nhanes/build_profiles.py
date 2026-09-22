@@ -12,7 +12,9 @@ from functools import reduce
 
 import pandas as pd
 
-from . import clean, config, derive, drug_class, io_xpt, qa, validate
+from pipelines.common import derive, qa, validate
+
+from . import clean, config, drug_class, io_xpt
 
 # Output column order for the canonical PatientProfile.
 PROFILE_COLUMNS = [
@@ -68,7 +70,7 @@ def build() -> pd.DataFrame:
     # ---- range gate FIRST, then derive from clean inputs ----------------------
     # (deriving before gating would let an implausible SBP/creatinine produce a
     # stage/eGFR that is then based on a value we delete.)
-    df, violations = qa.apply_ranges(df)
+    df, violations = qa.apply_ranges(df, config.RANGES)
 
     # ---- derive engine fields -------------------------------------------------
     df["egfr"] = derive.egfr_ckdepi_2021(df["creatinine"], df["age"], df["sex"])
@@ -97,7 +99,11 @@ def build() -> pd.DataFrame:
     n_ok = validate.validate_profiles(df)
     print(f"  schema: {n_ok} profiles validate against patient_profile.schema.json")
 
-    qa.write_report(df, violations, row_counts)
+    qa.write_report(
+        df, violations, row_counts,
+        config.QA / f"nhanes_qa_{config.CYCLE}.json",
+        extra={"cycle": config.CYCLE},
+    )
     return df
 
 

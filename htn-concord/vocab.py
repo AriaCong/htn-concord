@@ -60,6 +60,101 @@ def classify_drug(name: str | None) -> list[str]:
     return sorted(classes)
 
 
+# =============================================================================
+# Therapeutic-class strings (MIMIC-IV-ED `medrecon.etcdescription`)
+# =============================================================================
+# medrecon carries a therapeutic-class string beside each drug name. It adds
+# recall over the ingredient-name rules above, which miss agents whose names fit
+# no keyword or suffix pattern.
+#
+# MATCHING IS EXACT, DELIBERATELY. Substring matching on this vocabulary is a
+# trap with real numbers behind it: "Beta" also matches
+# "Asthma/COPD Therapy - Beta 2-Adrenergic Agents, Inhaled" (~57k rows, an
+# inhaler) and "Aminopenicillin Antibiotic - Beta-lactamase Inhibitor
+# Combinations"; "Calcium Channel" also matches an analgesic; "Calcium" matches
+# antacids and vitamin D; and several "Ophthalmic - Beta blockers-..." classes
+# are glaucoma eye drops, not systemic antihypertensives. Exact match means an
+# unrecognised or newly added class maps to nothing -- which is the conservative
+# default, and the ingredient-name route usually catches it anyway.
+#
+# Deliberately ABSENT, because MED_CLASSES cannot express them. Each is a real
+# antihypertensive that this benchmark therefore cannot see, which understates
+# `med_classes` for those patients. Flagged for HC-49:
+#   * "Renin Inhibitor, Direct" (aliskiren)
+#   * "Central Alpha-2 Receptor Agonists" (clonidine, methyldopa) -- NOT
+#     alpha_blocker, which means alpha-1 antagonists
+#   * "Direct Acting Vasodilators" (hydralazine, minoxidil)
+#   * "Diuretic - Potassium Sparing" (amiloride, triamterene) -- NOT mra, which
+#     means aldosterone antagonists specifically
+ETC_DESCRIPTION_CLASS: dict[str, tuple[str, ...]] = {
+    # --- RAAS ---------------------------------------------------------------
+    "ACE Inhibitors": ("acei",),
+    "ACE Inhibitor and Diuretic Combinations": ("acei", "thiazide"),
+    "ACE Inhibitor and Calcium Channel Blocker Combinations": ("acei", "dhp_ccb"),
+    "Angiotensin II Receptor Blockers (ARBs)": ("arb",),
+    "Angiotensin II Receptor Blocker (ARB)-Diuretic Combinations": ("arb", "thiazide"),
+    "Angiotensin II Receptor Blocker (ARB)-Calcium Channel Blocker Comb.": ("arb", "dhp_ccb"),
+    "Angiotensin II Receptor Blocker (ARB)-Calcium Channel Blocker-Diuretic":
+        ("arb", "dhp_ccb", "thiazide"),
+    "Angiotensin II Receptor Blocker-Neprilysin Inhibitor Comb. (ARNi)": ("arb",),
+    # --- Beta blockers ------------------------------------------------------
+    "Beta Blockers Cardiac Selective": ("beta_blocker",),
+    "Beta Blockers Cardiac Selective, Intrinsic Sympathomimetic Activity": ("beta_blocker",),
+    "Beta Blockers Non-Cardiac Selective": ("beta_blocker",),
+    "Beta Blockers Non-Cardiac Select., Intrinsic Sympathomimetic Activity": ("beta_blocker",),
+    "Alpha-Beta Blockers": ("beta_blocker",),
+    "Cardiac Selective Beta Blocker-Thiazide Diuretic and Related Comb.":
+        ("beta_blocker", "thiazide"),
+    "Non-Cardiac Selective Beta Blocker-Thiazide Diuretic and Related Comb.":
+        ("beta_blocker", "thiazide"),
+    # --- Calcium channel blockers -------------------------------------------
+    "Calcium Channel Blockers - Dihydropyridines": ("dhp_ccb",),
+    "Calcium Channel Blockers - Dihydropyridines - Cerebrovascular Specific": ("dhp_ccb",),
+    "Calcium Channel Blockers - Benzothiazepines": ("nondhp_ccb",),      # diltiazem
+    "Calcium Channel Blockers - Phenylakylamines": ("nondhp_ccb",),      # verapamil
+    "Antihyperlipidemic HMG CoA Reduct Inhib and Calcium Channel Blocker": ("dhp_ccb",),
+    # --- Diuretics ----------------------------------------------------------
+    "Diuretic - Thiazides and Related": ("thiazide",),
+    "Diuretic - Potassium Sparing-Thiazide and Related Combinations": ("thiazide",),
+    "Central Alpha-2 Agonists-Thiazide Diuretic and Related Comb.": ("thiazide",),
+    "Diuretic - Loop": ("loop_diuretic",),
+    "Aldosterone Receptor Antagonists": ("mra",),
+    "Diuretic - Aldosterone Receptor Antagonist, Non-selective": ("mra",),
+    "Diuretic - Aldosterone Receptor Antagonist, Selective": ("mra",),
+    # --- Alpha blockers -----------------------------------------------------
+    # Peripheral alpha-1 antagonists only. The "Prostatic Hypertrophy Agent"
+    # class is deliberately absent: tamsulosin is uroselective and is not a
+    # blood-pressure drug. Doxazosin and terazosin are still picked up by the
+    # ingredient-name route, exactly as they are in NHANES -- keeping the two
+    # arms consistent matters more here than adjudicating indication.
+    "Peripheral Alpha-1 Receptor Blockers": ("alpha_blocker",),
+}
+
+# Statins, by therapeutic class (PREVENT input). Same exact-match discipline.
+ETC_DESCRIPTION_STATIN: frozenset[str] = frozenset({
+    "Antihyperlipidemic - HMG CoA Reductase Inhibitors (statins)",
+    "Antihyperlipidemic HMG CoA Reduct Inhib and Calcium Channel Blocker",
+})
+
+
+def classify_etc_description(desc: str | None) -> list[str]:
+    """Sorted engine classes for a medrecon therapeutic-class string.
+
+    Exact match only -- see ETC_DESCRIPTION_CLASS for why. Unknown strings
+    return [] rather than guessing.
+    """
+    if not isinstance(desc, str):
+        return []
+    return sorted(ETC_DESCRIPTION_CLASS.get(desc.strip(), ()))
+
+
+def is_statin_etc_description(desc: str | None) -> bool:
+    """Statin by therapeutic class, complementing the ingredient-name rule."""
+    if not isinstance(desc, str):
+        return False
+    return desc.strip() in ETC_DESCRIPTION_STATIN
+
+
 def is_statin(name: str | None) -> bool:
     """Statins end in 'statin' (atorvastatin, rosuvastatin, ...). PREVENT input."""
     return "statin" in (name or "").lower()

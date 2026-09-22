@@ -15,43 +15,80 @@ import re
 
 import pandas as pd
 
-import vocab
-
-from . import config
+from . import cohort, config, ed
 
 _BP_RE = re.compile(r"^\s*\d{2,3}\s*/\s*\d{2,3}")  # "120/80"-ish
 
 
-def _anchor_subject_hadms() -> pd.DataFrame:
-    """Rows (subject_id, hadm_id) whose diagnosis is an HTN anchor code."""
-    dx = pd.read_csv(
-        config.HOSP / "diagnoses_icd.csv.gz",
-        usecols=["subject_id", "hadm_id", "icd_code", "icd_version"],
-        dtype={"icd_code": "string", "icd_version": "Int64"},
-    )
-    # Classify only the distinct (code, version) pairs, then map back — cheap.
-    pairs = dx[["icd_code", "icd_version"]].drop_duplicates()
-    pairs["is_anchor"] = pairs.apply(
-        lambda r: vocab.is_htn_anchor(r["icd_code"], int(r["icd_version"])), axis=1
-    )
-    anchor_codes = pairs[pairs["is_anchor"]][["icd_code", "icd_version"]]
-    anchor = dx.merge(anchor_codes, on=["icd_code", "icd_version"], how="inner")
-    return anchor[["subject_id", "hadm_id"]].drop_duplicates()
+# The anchor, index-encounter and ED-linkage rules live in cohort.py, which is
+# the single home of the cohort definition. They are re-exported here rather
+# than reimplemented: the attrition waterfall has to justify the cohort the
+# profile builder actually produces, and two copies would eventually disagree.
+_anchor_subject_hadms = cohort.anchor_subject_hadms
+_earliest_anchor_admit = cohort.earliest_anchor_admit
+ed_linked_hadms = cohort.ed_linked_hadms
+hadms_with_medrecon = cohort.hadms_with_medrecon
 
 
-def _earliest_anchor_admit() -> pd.DataFrame:
-    """Per subject: earliest admittime among anchor encounters."""
-    anchor = _anchor_subject_hadms()
-    adm = pd.read_csv(
-        config.HOSP / "admissions.csv.gz",
-        usecols=["subject_id", "hadm_id", "admittime"],
-        parse_dates=["admittime"],
+def _edstays() -> pd.DataFrame:
+    """[subject_id, hadm_id, stay_id] for ED visits that reached an admission."""
+    return ed.load_edstays(config.ED / "edstays.csv.gz")
+
+
+def project_label_yield(primary: pd.DataFrame, flags: pd.DataFrame) -> dict:
+    """Project how many Primary-cohort subjects could receive a NON-ABSTAIN label.
+
+    This is a PROJECTION, not an engine run: it reproduces only the three
+    abstention gates that dominate, using columns available at counting time.
+    It exists to answer one question before the profile emitter is built --
+    can this cohort yield decision labels at all?
+
+    Gates modelled, in the engine's order, each counted exactly once so the
+    reasons sum to the abstentions:
+
+      1. on_bp_meds unknown  -> med_status_unknown (initiate vs intensify is
+         undecidable; medrecon is the only leakage-safe source)
+      2. bp_stage unknown    -> staging_indeterminate
+      3. stage1 with no high-risk trigger and no computable PREVENT
+                             -> stage1_risk_indeterminate
+
+    A subject missing from ``flags`` has unknown comorbidity, which must not
+    resolve a Stage-1 case: missing is not False, and False is not a trigger.
+    The merge leaves NA and the trigger test treats NA as "no trigger", which
+    abstains -- the conservative direction.
+
+    Pregnancy is NOT modelled here: it is a scope gate that precedes staging and
+    its MIMIC prevalence is counted separately.
+    """
+    df = primary.merge(flags, on="subject_id", how="left")
+
+    def _bool(col: str) -> pd.Series:
+        if col not in df.columns:
+            return pd.Series(False, index=df.index)
+        return df[col].astype("boolean").fillna(False).astype(bool)
+
+    med_unknown = df["on_bp_meds"].isna()
+    stage_unknown = df["bp_stage"].isna() & ~med_unknown
+
+    trigger = _bool("diabetes") | _bool("clinical_cvd") | _bool("prevent_computable")
+    stage1_indet = (
+        (df["bp_stage"] == "stage1") & ~trigger & ~med_unknown & ~stage_unknown
     )
-    merged = anchor.merge(adm, on=["subject_id", "hadm_id"], how="inner")
-    return (
-        merged.groupby("subject_id")["admittime"].min()
-        .rename("index_admit").reset_index()
-    )
+
+    n = int(len(df))
+    n_med = int(med_unknown.sum())
+    n_stage = int(stage_unknown.sum())
+    n_s1 = int(stage1_indet.sum())
+    resolvable = n - n_med - n_stage - n_s1
+
+    return {
+        "n": n,
+        "resolvable": resolvable,
+        "abstain_med_status_unknown": n_med,
+        "abstain_staging_indeterminate": n_stage,
+        "abstain_stage1_risk_indeterminate": n_s1,
+        "abstain_share": round((n - resolvable) / n, 4) if n else 0.0,
+    }
 
 
 def _omr_bp() -> pd.DataFrame:
@@ -98,12 +135,40 @@ def build_waterfall() -> dict:
     n_primary = _qualify(config.WINDOW_PRIMARY_DAYS, config.MIN_READINGS_PRIMARY)
     n_fallback = _qualify(config.WINDOW_FALLBACK_DAYS, config.MIN_READINGS_FALLBACK)
 
+    # --- HC-26: ED linkage, the real decision-cohort constraint ---------------
+    # PRIMARY counts subjects surviving the BP rules only. But on_bp_meds must
+    # come from ed/medrecon (never discharge meds, which ARE the answer), so a
+    # subject whose index encounter has no ED stay cannot be labelled at all.
+    # 28,530 is a staging/Task-C cohort; it is not the decision cohort.
+    primary_ids = set(
+        prior[prior["days_before"] <= config.WINDOW_PRIMARY_DAYS]
+        .groupby("subject_id")["chartdate"].nunique()
+        .pipe(lambda s: s[s >= config.MIN_READINGS_PRIMARY]).index
+    )
+    ed_hadms = ed_linked_hadms()
+    idx_primary = idx[idx["subject_id"].isin(primary_ids)]
+    n_primary_ed = int(
+        idx_primary[idx_primary["hadm_id"].isin(ed_hadms)]["subject_id"].nunique()
+    )
+    # Having an ED stay is necessary for medrecon but not sufficient: the
+    # reconciliation may be absent for that particular visit. Counted separately,
+    # stay-level, so the decision-cohort number is not quietly optimistic.
+    rec_hadms = hadms_with_medrecon()
+    n_primary_ed_rec = int(
+        idx_primary[idx_primary["hadm_id"].isin(rec_hadms)]["subject_id"].nunique()
+    )
+
     return {
         "all_subjects": int(n_subjects),
         "adults_ge18": int(n_adults),
         "with_htn_anchor_dx": int(n_anchor),
         "anchor_with_any_prior_omr_bp": int(n_anchor_any_prior),
         "PRIMARY_anchor_ge2_within_365d": int(n_primary),
+        "PRIMARY_ed_linked_DECISION_COHORT": n_primary_ed,
+        "PRIMARY_ed_linked_share": (
+            round(n_primary_ed / n_primary, 4) if n_primary else 0.0
+        ),
+        "PRIMARY_ed_linked_with_medrecon": n_primary_ed_rec,
         "FALLBACK_anchor_ge1_within_730d": int(n_fallback),
         "any_omr_bp_subjects": int(n_any_omr_bp),
         "OMR_only_cohort_ge2_dates": int(n_omr_only_ge2),
@@ -123,6 +188,8 @@ def main() -> int:
         ("  With HTN anchor dx (earliest anchor encounter)", "with_htn_anchor_dx"),
         ("    ...with ANY prior OMR BP", "anchor_with_any_prior_omr_bp"),
         ("    PRIMARY: >=2 OMR BP on distinct dates <365d before index", "PRIMARY_anchor_ge2_within_365d"),
+        ("    PRIMARY + ED-linked = DECISION COHORT (HC-26)", "PRIMARY_ed_linked_DECISION_COHORT"),
+        ("      ...and with an actual medrecon", "PRIMARY_ed_linked_with_medrecon"),
         ("    FALLBACK: >=1 OMR BP <730d before index", "FALLBACK_anchor_ge1_within_730d"),
         ("OMR-only cohort: any OMR BP", "any_omr_bp_subjects"),
         ("  OMR-only: >=2 distinct BP dates (undiagnosed capture)", "OMR_only_cohort_ge2_dates"),

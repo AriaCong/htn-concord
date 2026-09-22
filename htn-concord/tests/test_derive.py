@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pipelines.nhanes import derive
+from pipelines.common import derive
 
 
 def test_egfr_ckdepi_2021_known_values():

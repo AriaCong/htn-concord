@@ -34,7 +34,7 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 | HC-7 | **`git init` + `.gitignore` + tagged baseline** | repo under version control; `Data/` and credentialed sources gitignored | — | S | ✅ (`d94b5d9`, tag `baseline-2026-07-18`) |
 | HC-9 | Run-manifest emitter | git SHA + input/output SHA256 + resolved config + row counts per pipeline run | HC-7 | S | ⬜ |
 | HC-29 | Split facts/labels into separate artifacts | model-facing facts and hidden labels emitted as physically separate artifacts | HC-1 | M | ⬜ |
-| HC-56 | **Real MIMIC row in a committed test fixture** | fixture contains no verbatim credentialed data; determination recorded in the README. **Blocks HC-90** | — | S | ⬜ |
+| HC-56 | **Real MIMIC rows in a committed test fixture** | fixture contains no verbatim credentialed data; determination recorded in the README. ~~**Blocks HC-90**~~ | — | S | ✅ 2026-09-20 — **three** verbatim `omr` rows found, not one; all replaced with synthetic rows in the `9xxxxxxx` subject range, pinned by a regression test. HC-90 unblocked |
 
 ## EPIC E2 — Data cleaning: all sources → PatientProfile  🟡
 | ID | Ticket | Acceptance criteria | Dep | Size | Status |
@@ -150,5 +150,5 @@ HC-50 → HC-53 → HC-60 → HC-70 → **HC-80 (pilot/kill-gate)**.
 | HC-46 | Leakage-audit lint (forbidden-token scanner) | ~~referenced in HC-53's acceptance but never a deliverable~~ — **the scanner now exists** as `htn-concord/leakage.py` (2026-07-19), shared by the renderer's per-call self-check and HC-53's build gate. Matching is word-boundary anchored, which is load-bearing: a substring scan would reject every vignette for a patient on **hydrochlorothiazide**, the commonest antihypertensive in the cohort. Residual scope is only the **standalone CLI lint** wrapping `leakage.scan` | P2 |
 | HC-47 | Response cache + transcript store | makes analysis reproducible despite non-deterministic inference | P2 |
 | HC-48 | Prompt-template versioning + hashing | unversioned prompt edits silently invalidate prior runs | P2 |
-| HC-56 | Real MIMIC row in committed test fixture | `tests/test_mimic_omr_bp.py` embeds `10000032,2180-04-27,1,Blood Pressure,110/65`, present **verbatim** in `omr.csv.gz`. PhysioNet's DUA forbids redistribution — contained while the repo is private, **blocks HC-90**. Either license-clear it as ODbL demo data or replace with synthetic values | P1 |
+| HC-56 | Real MIMIC rows in committed test fixture | ✅ **Resolved 2026-09-20.** `tests/test_mimic_omr_bp.py` embedded **three** rows present verbatim in `omr.csv.gz` — the original ticket named only one — and this repo's README quoted one of them in full. Not license-cleared: the ODbL demo subset was never confirmed as their source, so they were replaced rather than justified. The fixture is now synthetic, using `subject_id`s in the `9xxxxxxx` range, disjoint from the real MIMIC range, with a regression test pinning the invariant | P1 |
 | HC-49 | Clinician face-validity + adjudication of 150–200 cases | "no clinician in the loop" is not survivable at review as currently framed | **P0 for Paper 1** |
