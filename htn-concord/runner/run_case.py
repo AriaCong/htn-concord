@@ -18,13 +18,13 @@ import json
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 import jsonschema
 
 from runner.providers import Provider, ProviderRequest, _prompt_blob
 
-TRANSCRIPT_VERSION = "1.0"
+TRANSCRIPT_VERSION = "1.1"
 
 _SCHEMA_PATH = Path(__file__).resolve().parents[1] / "schemas" / "llm_output.schema.json"
 
@@ -36,32 +36,107 @@ _UNSUPPORTED = frozenset({
     "minItems", "maxItems", "uniqueItems",
 })
 
-# USD per token. Verify against current pricing before quoting a cost in the paper;
-# an unlisted model records a null cost rather than a wrong one.
+# USD per token, transcribed from the published price list (cached 2026-06-24).
+# An unlisted model records a null cost rather than a wrong one, so this table
+# being incomplete degrades to "no cost" — but the pilot is supposed to report a
+# cost, so the models it runs must be here. Re-check before quoting in a paper.
 _PRICES: dict[str, tuple[float, float]] = {
+    "claude-fable-5-1": (10e-6, 50e-6),
+    "claude-mythos-5-1": (10e-6, 50e-6),
     "claude-fable-5": (10e-6, 50e-6),
+    "claude-opus-5": (5e-6, 25e-6),
     "claude-opus-4-8": (5e-6, 25e-6),
     "claude-opus-4-7": (5e-6, 25e-6),
-    "claude-sonnet-5": (3e-6, 15e-6),
+    "claude-opus-4-6": (5e-6, 25e-6),
+    "claude-sonnet-5": (2e-6, 10e-6),
+    "claude-sonnet-4-6": (3e-6, 15e-6),
     "claude-haiku-4-5": (1e-6, 5e-6),
+    # OpenAI (frontier arm from 2026-09-20). Short-context tier: the published
+    # table prices long-context variants higher, and Task B vignettes are ~1-2k
+    # tokens, so the short-context rate is the applicable one. Re-check before
+    # quoting in a paper, and re-check if an input ever grows.
+    "gpt-6-astra": (10e-6, 50e-6),
+    "gpt-5.6-sol": (4e-6, 20e-6),
+    "gpt-5.6-terra": (2e-6, 12e-6),
+    "gpt-5.6-luna": (0.2e-6, 1.2e-6),
+    "gpt-5.5": (5e-6, 30e-6),
+    "gpt-5.4": (2.5e-6, 15e-6),
+    # Open-weight arm, priced by its HOST. This table is keyed by model id
+    # alone, so a model served by two hosts at two prices would collide here --
+    # revisit if the open-weight arm ever moves off Groq.
+    "openai/gpt-oss-120b": (0.15e-6, 0.60e-6),   # Groq, verified 2026-09-22
+    "openai/gpt-oss-20b": (0.10e-6, 0.50e-6),    # Groq
+    # Together, verified 2026-09-22. NOTE: hosts differ in whether they count the
+    # JSON schema in prompt_tokens (Groq reported ~1,500 input for the same case
+    # where Together reports ~255), so a cost compared across hosts is not
+    # like-for-like. Within one arm it is consistent, which is what the pilot
+    # needs.
+    "deepseek-ai/DeepSeek-V4-Pro-0813": (1.32e-6, 3.96e-6),
+    "zai-org/GLM-5.3": (1.40e-6, 4.40e-6),
+    "moonshotai/Kimi-K3": (3.00e-6, 15.00e-6),
 }
 
+#: The system prompt.
+#:
+#: **Every constraint stripped from the API-safe schema must be stated here.**
+#: `api_safe_schema()` removes `if`/`then`/`else` and `minItems` because
+#: structured outputs rejects them, but the *full* schema still enforces them
+#: locally. A constraint that is stripped and not restated is a rule the model
+#: was never told and is then judged against — which measures whether it can
+#: guess our hidden requirements, not whether it follows the guideline. Two rules
+#: are in that position, and both are spelled out below:
+#:   * `abstain_reason` required exactly when `decision == "abstain"` (the
+#:     `allOf`/`if`/`then` block), and
+#:   * `trace` must be non-empty (`minItems: 1`).
+#: `test_every_stripped_constraint_is_stated_in_the_prompt` holds this.
 DEFAULT_SYSTEM = (
     "You are answering a hypertension management question. Reply with a single "
     "JSON object conforming to the provided schema and nothing else. Report only "
     "facts stated in the input; use null for anything not stated rather than "
     "guessing. Set decision to \"abstain\" with an abstain_reason when a "
-    "determinant you need is unknown."
+    "determinant you need is unknown, and leave abstain_reason null otherwise. "
+    "Always include at least one step in trace, recording the reasoning you "
+    "actually used."
 )
 
 
 class MalformedOutputError(RuntimeError):
     """The model never produced schema-valid JSON within the retry budget."""
 
-    def __init__(self, message: str, raw_text: str, attempts: int) -> None:
+    def __init__(self, message: str, raw_text: str, attempts: int,
+                 attempt_log: Sequence[Mapping[str, Any]] = ()) -> None:
         super().__init__(message)
         self.raw_text = raw_text
         self.attempts = attempts
+        self.attempt_log = list(attempt_log)
+
+
+class TruncatedOutputError(MalformedOutputError):
+    """Every attempt stopped at `max_tokens`.
+
+    This is our ceiling being too low, not the model formatting badly, and the
+    two must not land in the same rate. Thinking tokens count against
+    `max_tokens`, so a value chosen before adaptive thinking was on will truncate
+    good answers and inflate the malformed-output rate with our own defect.
+    """
+
+
+class RefusalError(RuntimeError):
+    """The model declined to answer (`stop_reason == "refusal"`).
+
+    A refusal is a *result*, not a parse failure: on a clinical benchmark, "the
+    model would not answer this" is a finding, and it has to be reported as its
+    own outcome with its own denominator rather than folded into a
+    malformed-output rate. It is never retried — the same request earns the same
+    refusal, and paying for it twice tells us nothing.
+    """
+
+    def __init__(self, message: str, *, category: str | None = None,
+                 raw_text: str = "", stop_details: Mapping[str, Any] | None = None) -> None:
+        super().__init__(message)
+        self.category = category
+        self.raw_text = raw_text
+        self.stop_details = dict(stop_details) if stop_details else None
 
 
 @dataclass(frozen=True)
@@ -78,26 +153,74 @@ def load_output_schema() -> dict[str, Any]:
 
 
 def api_safe_schema(schema: Mapping[str, Any]) -> dict[str, Any]:
-    """Strip keywords the structured-outputs API rejects, recursively.
+    """Build the request-side copy: strip what the API rejects, inline every ref.
 
-    Everything removed here is still enforced locally against the full schema.
+    Everything removed here is still enforced locally against the full schema,
+    which is the actual contract.
+
+    **Refs are inlined and `definitions` dropped.** The full schema is draft-07
+    and spells its ref target `#/definitions/...`; the structured-output
+    documentation names `$ref`/`$defs`. Rather than bet the first live call on
+    whether the API resolves draft-07's spelling, the request copy carries no
+    refs at all. `$schema` and `$id` go for the same reason: they are not part of
+    the output contract and only give the API more to reject.
     """
-    if isinstance(schema, Mapping):
-        out: dict[str, Any] = {}
-        for key, value in schema.items():
-            if key in _UNSUPPORTED:
-                continue
-            if key == "properties" and isinstance(value, Mapping):
-                out[key] = {k: api_safe_schema(v) for k, v in value.items()}
-            elif isinstance(value, Mapping):
-                out[key] = api_safe_schema(value)
-            elif isinstance(value, list):
-                out[key] = [api_safe_schema(v) if isinstance(v, Mapping) else v
-                            for v in value]
-            else:
-                out[key] = value
+    definitions = dict(schema.get("definitions") or {})
+    out = _strip(schema, definitions)
+    for key in ("$schema", "$id", "definitions"):
+        out.pop(key, None)
+    return _require_all_properties(out)
+
+
+def _require_all_properties(node: Any) -> Any:
+    """Mark every property of every object as `required`, recursively.
+
+    Strict structured outputs rejects a schema with optional properties: the
+    documented way to express "may be absent" is a nullable union, not omission
+    from `required`. `TraceStep.citation` is the one such property here, and it
+    is already `["string", "null"]`, so requiring it costs nothing.
+
+    This does **not** tighten the contract. The full local schema still treats
+    `citation` as optional, and a trace step that omits it still validates.
+    Constraining the request copy only changes what the model is asked to emit.
+    """
+    if isinstance(node, Mapping):
+        out = {k: _require_all_properties(v) for k, v in node.items()}
+        properties = out.get("properties")
+        if isinstance(properties, Mapping) and properties:
+            out["required"] = sorted(properties)
         return out
-    return dict(schema)
+    if isinstance(node, list):
+        return [_require_all_properties(v) for v in node]
+    return node
+
+
+def _strip(node: Any, definitions: Mapping[str, Any], _depth: int = 0) -> Any:
+    """Recursive half of `api_safe_schema`. `_depth` guards a cyclic ref."""
+    if not isinstance(node, Mapping):
+        if isinstance(node, list):
+            return [_strip(v, definitions, _depth) for v in node]
+        return node
+
+    ref = node.get("$ref")
+    if isinstance(ref, str) and ref.startswith("#/definitions/"):
+        if _depth > 16:
+            raise ValueError(f"cyclic or too-deeply nested $ref: {ref}")
+        target = definitions.get(ref.rsplit("/", 1)[-1])
+        if target is None:
+            raise ValueError(f"unresolvable $ref in output schema: {ref}")
+        merged = {**target, **{k: v for k, v in node.items() if k != "$ref"}}
+        return _strip(merged, definitions, _depth + 1)
+
+    out: dict[str, Any] = {}
+    for key, value in node.items():
+        if key in _UNSUPPORTED:
+            continue
+        if key == "properties" and isinstance(value, Mapping):
+            out[key] = {k: _strip(v, definitions, _depth) for k, v in value.items()}
+        else:
+            out[key] = _strip(value, definitions, _depth)
+    return out
 
 
 def _sha256(text: str) -> str:
@@ -143,12 +266,25 @@ def run_case(
     case_id: str | None = None,
     task: str | None = None,
     max_attempts: int = 3,
-    max_tokens: int = 4096,
+    max_tokens: int = 16000,
 ) -> RunResult:
     """Run one benchmark case and return the validated output plus its transcript.
 
     `profile` is the hidden structured row. It is hashed for linkage and never
     sent to the model.
+
+    Three failures are distinguished rather than pooled, because the pilot reports
+    a failure-mode table and pooling them would make it unreadable:
+
+    * `RefusalError` — the model declined. Not retried.
+    * `TruncatedOutputError` — every attempt hit `max_tokens`. Our ceiling, not
+      the model's formatting.
+    * `MalformedOutputError` — the model produced text that is not schema-valid
+      JSON. This is the only one of the three that is a malformed-output rate.
+
+    `max_tokens` defaults to 16000 because thinking tokens count against it; the
+    old 4096 was set before adaptive thinking was on by default and would have
+    charged our own configuration to the model's formatting.
     """
     full_schema = load_output_schema()
     validator = jsonschema.Draft7Validator(full_schema)
@@ -162,21 +298,58 @@ def run_case(
         max_tokens=max_tokens,
     )
 
-    malformed: list[str] = []
+    attempt_log: list[dict[str, Any]] = []
     last_text = ""
     started = time.monotonic()
+
+    effort = getattr(provider, "effort", None)
+    thinking = getattr(provider, "thinking", None)
 
     for attempt in range(1, max_attempts + 1):
         response = provider.complete(request)
         last_text = response.text
-        try:
-            candidate = _extract_json(response.text)
-            validator.validate(candidate)
-        except (json.JSONDecodeError, ValueError, jsonschema.ValidationError) as exc:
-            malformed.append(f"attempt {attempt}: {type(exc).__name__}: {exc}")
+
+        # A refusal is an answer, and retrying it buys the same answer again.
+        if response.stop_reason == "refusal":
+            details = response.stop_details or {}
+            said = (details.get("refusal") or details.get("explanation")
+                    or "no explanation given")
+            raise RefusalError(
+                "model declined to answer "
+                f"(category={details.get('category')!r}): {said}",
+                category=details.get("category") or details.get("finish_reason"),
+                raw_text=response.text,
+                stop_details=response.stop_details,
+            )
+
+        if response.stop_reason == "max_tokens":
+            attempt_log.append({
+                "attempt": attempt, "outcome": "truncated",
+                "detail": f"stopped at max_tokens={max_tokens}",
+            })
             continue
 
+        try:
+            candidate = _extract_json(response.text)
+        except (json.JSONDecodeError, ValueError) as exc:
+            attempt_log.append({
+                "attempt": attempt, "outcome": "invalid_json",
+                "detail": f"{type(exc).__name__}: {exc}",
+            })
+            continue
+
+        try:
+            validator.validate(candidate)
+        except jsonschema.ValidationError as exc:
+            attempt_log.append({
+                "attempt": attempt, "outcome": "schema_violation",
+                "detail": f"{exc.message} at {'/'.join(str(p) for p in exc.absolute_path)}",
+            })
+            continue
+
+        attempt_log.append({"attempt": attempt, "outcome": "ok", "detail": None})
         latency_ms = int((time.monotonic() - started) * 1000)
+        malformed = [a for a in attempt_log if a["outcome"] != "ok"]
         transcript = {
             "transcript_version": TRANSCRIPT_VERSION,
             "case_id": case_id,
@@ -191,6 +364,8 @@ def run_case(
             "request": {
                 "output_schema_sha256": _sha256(_canonical(full_schema)),
                 "max_tokens": max_tokens,
+                "effort": effort,
+                "thinking": dict(thinking) if thinking else None,
             },
             "response": {
                 "raw_text": response.text,
@@ -198,11 +373,16 @@ def run_case(
                 "stop_reason": response.stop_reason,
             },
             "attempts": attempt,
+            "attempt_log": attempt_log,
             "malformed_attempts": len(malformed),
-            "malformed_detail": malformed,
+            "malformed_detail": [f"attempt {a['attempt']}: {a['outcome']}: {a['detail']}"
+                                 for a in malformed],
             "usage": {
                 "input_tokens": response.input_tokens,
                 "output_tokens": response.output_tokens,
+                # Billed as output and absent from the reply; a run that ignores
+                # them understates its own cost.
+                "reasoning_tokens": response.reasoning_tokens,
             },
             "cost_usd": _cost_usd(response.model, response.input_tokens,
                                   response.output_tokens),
@@ -216,10 +396,16 @@ def run_case(
             malformed_attempts=len(malformed),
         )
 
-    raise MalformedOutputError(
-        f"no schema-valid JSON after {max_attempts} attempt(s): " + "; ".join(malformed),
+    summary = "; ".join(f"attempt {a['attempt']}: {a['outcome']}: {a['detail']}"
+                        for a in attempt_log)
+    error = (TruncatedOutputError
+             if attempt_log and all(a["outcome"] == "truncated" for a in attempt_log)
+             else MalformedOutputError)
+    raise error(
+        f"no schema-valid JSON after {max_attempts} attempt(s): {summary}",
         raw_text=last_text,
         attempts=max_attempts,
+        attempt_log=attempt_log,
     )
 
 

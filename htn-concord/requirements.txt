@@ -4,6 +4,29 @@ numpy==2.4.2
 jsonschema==4.23.0   # required: PatientProfile contract validation
 pytest==9.0.2        # tests (a branch without a test does not ship)
 
+# The model SDKs -- the only dependencies that talk to a network. Pinned like
+# everything else: the request shape this project sends (output_config.format,
+# effort, thinking) is a recorded experimental parameter, so an unpinned SDK
+# could change what a "same" run sends without changing a line of our code.
+#
+# The import in runner/providers.py stays lazy on purpose, so `pytest` and CI
+# still run green without it installed and without a key.
+anthropic==1.7.0
+
+# The OpenAI SDK. Installed and pinned 2026-09-20 on request; **nothing imports
+# it yet** -- OpenAICompatibleProvider speaks the chat-completions shape over the
+# standard library. Pinned now so that whenever it is wired in, that is a
+# deliberate, recorded version rather than whatever happened to resolve. Two
+# possible uses, and they are not the same decision:
+#   1. as a client for OpenAI-compatible *open-weight* hosts (Together,
+#      Fireworks, Groq, OpenRouter) -- a change of transport, not of model;
+#   2. as a second or replacement *frontier* arm using OpenAI's own models --
+#      which changes what the experiment compares, and would need the kill
+#      criteria's "frontier" arm and decision D3 updated to say so.
+# Any future import must stay lazy, like anthropic's, so the suite and CI keep
+# running with no SDK and no key.
+openai==3.16.2
+
 # Optional: faster columnar output that preserves list dtype natively. The CSV
 # output is already lossless (list columns JSON-encoded), so this is not required.
 # pyarrow>=15,<23

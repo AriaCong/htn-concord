@@ -62,7 +62,8 @@ patient-level rows).
 
 - 4,806 patients → **14,418 cases**
 - splits: 2,914 train / 940 dev / 952 test patients
-- labels: 7,635 lifestyle_only · 2,571 intensify · 2,253 initiate · 1,527 at_goal_continue · 432 abstain
+- labels: 7,506 lifestyle_only · 2,571 intensify · 2,253 initiate · 1,524 at_goal_continue · 564 abstain
+  (as of the post-HC-24 rebuild; `benchmarks/task_b_manifest.json` is the source of truth)
 - **leakage audit: passed, 0 token hits, 0 label-column hits across all 14,418**
 
 Rebuilding from the same inputs must reproduce those checksums; `verify()` asserts it.
@@ -82,10 +83,34 @@ confirming 20 rendered vignettes state only facts** — a scanner only catches t
 tokens it was told about. Generate the sheet with:
 
 ```python
+from tasks import load_profiles_csv
 from tasks.spotcheck import build_spotcheck
-build_spotcheck("data/tasks/task_b", "data/tasks/task_b/spotcheck_20.md")
+
+profiles = load_profiles_csv("data/nhanes/processed/nhanes_profiles_J.csv")
+build_spotcheck("data/tasks/task_b", "data/tasks/task_b/spotcheck.md", profiles=profiles)
 ```
 
-It is stratified by engine decision (4 patients per decision, all three levels), so
-the read is weighted toward abstentions and contraindication-positive cases rather
-than a uniform draw dominated by `lifestyle_only`.
+**Three strata, because one is not enough.** Stratifying by engine decision alone
+(4 patients per decision, all three levels) weights the read toward abstentions
+rather than a uniform draw dominated by `lifestyle_only` — but it leaves two blind
+spots, both found by auditing the built corpus on 2026-09-20:
+
+- `abstain` is one decision word covering three rule paths. The corpus carries
+  `stage1_risk_indeterminate` (131 patients), `pregnancy_management_out_of_scope`
+  (45) and `med_status_unknown` (12), and a four-patient abstain draw returned four
+  of the first kind — so the prose the other two paths render went unread.
+- **Contraindication flags are not in the labels file at all.** They are part of the
+  hidden row, by design. Hyperkalemia does not change the engine's decision, so its
+  nine carriers among 4,806 patients are invisible to decision stratification and a
+  20-patient draw will essentially never show one.
+
+So the sheet adds an abstain-mechanism stratum and — when `profiles=` is supplied —
+a contraindication stratum. Without `profiles=` the sheet prints a warning saying
+contraindication coverage was not included, rather than letting the reader assume it
+was. Each entry records why it was selected.
+
+The sheet shows the hidden label beside the vignette, so it is the one artifact in
+the project that deliberately holds both sides. It is written under `data/`
+(gitignored) and must not be committed or uploaded. The reviewer's record is
+`docs/signoffs/HC-57_facts-only_spotcheck_signoff.md`, which carries no labels and no
+patient rows.
