@@ -92,19 +92,45 @@ already produces so the pilot need not wait on a ticket it does not depend on.
 | gpt-6-astra | simple | 15 | **70** | 15 | 0 | 100 |
 | gpt-6-astra | moderate | 15 | **70** | 15 | 0 | 100 |
 | gpt-6-astra | hard | 15 | **70** | 15 | 0 | 100 |
-| gpt-6-astra | *all* | 45 | **210** | 45 | **0** | 300 |
+| gpt-6-astra | *all* | 45 | 210 | 45 | **0** | 300 |
 | DeepSeek-V4-Pro | *all* | 0 | 59 | 162 | 79 | 300 |
 
-**Two findings the frontier arm makes, and a single accuracy score could not.**
+> ### ⚠️ Correction — the `correct` / `correct but unsupported` split is not interpretable
+>
+> **Withdrawn 2026-09-22, after the table above was first written.**
+>
+> The split rests on `citation_support`, and that metric is not measuring what
+> its name claims. **The model is never told the anchor vocabulary.** The system
+> prompt does not mention citations at all, and the schema supplies exactly one
+> example — `AHA-ACC-2025:stage2-initiate`.
+>
+> `gpt-6-astra` cited that one string **47 times and nothing else**. Those 47 are
+> the entire `n` behind `citation_hallucination_rate`. The engine's other anchors
+> (`bp-categories`, `bp-goal-130-80`, `normal-lifestyle`, …) are undisclosed, so
+> the model had no way to produce them.
+>
+> `trace_concordance` (0.436) has the same defect. The engine uses four rule
+> names (`bp_staging`, `initiation`, `intensification`, `scope`); the schema shows
+> one (`bp_staging`); the model used that one on all 300 calls and invented the
+> rest (`ckd_assessment`, `treatment_decision`, …).
+>
+> **Both metrics measure whether a model can guess an undisclosed vocabulary**,
+> not whether it can support its answer or reproduce a reasoning path. This is
+> the same class of defect as the `trace: minItems` one found earlier in this
+> run: a contract enforced in scoring and never disclosed to the model.
+>
+> **So: the 210 "right but unsupported" is an artefact, not a finding.** For this
+> run the frontier arm's table collapses to **correct 255 / extraction 45 /
+> reasoning 0** out of 300, and the citation dimension is *not measurable*.
+>
+> **The verdict is unaffected.** K2 is defined on `decision_concordance` and
+> `extraction_f1`, both of which are measurable; no criterion reads citation or
+> trace. Fixing this is HC-38 / HC-44 (anchor registry and binding) plus
+> disclosing the vocabulary to the model — filed as **HC-100**.
 
-**(a) 70% of its answers are right but unsupported.** `citation_support` is
-**0.075** and `trace_concordance` **0.436**, while `citation_hallucination_rate`
-is **0.000** (n = 47). It is not inventing guideline anchors — it simply almost
-never cites one. It knows the answer and cannot say which rule produced it.
-This is the "right answer, wrong path" result RQ2 exists to report and that
-existing medical-QA benchmarks structurally cannot.
+**One finding the frontier arm makes, and a single accuracy score could not.**
 
-**(b) Zero reasoning failures.** Every one of its 45 errors followed a misread
+**Zero reasoning failures.** Every one of its 45 errors followed a misread
 fact; not one followed a correctly-read one. On this corpus the frontier model's
 errors are an *extraction* problem, not a clinical-reasoning problem — which is
 the RQ2a/RQ2b question, and the one K2 has just made unanswerable here (§5).
@@ -175,7 +201,10 @@ left as written.
    the HC-95 stress set; this run adds nothing to it.
 4. **One frontier model, one open-weight model, one condition (C1).** No ladder
    delta is measured here.
-5. **The frontier arm cannot be version-pinned** — `gpt-6-astra` publishes no
+5. **`citation_support` and `trace_concordance` are not interpretable** in this
+   run (§4). Do not carry either row into a write-up until the anchor and
+   rule-name vocabularies are disclosed to the model.
+6. **The frontier arm cannot be version-pinned** — `gpt-6-astra` publishes no
    dated snapshot, so this run is reproducible from its transcripts but not
    necessarily re-runnable against the same weights.
 
@@ -191,5 +220,8 @@ left as written.
 3. **Re-record D2 at k = 2** (§6).
 4. **Do not freeze yet.** §11's order is pilot → freeze → full runs, and the
    pilot has returned a corpus defect. Freezing now would freeze it in.
-5. Carry forward, unchanged: the harness is sound — 600/600 schema-valid on the
+6. **Disclose the anchor and rule-name vocabularies to the model (HC-100)**, or
+   stop reporting `citation_support` and `trace_concordance` entirely. Scoring a
+   model against a vocabulary it was never given measures guessing.
+7. Carry forward, unchanged: the harness is sound — 600/600 schema-valid on the
    first attempt, zero refusals, zero truncations, zero citation hallucinations.
