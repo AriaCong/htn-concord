@@ -8,6 +8,7 @@ comment stuck to it".
 """
 from __future__ import annotations
 
+import hashlib
 import os
 import re
 from pathlib import Path
@@ -112,3 +113,37 @@ def hc57_signed(signoff_path: str | Path) -> bool:
     if not path.exists():
         return False
     return _SIGNED in path.read_text(encoding="utf-8")
+
+
+def human_gate_closed(signoff_dir: str | Path, corpus_dir: str | Path) -> bool:
+    """Is a signed facts-only sign-off bound to the corpus **actually on disk**?
+
+    `hc57_signed` asks only whether the marker is present, which was enough while
+    there was one corpus and one form. It is not enough once a renderer change
+    rebuilds the corpus: the HC-57 signature was deliberately bound to checksums
+    precisely so it would stop covering a corpus that moved underneath it, and
+    nothing was checking that binding. A signed form plus a rebuilt corpus read
+    as "gate closed", which is the one thing the binding existed to prevent.
+
+    So the form has to *name* the corpus it signs off, by full SHA-256 of
+    `task_b_inputs.jsonl`. Any signed form in the directory may close the gate,
+    which is what lets a scoped re-read (HC-101, `hard` only) close it without
+    reopening the whole 75-vignette read.
+
+    Conservative by construction: a form that quotes its digest in truncated form
+    does not match, and the gate stays open. A false "provisional" costs a label;
+    a false "signed" costs the guarantee.
+    """
+    corpus = Path(corpus_dir) / "task_b_inputs.jsonl"
+    if not corpus.exists():
+        return False
+    digest = hashlib.sha256(corpus.read_bytes()).hexdigest()
+
+    directory = Path(signoff_dir)
+    if not directory.is_dir():
+        return False
+    for form in sorted(directory.glob("*.md")):
+        text = form.read_text(encoding="utf-8")
+        if _SIGNED in text and digest in text:
+            return True
+    return False
