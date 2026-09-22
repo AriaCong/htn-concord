@@ -5,8 +5,8 @@
 # engine. That means this repo must be safe to publish. Two categories must
 # NEVER be committed:
 #
-#   1. Credentialed data (MIMIC-IV, MIMIC-IV-ED, MIMIC-IV-Note, eICU-CRD,
-#      Zigong HF). PhysioNet credentialing forbids redistribution. ~60 GB.
+#   1. Credentialed data (MIMIC-IV, MIMIC-IV-ED, MIMIC-IV-Note, eICU-CRD).
+#      PhysioNet credentialing forbids redistribution. ~60 GB.
 #   2. Copyrighted publisher materials (the PREVENT paper and its supplements).
 #
 # Derived artifacts are excluded too: they are reproducible from the pipelines,

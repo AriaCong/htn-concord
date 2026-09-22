@@ -46,7 +46,6 @@
 | HC-19 | MIMIC Task-C 病历 + 银标准 | 出院小结选择；银标准来自 dx+labs+medrecon；人工验证一个样本 | HC-18 | M | ⬜ |
 | HC-20 | MIMIC-ED pipeline | medrecon 药物类集合；分诊/生命体征标为急性 context；edstays 连接 | HC-1 | M | ⬜ |
 | HC-21 | eICU pipeline —— **降级** | ~~完整 pipeline~~ → 仅约 **500 例住院的弃权校准探针**（模型会不会正确拒绝对 ICU 血压做慢性分级？）。eICU 每条血压都是急性，完整构建会产出约 20 万行没有决策标签的数据。注：eICU *确实*带 `note.csv`（306 MB），但那是路径/数值片段而非叙事文本，因此仍然没有 Task C | HC-3 | S | ⬜ |
-| HC-22 | Zigong HF 轻清洗 —— **建议砍掉** | 2,008 名中国心衰住院病人；没有降压决策语境、没有病历文本、也不是原发性高血压。「中国指南分歧」检查由 ESC-2024 对照模块（HC-41）在真实队列上做要好得多 | — | S | ⬜ |
 | HC-23 | **落实已决定的中位数血压统一** | `clean.py` 改用中位数、重跑 pipeline、把全部下游数字重新引用一遍 | HC-10 | S（代码）/ 基准冻结级（影响） | ⬜ |
 | HC-24 | 接上 NHANES 妊娠 flag（`RIDEXPRG`）—— **安全** | ✅ **2026-07-19 完成**（PR #5）：`RIDEXPRG` → `pregnant`（三值：只问 20–44 岁女性，缺失绝不读作「未怀孕」）；引擎将其作为**先于分期的范围闸门**，无论血压如何都以 `pregnancy_management_out_of_scope` 弃权，依据 Master Plan 禁忌症规则表。新增锚点 `HTN-CONCORD:abstain-out-of-scope`。45 位全部弃权；语料已重建（abstain 432→564）。药物类别后果仍属 **HC-36**；其余范围守卫仍属 **HC-28** | HC-10 | S | ✅ |
 | HC-25 | 下载 `MCQ_J`，填充 `clinical_cvd` | `MCQ160B–F`（心衰/冠心病/心绞痛/心梗/卒中）→ 经 Kleene 或运算得 `clinical_cvd` | HC-10 | S | ⬜ |

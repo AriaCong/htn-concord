@@ -11,7 +11,7 @@ Prepared 2026-07-08. Aligned with the Notion *🇬🇧 HTN-Concord — Master Pl
 titled "Consolidated Plan") and the 2025 AHA/ACC guideline (DOI 10.1161/HYP.0000000000000249).
 Chinese counterpart: `HTN-Concord_DataDictionary_and_CleaningStrategy_zh.md` — **update both together.**
 
-> 📘 **Companion document.** This file is the *reference* — every table across all five datasets, plus
+> 📘 **Companion document.** This file is the *reference* — every table across all four datasets, plus
 > the correction history. For a single-substrate **walkthrough** covering why each column was chosen,
 > the three-layer data-type contract, the missing-data policy (and why we do not impute), and the
 > step-by-step NHANES execution order, see `HTN-Concord_DataProcessing_Walkthrough.md`
@@ -28,12 +28,10 @@ Chinese counterpart: `HTN-Concord_DataDictionary_and_CleaningStrategy_zh.md` —
 | MIMIC-IV-Note 2.2 | ✅ | `Data/mimic-iv-note.../note/` | `discharge.csv.gz` = 1.1 GB |
 | MIMIC-IV-ED 2.2 | ✅ | `Data/mimic-iv-ed-2.2/ed/` | gzip CSV |
 | eICU-CRD 2.0 | ✅ | `Data/eicu-collaborative-research-database-2.0/` | plain CSV |
-| Zigong HF 1.3 | ✅ | `Data/hospitalized-patients-with-heart-failure.../` | `dat.csv` **2,008**×167; optional/off main line |
 
 **Datasets → tasks:** NHANES → Task A/B + PREVENT + mortality (Task D). MIMIC-IV(+ED+Note) → Task B/C
 + `dod` plausibility. eICU → **descoped 2026-07-18** to a ~500-stay abstention-calibration probe (every eICU
-BP is acute, so a full pipeline would emit ~200k rows carrying no decision label). Zigong HF →
-**recommended for removal**.
+BP is acute, so a full pipeline would emit ~200k rows carrying no decision label).
 
 > ⚠️ **eICU "no notes" was factually wrong.** eICU ships a 306 MB `note.csv`. The conclusion survives — the
 > content is path/value fragments, not narrative prose, so it is still unsuitable for Task C — but the
@@ -241,17 +239,6 @@ MIMIC so the engine sees one schema.
 
 ---
 
-## 5. Zigong HF 1.3 — optional, off main line
-
-One CSV `dat.csv` (**2,008** rows × 167 cols), wide/tabular, already curated; ships with
-`dataDictionary.csv`. Chinese cohort, congestive HF (not primary HTN). Contains `systolic.blood.pressure`,
-`diastolic.blood.pressure`, comorbidity flags, `diabetes`, CKD, and 28-day/3-/6-month mortality. **Use only
-for the CHARLS/China-guideline disagreement sanity check or as an external tabular stressor — not part of
-the Paper-1 cohort.** Cleaning is light: use the shipped dictionary, standardize column names, verify units
-(BP mmHg, already numeric), map comorbidity flags to the engine schema.
-
----
-
 ## 6. Cross-cutting derived variables (compute identically for every source)
 
 These are engine inputs, computed **after** per-source cleaning so the `PatientProfile` schema is uniform.
@@ -318,8 +305,5 @@ be used (its threshold was ≥10% on ASCVD, a different endpoint).
    discharge-note selection) → Tasks B/C.
 4. Add **eICU** only as the ~500-stay abstention-calibration probe (HC-21, descoped) — not a full second
    structured substrate.
-5. **Drop Zigong HF** (HC-22, recommended): no antihypertensive-decision framing, no notes, not primary
-   hypertension. The China-guideline disagreement check is better served by the ESC-2024 comparator (HC-41)
-   on real cohort data.
-6. Emit a **QA report** (row counts, missingness, range-violation logs, unit assertions) before any
+5. Emit a **QA report** (row counts, missingness, range-violation logs, unit assertions) before any
    engine/label run.

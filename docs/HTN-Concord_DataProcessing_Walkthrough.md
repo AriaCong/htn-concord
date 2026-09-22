@@ -11,8 +11,8 @@ actually built and running:
 6. What does the whole processing pipeline do, step by step?
 
 **Relationship to the other data doc.** `HTN-Concord_DataDictionary_and_CleaningStrategy.md` is the
-*reference* — it enumerates every table across all five datasets, including MIMIC-IV, MIMIC-ED, eICU
-and Zigong HF, and it carries the correction history. **This document is the *walkthrough*** — it
+*reference* — it enumerates every table across all four datasets, including MIMIC-IV, MIMIC-ED and
+eICU, and it carries the correction history. **This document is the *walkthrough*** — it
 follows one substrate (NHANES cycle J) from raw `.XPT` to validated `PatientProfile`, and it
 concentrates on the reasoning the reference doc assumes you already have. Where the two disagree, the
 reference doc wins on facts about *other* datasets; this doc wins on the NHANES execution order,
