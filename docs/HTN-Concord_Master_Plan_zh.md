@@ -146,7 +146,12 @@
 
 ---
 
-## 阶段 5 — 模型 harness（LLM runner）⬜
+## 阶段 5 — 模型 harness（LLM runner）🟡
+
+> ✅ **HC-60 已于 2026-07-20 完成** —— `runner/`（`run_case()` + scripted/replay/Anthropic 三种 provider 接缝、
+> 对 HC-5 schema 的严格校验、JSON 格式错误重试、含 prompt/schema 哈希 + 用量 + 成本 + 延迟的 transcript、以及
+> `replay()`）。剩余未决：`AnthropicProvider` 已写好但**尚未对实时 API 跑过**（JSON 错误率未测），且 HC-61
+> 适配器 / HC-62 条件 / HC-63 基础设施仍为 ⬜。
 
 **目标：** 以严格 JSON 模式、可复现地，让任意模型跑任意任务。
 
@@ -158,7 +163,12 @@
 
 ---
 
-## 阶段 6 — 评估与失败模式审计 ⬜
+## 阶段 6 — 评估与失败模式审计 🟡
+
+> ✅ **HC-70 已于 2026-07-20 完成** —— `evaluator/`（`metrics.py` 纯函数按指标、`score.py` 按 case + 聚合），
+> 实现全部九项指标并复现 5 个手工评分的 gold set。HC-92 审计结论已在代码中强制执行：每个一致性数字旁都打印
+> `majority_class_baseline`、安全指标不并入头条均值、弃权以两个比率（过度/不足）分别报告。剩余 ⬜：HC-71
+> 失败模式分类器、HC-72 分组/难度报告、HC-94 置信区间。
 
 **目标：** 重点是**分解**，不是单一分数。实现全部计划指标与 RQ2 审计。
 
@@ -236,6 +246,8 @@ P1 schema/词表 ──┬─> P2 数据 pipeline ──┐
 ---
 
 ## 即刻要做的事（按顺序，截至 2026-07-18）
+
+> 🔄 **2026-07-24 刷新。** 下列若干项现已完成：HC-5（schema）与 HC-70（指标）已 ✅ 合并；HC-42（DecisionBuilder）+ HC-43（注册表分发）已 ✅ 实现（在分支上，待 PR）。当前的关键路径是手写引擎规则 **HC-34→HC-37（Aria 的医学逻辑）**、HC-38/HC-39 脚手架，随后 HC-95 解锁。本条按日期的清单视为历史记录；**以 Linear（GAI 看板）为准**。
 
 *（自最初列表以来已完成：HC-3 词表、HC-31 PREVENT、HC-32/33 分期 + 启动、HC-13 MIMIC 可行性、HC-14 OMR 血压解析器、HC-8 derive.py 正确性修复。）*
 

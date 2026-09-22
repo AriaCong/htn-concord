@@ -197,11 +197,11 @@ framework is a credibility cost, not a credential.
 | **Prompt disclosure** | Prompt templates versioned; full text published in appendix | 🟡 versioned ✅ / appendix ⬜ |
 | **Inference parameters** | Recorded; non-pinnable parameters explicitly declared (§5, HC-64) | ✅ |
 | **Stochasticity handling** | k = 5 replicates, across-replicate SD reported (§4.4) | ⬜ |
-| **Performance measures, pre-specified** | Nine metrics, Phase 6; primary + co-primary safety outcome named in §3 | 🟡 defined ✅ / HC-70 ⬜ |
+| **Performance measures, pre-specified** | Nine metrics, Phase 6; primary + co-primary safety outcome named in §3 | ✅ HC-70 done 2026-07-20 (`evaluator/`) |
 | **Uncertainty quantification** | Patient-clustered bootstrap CIs (§4.2–4.3) | ⬜ |
 | **Subgroup / fairness reporting** | HC-72: sex, age band, comorbidity × difficulty | ⬜ |
 | **Error / failure analysis** | HC-71 failure-mode classifier; trace-step attribution | ⬜ |
-| **Abstention & uncertainty behaviour** | `abstention_appropriateness`; engine three-valued abstention | 🟡 engine ✅ / metric ⬜ |
+| **Abstention & uncertainty behaviour** | `abstention_appropriateness`; engine three-valued abstention | ✅ engine + metric (HC-70: two rates, over/under) |
 | **Human oversight / intended use** | Explicit non-deployment statement (§8) | ⬜ |
 | **Reproducibility & availability** | Open-source engine + benchmark; manifest, checksums, environment lock; archival-vs-sampling distinction stated once | 🟡 |
 | **Limitations** | §7 | ✅ this doc |
@@ -267,9 +267,10 @@ invalidates a choice made in §3 and is corrected here.**
 
 **Verified sound:** splits are patient-level and disjoint (train 2,914 / dev 940 / test 952 patients;
 zero patient overlap train↔test and dev↔test), the leakage audit passes on all 14,418 cases with zero
-token hits and zero label-key hits, and 277 tests pass including
-`test_every_level_carries_every_decision_relevant_value` — which is what licenses reading a
-level-over-level drop as extraction (RQ2b).
+token hits and zero label-key hits, and the full test suite passes — including
+`test_every_level_carries_every_decision_relevant_value`, which is what licenses reading a
+level-over-level drop as extraction (RQ2b). (Run the test runner for the current count; the
+earlier hardcoded "277" was removed per the no-stale-count convention.)
 
 **F1 — Majority class is 52.2%; a headline concordance number is uninterpretable without a baseline.**
 Test-split majority class is `lifestyle_only` at **51.5%** (post-HC-96 rebuild; 52.2% before). A model
