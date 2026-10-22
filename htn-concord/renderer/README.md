@@ -14,14 +14,41 @@ levels. Deterministic and templated; no LLM is involved at any point.
 |---|---|---|
 | `simple` | labelled lines, canonical order | nothing — every fact is handed over directly |
 | `moderate` | one prose paragraph | facts embedded in sentences |
-| `hard` | three paragraphs, seeded section order, inert filler | facts scattered and must be located |
+| `hard` | three paragraphs, seeded section order, inert filler, **values that must be recovered** | facts scattered, and BP and potassium cost arithmetic and care to read |
 
-**Difficulty changes presentation, never information.** All three levels carry the
-same decision-relevant facts. This is deliberate and tested
-(`test_every_level_carries_every_decision_relevant_value`): if `hard` withheld a
-fact, a level-over-level accuracy drop would partly measure "the vignette did not
-say", and the per-level breakdown the pilot (HC-80) turns on would be
-uninterpretable. As built, a drop localizes to extraction.
+**Difficulty changes what it costs to recover a value, never whether the value is
+recoverable.** All three levels carry the same decision-relevant facts. This is
+deliberate and tested: if `hard` withheld a fact, a level-over-level accuracy drop
+would partly measure "the vignette did not say", and the per-level breakdown the
+pilot (HC-80) turns on would be uninterpretable. As built, a drop localizes to
+extraction.
+
+Two tests hold the line, and the split between them matters. Values stated
+verbatim at every level are checked by substring
+(`test_every_level_carries_every_decision_relevant_value`). BP is not one of
+them any more, so it is checked by *recovery*
+(`test_bp_is_exactly_recoverable_at_every_level`): the mean of whatever readings
+a level states must equal the engine's own displayed value. Substring presence
+was only ever a proxy for recoverability, and HC-101 is where the two came apart.
+
+## What `hard` costs a reader (HC-101)
+
+The HC-80 pilot found the ladder inert — extraction F1 was 0.918 at all three
+levels, to three decimals, with identical per-field counts — because reordering
+paragraphs costs nothing while every fact stays in the same sentence with the
+same label and units. `hard` now also:
+
+- **gives the individual BP readings, not their average.** They are integers
+  summing to `n ×` the displayed value, so the mean is exactly what the evaluator
+  compares against, and no offset is ever zero, so the mean is never on the page.
+  The averaging convention is stated in the system prompt — scoring against an
+  undisclosed convention would measure guessing (HC-100).
+- **states an earlier potassium beside the current one**, which is always the
+  value labelled "today". Potassium reaches a label by one route only
+  (`k >= K_HYPERKALEMIA`), so a decoy on the current value's side of that single
+  threshold is provably decision-inert. eGFR is deliberately *not* treated this
+  way: it enters PREVENT as two continuous spline terms, so any alternative value
+  moves `prevent_10yr`. See `potassium_decoy`.
 
 ## Facts-only
 
@@ -60,7 +87,8 @@ integer lies in `(floor(v), v]`.
 
 ## Not built here
 
-The `hard` filler is clinically inert (visit logistics only). Decision-relevant
+The `hard` filler is clinically inert (visit logistics only), and HC-101's two
+mechanisms are arithmetic and care, not clinical judgement. Decision-relevant
 traps — "stopped lisinopril after angioedema" vs "her father took lisinopril" — are
 **HC-51**, hand-authored and clinician-validated, and plug in via a `distractors=`
 hook. Until then, `hard` is *harder to extract from*, not *harder to reason about*.

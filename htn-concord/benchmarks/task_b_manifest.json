@@ -16,7 +16,7 @@
     "task_b_inputs.jsonl": {
       "model_facing": true,
       "n_records": 14418,
-      "sha256": "6bf0fa6969ae18277dcb6e64fa79ba9a906feb13e6566c79b09332f895feac71"
+      "sha256": "4adfe54c70ba7e142ea5fe8c121fec2f6bd411e4f8db872ef7c011444f283f14"
     },
     "task_b_labels.jsonl": {
       "model_facing": false,

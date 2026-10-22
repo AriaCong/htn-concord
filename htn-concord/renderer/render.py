@@ -32,6 +32,7 @@ import random
 from typing import Any, Literal, Mapping
 
 import leakage
+import vocab
 from renderer import phrasing
 from renderer.phrasing import dec, num, person_noun, pronouns
 
@@ -101,6 +102,14 @@ def _listy(value: Any) -> list[str]:
     return [str(v) for v in value]
 
 
+def _int_or_none(value: Any) -> int | None:
+    """Read a count that may arrive as an int, a float, or a CSV string."""
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return None
+
+
 def _bool(value: Any) -> bool | None:
     """Three-valued read, matching the engine's `_tri`: unknown stays unknown."""
     if isinstance(value, bool):
@@ -154,7 +163,120 @@ def display_bp(value: float | None) -> int | None:
         return None
 
 
-def _bp_facts(profile, rng, case_rng) -> tuple[str, str, list[str]]:
+# --------------------------------------------------------------------------
+# HC-101 -- the `hard` extraction burden (kill criterion K2)
+#
+# The HC-80 pilot found the ladder inert: extraction F1 was 0.918 at every
+# level, to three decimals, with identical per-field counts. Shuffling
+# paragraphs and interleaving visit logistics costs a reader nothing while
+# every fact stays in the same sentence with the same label and units.
+#
+# Both mechanisms below target fields the evaluator actually scores, and
+# neither removes information -- they change what it costs to recover it,
+# which is the line the module docstring draws.
+# --------------------------------------------------------------------------
+
+#: How far individual readings sit from their mean, in mmHg. Wide enough that
+#: taking any single reading is a wrong answer, narrow enough to stay clinical.
+_SBP_SPREAD = (2, 9)
+_DBP_SPREAD = (2, 6)
+
+#: How long ago the earlier potassium was drawn. Seeded, never "recently" --
+#: the decoy has to be unmistakably older than the current value, or it stops
+#: being a careless-reader trap and becomes a genuine ambiguity.
+_DECOY_WHEN = ("at a check three months ago", "when last checked in the spring",
+               "on a panel drawn six months ago", "at a review last autumn")
+
+
+def _zero_sum_offsets(n: int, rng: random.Random, lo: int, hi: int) -> list[int]:
+    """`n` non-zero integer offsets summing to zero, each `lo <= |o| <= hi`.
+
+    Summing to zero is what makes the readings average *exactly* to the value
+    the evaluator compares against. None may be zero: an offset of zero would
+    put the mean itself on the page as one of the readings, handing back the
+    number the mechanism exists to withhold.
+    """
+    if n <= 1:
+        return [0]
+    if n == 2:
+        step = rng.randint(lo, hi)
+        return [step, -step] if rng.random() < 0.5 else [-step, step]
+    if n == 3:
+        pool = [(a, b, -(a + b))
+                for a in range(-hi, hi + 1) if lo <= abs(a) <= hi
+                for b in range(-hi, hi + 1) if lo <= abs(b) <= hi
+                and lo <= abs(a + b) <= hi]
+        return list(rng.choice(pool))
+    # n > 3 does not occur in the NHANES corpus (max 3); handled rather than
+    # assumed away, by pairing offsets and dropping any leftover to a pair.
+    offsets: list[int] = []
+    while len(offsets) + 2 <= n:
+        step = rng.randint(lo, hi)
+        offsets += [step, -step]
+    if len(offsets) < n:
+        step = rng.randint(lo, hi)
+        offsets += [step, step, -2 * step][:n - len(offsets)]
+    return offsets
+
+
+def bp_readings(sbp: int, dbp: int, n: int,
+                rng: random.Random) -> list[tuple[int, int]]:
+    """`n` integer (systolic, diastolic) readings whose means are exactly `sbp`/`dbp`.
+
+    Exactness is a correctness requirement, not a nicety. `evaluator.metrics`
+    scores extraction against `display_bp(profile.sbp)` -- the floored value the
+    vignette showed. Readings that averaged to anything else would score a model
+    that read and averaged perfectly as an extraction miss, and the
+    level-over-level drop would measure our arithmetic rather than its reading.
+    Integer readings summing to `n * displayed` make the mean exact under any
+    rounding convention the model might apply. Pinned by
+    `test_hard_readings_average_exactly_to_the_displayed_value`.
+
+    Spreads are narrowed, never the sum, so the offsets still cancel: clamping
+    an individual reading would shift the mean off the label.
+    """
+    pulse = sbp - dbp
+    s_hi = max(_SBP_SPREAD[0], min(_SBP_SPREAD[1], sbp - vocab.SBP_MIN,
+                                   vocab.SBP_MAX - sbp, (pulse - 1) // 2))
+    d_hi = max(_DBP_SPREAD[0], min(_DBP_SPREAD[1], dbp - vocab.DBP_MIN,
+                                   vocab.DBP_MAX - dbp, (pulse - 1) // 2))
+    s_off = _zero_sum_offsets(n, rng, min(_SBP_SPREAD[0], s_hi), s_hi)
+    d_off = _zero_sum_offsets(n, rng, min(_DBP_SPREAD[0], d_hi), d_hi)
+    return [(sbp + s, dbp + d) for s, d in zip(s_off, d_off)]
+
+
+def potassium_decoy(value: float | None, rng: random.Random) -> float | None:
+    """An earlier potassium, on the same side of the one threshold it drives.
+
+    Potassium reaches a label by exactly one route --
+    `k >= vocab.K_HYPERKALEMIA -> "hyperkalemia"` in `pipelines/common/derive.py`
+    -- so a decoy that stays on the current value's side of that single
+    threshold is *provably* decision-inert: no reading of it changes the flag,
+    and the engine never sees the vignette at all.
+
+    eGFR was considered for the same treatment and rejected. It enters PREVENT
+    as two continuous spline terms (`egfr_lt60`, `egfr_ge60`), so *any*
+    alternative value moves `prevent_10yr` and can cross PREVENT_STAGE1_TREAT.
+    "Stays in the same CKD band" would not have been enough, and proving
+    inertness per case would mean importing the engine into the renderer, which
+    the facts/labels separation forbids. Conservative call; flagged for HC-49.
+
+    The excursion is bounded to 1.2 mmol/L so the earlier value reads as the
+    same patient's chemistry rather than a different illness.
+    """
+    if value is None:
+        return None
+    current = float(value)
+    if current >= vocab.K_HYPERKALEMIA:
+        lo, hi = vocab.K_HYPERKALEMIA, 6.8
+    else:
+        lo, hi = 2.8, vocab.K_HYPERKALEMIA - 0.1
+    pool = [round(x * 0.1, 1) for x in range(round(lo * 10), round(hi * 10) + 1)]
+    pool = [k for k in pool if 0.3 <= abs(k - current) <= 1.2]
+    return rng.choice(pool) if pool else None
+
+
+def _bp_facts(profile, rng, case_rng, level) -> tuple[str, str, list[str]]:
     sbp, dbp = display_bp(_get(profile, "sbp")), display_bp(_get(profile, "dbp"))
     n = _get(profile, "bp_n_readings")
     context = _get(profile, "bp_context") or "chronic"
@@ -167,16 +289,36 @@ def _bp_facts(profile, rng, case_rng) -> tuple[str, str, list[str]]:
         # appropriate abstention look like a model failure.
         "admission": "recorded on arrival to the emergency department during an acute illness",
     }[context]
+    where_each = {
+        "chronic": "at outpatient clinic visits over the past year",
+        "office": "at today's clinic visit",
+        "admission": "on arrival to the emergency department during an acute illness",
+    }[context]
 
     reading = f"{num(sbp)}/{num(dbp)} mmHg" if sbp is not None else "not recorded"
     count = f" from {num(n)} readings" if n is not None else ""
+
+    # `hard` hands over the readings and makes the reader do the averaging.
+    # HC-23 settled that the *mean* is the correct summary, and `display_bp`
+    # floors it; the readings are built to average to exactly that floored
+    # value, so a model that averages correctly matches what the evaluator
+    # compares against. Falls back to the averaged form whenever there is
+    # nothing to average (one reading, or a count the profile never recorded).
+    n_readings = _int_or_none(n)   # CSV round-trip delivers this as "3.0"
+    if level == "hard" and sbp is not None and dbp is not None \
+            and n_readings is not None and n_readings >= 2:
+        readings = bp_readings(sbp, dbp, n_readings, rng)
+        shown = _join([f"{s}/{d}" for s, d in readings])
+        listed = (f"Blood pressure was measured {num(n)} times {where_each}: "
+                  f"{shown} mmHg.")
+        return "blood pressure", listed, [listed]
 
     simple = f"Blood pressure: {reading}{count}, {where}."
     prose = [f"Blood pressure was {reading}{count}, {where}."]
     return "blood pressure", simple, prose
 
 
-def _med_facts(profile, rng, case_rng) -> tuple[str, str, list[str]]:
+def _med_facts(profile, rng, case_rng, level) -> tuple[str, str, list[str]]:
     on_meds = _bool(_get(profile, "on_bp_meds"))
     classes = _listy(_get(profile, "med_classes"))
     subj, _obj, poss = pronouns(_get(profile, "sex"))
@@ -205,7 +347,7 @@ def _med_facts(profile, rng, case_rng) -> tuple[str, str, list[str]]:
     return "medications", simple, prose
 
 
-def _history_facts(profile, rng, case_rng) -> tuple[str, str, list[str]]:
+def _history_facts(profile, rng, case_rng, level) -> tuple[str, str, list[str]]:
     """History section.
 
     Two buckets, because they are not grammatically interchangeable: `conditions`
@@ -265,7 +407,7 @@ def _history_facts(profile, rng, case_rng) -> tuple[str, str, list[str]]:
     return "history", simple, prose
 
 
-def _lab_facts(profile, rng, case_rng) -> tuple[str, str, list[str]]:
+def _lab_facts(profile, rng, case_rng, level) -> tuple[str, str, list[str]]:
     rows: list[str] = []
     for key, label, places, unit in (
         ("creatinine", "creatinine", 2, " mg/dL"),
@@ -277,9 +419,21 @@ def _lab_facts(profile, rng, case_rng) -> tuple[str, str, list[str]]:
         ("hdl", "HDL cholesterol", 0, " mg/dL"),
     ):
         value = _get(profile, key)
-        if value is not None:
-            shown = num(value) if places == 0 else dec(value, places)
-            rows.append(f"{label} {shown}{unit}")
+        if value is None:
+            continue
+        shown = num(value) if places == 0 else dec(value, places)
+        # `hard` sets an older potassium beside the current one. The current
+        # value is always the one labelled "today", so a careful reader is
+        # never misled and the value stays recoverable; a careless one takes
+        # the wrong number. Provably decision-inert -- see `potassium_decoy`.
+        if key == "potassium" and level == "hard":
+            decoy = potassium_decoy(value, rng)
+            if decoy is not None:
+                direction = "down from" if decoy > float(value) else "up from"
+                rows.append(f"{label} {shown}{unit} today, {direction} "
+                            f"{dec(decoy, 1)}{unit} {rng.choice(_DECOY_WHEN)}")
+                continue
+        rows.append(f"{label} {shown}{unit}")
 
     if not rows:
         return "laboratory results", "Laboratory results: none available.", [
@@ -307,7 +461,7 @@ def render(profile: Mapping[str, Any], level: Level = "moderate", seed: int = 0)
     rng = _rng(profile, level, seed)
     case_rng = _case_rng(profile, seed)
     opening = f"The patient is {person_noun(_get(profile, 'age'), _get(profile, 'sex'))}."
-    sections = [fn(profile, rng, case_rng) for fn in _SECTIONS]
+    sections = [fn(profile, rng, case_rng, level) for fn in _SECTIONS]
 
     if level == "simple":
         body = [opening] + [simple for _label, simple, _prose in sections]

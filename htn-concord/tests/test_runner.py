@@ -1030,3 +1030,66 @@ def test_the_open_weight_arm_model_is_priced():
 
     assert _cost_usd("deepseek-ai/DeepSeek-V4-Pro-0813", 1_000_000, 0) == pytest.approx(1.32)
     assert _cost_usd("deepseek-ai/DeepSeek-V4-Pro-0813", 0, 1_000_000) == pytest.approx(3.96)
+
+
+def test_prompt_states_the_averaging_convention_the_renderer_relies_on():
+    """HC-101: `hard` states the individual BP readings and never their average.
+
+    The evaluator scores `sbp`/`dbp` against the mean of those readings
+    (`renderer.display_bp` of the profile value, which the readings are built to
+    average to exactly). So "report the mean of multiple readings" is a rule the
+    model is judged against -- and the prompt otherwise pushes the other way,
+    telling it to use null for anything "not stated", which the average
+    literally is not.
+
+    Left undisclosed, a level-over-level extraction drop would measure whether
+    the model can guess our summary convention rather than whether it can read.
+    That is exactly the HC-100 defect -- scoring against a vocabulary never
+    given -- reappearing in a new place, and the same reason `trace` had to be
+    spelled out after the prompt-v0 retirement.
+    """
+    from renderer import render
+    from runner.run_case import DEFAULT_SYSTEM
+
+    profile = {
+        "SEQN": "12345", "age": 68.0, "sex": "female", "sbp": 154.0, "dbp": 91.0,
+        "bp_context": "chronic", "bp_n_readings": 3.0, "potassium": 4.8,
+        "on_bp_meds": True, "med_classes": ["dhp_ccb"], "contraindications": [],
+    }
+    text = render(profile, "hard", seed=5)
+    assert "154/91" not in text, "fixture assumption: hard withholds the average"
+
+    lowered = DEFAULT_SYSTEM.lower()
+    assert "average" in lowered or "mean" in lowered, (
+        "the renderer can state several readings without their average, so the "
+        "prompt must say which number to report")
+    assert "reading" in lowered, "the convention must name what it applies to"
+
+
+def test_openai_provider_call_timeout_is_overridable_and_defaults_unchanged(monkeypatch):
+    """HC-103: the per-call ceiling has to be settable without editing code.
+
+    The 900s client timeout is deliberate and documented, but `run_pilot` wraps
+    each call in `api_retries=3`, so the *effective* ceiling is ~45 minutes --
+    which is what a hung socket actually cost during the HC-101 measurement:
+    two stalls, 3h14m and 73m, both silent. Each layer is reasonable alone;
+    nobody multiplied them.
+
+    Lowering it is a transport decision, not a model one. A timed-out call
+    writes no record and the resume refills it, so nothing about what a model
+    answered depends on this number. The default stays where it was so an
+    unset environment behaves exactly as before.
+    """
+    import importlib
+
+    import runner.providers as providers
+    importlib.reload(providers)
+    assert providers.DEFAULT_CALL_TIMEOUT == 900.0, "default must not move silently"
+
+    monkeypatch.setenv("PILOT_CALL_TIMEOUT", "180")
+    importlib.reload(providers)
+    assert providers.DEFAULT_CALL_TIMEOUT == 180.0
+
+    monkeypatch.delenv("PILOT_CALL_TIMEOUT")
+    importlib.reload(providers)
+    assert providers.DEFAULT_CALL_TIMEOUT == 900.0

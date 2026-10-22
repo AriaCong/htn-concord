@@ -89,6 +89,20 @@ _PRICES: dict[str, tuple[float, float]] = {
 #:     `allOf`/`if`/`then` block), and
 #:   * `trace` must be non-empty (`minItems: 1`).
 #: `test_every_stripped_constraint_is_stated_in_the_prompt` holds this.
+#:
+#: A third rule is in the same position for a different reason (HC-101). The
+#: `hard` level states the individual blood-pressure readings and never their
+#: average, while the evaluator scores `sbp`/`dbp` against the mean -- so the
+#: summary convention is a rule the model is judged against, and the sentence
+#: above ("use null for anything not stated") actively points the other way.
+#: It is disclosed rather than left to be guessed;
+#: `test_prompt_states_the_averaging_convention_the_renderer_relies_on` holds it.
+#:
+#: NOTE: the prompt is a frozen artifact across conditions (Experiment Design
+#: §2), so this change retires every run made under the previous text. It is a
+#: *within-run* comparison that K2 turns on -- simple vs hard under one prompt --
+#: which this preserves; absolute rates are not comparable across the change.
+#: Prompt-template versioning and hashing remains HC-48.
 DEFAULT_SYSTEM = (
     "You are answering a hypertension management question. Reply with a single "
     "JSON object conforming to the provided schema and nothing else. Report only "
@@ -96,7 +110,9 @@ DEFAULT_SYSTEM = (
     "guessing. Set decision to \"abstain\" with an abstain_reason when a "
     "determinant you need is unknown, and leave abstain_reason null otherwise. "
     "Always include at least one step in trace, recording the reasoning you "
-    "actually used."
+    "actually used. When the input gives several blood-pressure readings rather "
+    "than a single summary value, report their average as sbp and dbp, rounded "
+    "down to whole mmHg."
 )
 
 
