@@ -1,0 +1,85 @@
+[
+  {
+    "folder": "cv-llm-invariance",
+    "file_count": 3,
+    "extensions": {
+      "(none)": 1,
+      ".md": 2
+    }
+  },
+  {
+    "folder": "cv-llm-probing",
+    "file_count": 3,
+    "extensions": {
+      "(none)": 1,
+      ".md": 2
+    }
+  },
+  {
+    "folder": "cv-llm-risk-extraction",
+    "file_count": 18,
+    "extensions": {
+      "(none)": 1,
+      ".md": 3,
+      ".py": 3,
+      ".csv": 10,
+      ".txt": 1
+    }
+  },
+  {
+    "folder": "cv-llm-rulebench",
+    "file_count": 64,
+    "extensions": {
+      "(none)": 2,
+      ".pdf": 1,
+      ".zip": 1,
+      ".md": 9,
+      ".html": 5,
+      ".py": 28,
+      ".sh": 8,
+      ".pptx": 2,
+      ".json": 1,
+      ".txt": 3,
+      ".jsonl": 2,
+      ".csv": 1,
+      ".xpt": 1
+    }
+  },
+  {
+    "folder": "htn-concord-main",
+    "file_count": 309,
+    "extensions": {
+      ".xlsx": 1,
+      ".pdf": 12,
+      "(none)": 10,
+      ".md": 37,
+      ".docx": 3,
+      ".json": 19,
+      ".zip": 5,
+      ".py": 90,
+      ".txt": 17,
+      ".png": 6,
+      ".pptx": 2,
+      ".yml": 1,
+      ".diff": 3,
+      ".csv": 41,
+      ".XPT": 13,
+      ".gz": 41,
+      ".jsonl": 6,
+      ".log": 2
+    }
+  },
+  {
+    "folder": "htn-concord-pilot-gate",
+    "file_count": 142,
+    "extensions": {
+      "(none)": 4,
+      ".md": 33,
+      ".py": 97,
+      ".txt": 2,
+      ".example": 1,
+      ".yml": 1,
+      ".json": 4
+    }
+  }
+]

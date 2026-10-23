@@ -1,0 +1,25 @@
+{
+  "A": {
+    "eligible": 244,
+    "conflict": 14,
+    "conflict_share": 0.057,
+    "old_yes_new_no": 9,
+    "old_no_new_yes": 5,
+    "median_pce_over_prevent": 1.11
+  },
+  "B_pool": {
+    "DO_NOT_START": 405,
+    "CANNOT_DETERMINE": 265,
+    "START": 230
+  },
+  "B_box": {
+    "tc": [
+      107.0,
+      300.0
+    ],
+    "hdl": [
+      28.0,
+      97.0
+    ]
+  }
+}

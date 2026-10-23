@@ -1,0 +1,505 @@
+<title>RuleBench 实验记录</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,650&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --surface-2:#E9EDF1;
+  --ink:#16202A; --ink-2:#3E4D5B; --muted:#6C7B88;
+  --line:#D8DFE6; --line-2:#C3CDD6;
+  --accent:#9B2335; --accent-ink:#7A1A29; --accent-wash:#F6E3E6;
+  --e1:#1F6F8B; --e1-wash:#DDEFF5;
+  --e2:#4B3F9E; --e2-wash:#E6E3F6;
+  --ok:#1E6B4F; --ok-wash:#DDF0E7;
+  --warn:#8A4B0F; --warn-wash:#F7E8D8;
+  --sans:"Instrument Sans","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --serif:"Newsreader","Songti SC","Source Han Serif SC",Georgia,serif;
+  --mono:"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1419; --surface:#161D24; --surface-2:#1E2731;
+    --ink:#E5EBF0; --ink-2:#B2C0CC; --muted:#7E8D99;
+    --line:#26313C; --line-2:#34414E;
+    --accent:#E0707F; --accent-ink:#F0A0AB; --accent-wash:#3A1D23;
+    --e1:#6FC0DA; --e1-wash:#12303A;
+    --e2:#A99CF0; --e2-wash:#241F42;
+    --ok:#6FCBA5; --ok-wash:#123027;
+    --warn:#E3A566; --warn-wash:#3A2716;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1419; --surface:#161D24; --surface-2:#1E2731;
+  --ink:#E5EBF0; --ink-2:#B2C0CC; --muted:#7E8D99;
+  --line:#26313C; --line-2:#34414E;
+  --accent:#E0707F; --accent-ink:#F0A0AB; --accent-wash:#3A1D23;
+  --e1:#6FC0DA; --e1-wash:#12303A;
+  --e2:#A99CF0; --e2-wash:#241F42;
+  --ok:#6FCBA5; --ok-wash:#123027;
+  --warn:#E3A566; --warn-wash:#3A2716;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.75;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid var(--line-2)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px;word-break:break-all}
+.page{max-width:1160px;margin:0 auto;padding-inline:20px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:44px}
+header.top{grid-column:1/-1;padding-block:42px 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:650;font-size:clamp(30px,4.6vw,44px);line-height:1.1;margin:0;text-wrap:balance}
+.sub{margin:14px 0 0;color:var(--ink-2);font-size:17px;max-width:62ch}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px);align-self:start;padding-block:26px 0;font-size:13.5px}
+nav.toc p{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+nav.toc ul{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+nav.toc a{border:none;color:var(--ink-2)}
+nav.toc a:hover{color:var(--accent-ink)}
+main{padding-block:10px 80px;min-width:0}
+h2{font-family:var(--serif);font-weight:650;font-size:28px;line-height:1.2;margin:48px 0 8px;text-wrap:balance}
+h2 .tag{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;vertical-align:middle;padding:3px 8px;border-radius:4px;margin-right:8px}
+.tag.e1{background:var(--e1-wash);color:var(--e1)}
+.tag.e2{background:var(--e2-wash);color:var(--e2)}
+h3{font-size:17px;font-weight:600;margin:0}
+p{margin:10px 0;max-width:72ch}
+ul.plain,ol.plain{padding-left:1.25em;max-width:72ch}
+ul.plain li,ol.plain li{margin:5px 0}
+.summary{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 22px;margin:20px 0 0}
+.summary .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.summary p.big{font-family:var(--serif);font-size:21px;line-height:1.45;margin:0;max-width:none}
+.overview{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.ov{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.ov.e1{border-top:3px solid var(--e1)}
+.ov.e2{border-top:3px solid var(--e2)}
+.ov h3{margin:0 0 6px}
+.ov p{margin:6px 0;font-size:14.5px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:16px 0}
+.step-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin:0 0 10px}
+.step-id{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--muted)}
+.meta{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px;font-size:13.5px;margin:4px 0 12px;padding:10px 12px;background:var(--surface-2);border-radius:6px}
+.meta dt{color:var(--muted);font-weight:500}
+.meta dd{margin:0;min-width:0}
+.lbl{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin:14px 0 2px}
+.concl{margin:12px 0 0;padding:10px 14px;border-left:3px solid var(--ok);background:var(--ok-wash);border-radius:0 6px 6px 0;font-size:15px}
+.concl.warn{border-left-color:var(--warn);background:var(--warn-wash)}
+.concl b{color:var(--ink)}
+.tbl{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--surface);border:1px solid var(--line)}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:12px;color:var(--muted);background:var(--surface-2)}
+tr:last-child td{border-bottom:none}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+tr.hl td{background:var(--accent-wash)}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:99px;white-space:nowrap}
+.pill.ok{background:var(--ok-wash);color:var(--ok)}
+.pill.warn{background:var(--warn-wash);color:var(--warn)}
+.pill.bad{background:var(--accent-wash);color:var(--accent-ink)}
+.pill.run{background:var(--surface-2);color:var(--ink-2);border:1px dashed var(--line-2)}
+blockquote{margin:10px 0;padding:8px 14px;background:var(--surface-2);border-radius:6px;font-family:var(--serif);font-size:16px;line-height:1.5}
+blockquote small{display:block;font-family:var(--sans);font-size:12.5px;color:var(--muted)}
+pre{font-family:var(--mono);font-size:12.5px;line-height:1.55;background:var(--surface-2);border-radius:6px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.flow{overflow-x:auto}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+@media (max-width:860px){
+  .page{grid-template-columns:minmax(0,1fr);gap:0}
+  nav.toc{position:static;padding-block:18px 0;border-bottom:1px solid var(--line)}
+  nav.toc ul{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));padding-bottom:14px}
+}
+</style>
+
+<div class="page">
+<header class="top">
+  <p class="eyebrow">cv-llm-rulebench · 2026-09-25 定稿</p>
+  <h1>全部实验记录</h1>
+  <p class="sub">目前做过的两个实验：每一步做什么、怎么做、用哪份代码、得到什么结果、说明什么。所有标准答案都由程序计算，没有人工评分。</p>
+  <div class="summary">
+    <p class="k">总结论</p>
+    <p class="big">MIMIC 出院小结里基本没有血脂数据，所以「从小结里算风险」做不成，只能改做「能不能下结论」。「退回旧指南」随模型变强而减弱：小模型把新规则当笔误，中档模型算不准、以旧公式为锚，最强的 gpt-6-astra 基本算对。每个规模卡在不同环节，这支持<b>「诊断 → 修复 → 训练」方案</b>。</p>
+  </div>
+</header>
+
+<nav class="toc" aria-label="目录">
+  <p>总览</p>
+  <ul><li><a href="#overview">两个实验</a></li><li><a href="#timeline">时间线</a></li></ul>
+  <p>实验 1 · MIMIC</p>
+  <ul><li><a href="#e1-1">1.1 抽样</a></li><li><a href="#e1-2">1.2 筛选记录</a></li><li><a href="#e1-3">1.3 小结 vs 表格</a></li><li><a href="#e1-4">1.4 可判定性</a></li><li><a href="#e1-sum">实验 1 结论</a></li></ul>
+  <p>实验 2 · 先导</p>
+  <ul><li><a href="#e2-0">2.0 准备</a></li><li><a href="#e2-1">2.1 生成病例</a></li><li><a href="#e2-2">2.2 出题</a></li><li><a href="#e2-3">2.3 打分</a></li><li><a href="#e2-r1">轮次 1–6</a></li><li><a href="#e2-sum">实验 2 结论</a></li></ul>
+  <p>收尾</p>
+  <ul><li><a href="#plan">方案选择</a></li><li><a href="#limits">局限</a></li><li><a href="#next">下一步</a></li><li><a href="#files">文件索引</a></li></ul>
+</nav>
+
+<main>
+
+<h2 id="overview">两个实验</h2>
+<div class="overview">
+  <div class="ov e1">
+    <h3>实验 1：MIMIC 病历可行性检查</h3>
+    <p><b>问题：</b>真实出院小结里的数值和 MIMIC 结构化表对得上吗？缺血脂时，风险结论还能定下来吗？</p>
+    <p><b>数据：</b>MIMIC-IV（受控数据，只在本机处理）</p>
+    <p><b>是否用大模型：</b>否，只用正则表达式和公式计算</p>
+    <p><b>时间：</b>2026-09-23</p>
+  </div>
+  <div class="ov e2">
+    <h3>实验 2：先导实验 A + B</h3>
+    <p><b>A：</b>明确给出 2025 新规则后，模型照新规则办，还是退回 2017 旧规则？</p>
+    <p><b>B：</b>藏起胆固醇后，模型能不能分辨「一定开药 / 一定不开 / 无法判断」？</p>
+    <p><b>数据：</b>NHANES 2017–18（公开数据）</p>
+    <p><b>模型：</b>Qwen3 1.7B / 8B / 8B 思考 / 14B（本机，1,460 次），gpt-6-sol / sol 高推理 / gpt-6-astra（OpenAI，339 次，$12.17）</p>
+    <p><b>时间：</b>2026-09-23 至 25，已定稿，不再追加调用</p>
+  </div>
+</div>
+
+<p><b>背景规则</b>（两个实验都用）：</p>
+<div class="tbl"><table>
+  <tr><th></th><th>用哪个公式算 10 年风险</th><th>多少开降压药</th><th>代码</th></tr>
+  <tr><td>2017 旧规则</td><td>PCE（只算动脉粥样硬化性心血管病）</td><td class="n">≥ 10%</td><td><code>shared/pce.py</code></td></tr>
+  <tr><td>2025 新规则</td><td>PREVENT（算全部心血管病，包括心衰）</td><td class="n">≥ 7.5%</td><td><code>shared/prevent_from_htn_concord.py</code></td></tr>
+</table></div>
+<p>适用人群：1 期高血压（130–139 / 80–89 mmHg），没有心血管病、糖尿病、慢性肾病。代码路径都指导出包 <code>code_export_2026-09-25/</code> 里的文件。</p>
+
+<h2 id="timeline">时间线</h2>
+<div class="tbl"><table>
+  <tr><th>时间</th><th>内容</th><th>状态</th></tr>
+  <tr><td class="n">09-23</td><td>实验 1 全部四步</td><td><span class="pill ok">完成</span></td></tr>
+  <tr><td class="n">09-23</td><td>实验 2 准备：补心血管病史数据、写 PCE 并核对原文算例、生成病例</td><td><span class="pill ok">完成</span></td></tr>
+  <tr><td class="n">09-23</td><td>轮次 1：Qwen3 1.7B、8B（880 次）</td><td><span class="pill ok">完成</span></td></tr>
+  <tr><td class="n">09-23 → 24</td><td>轮次 2：Qwen3 8B 思考模式（140 次）。Mac 自动睡眠，跑了一整晚</td><td><span class="pill ok">完成</span></td></tr>
+  <tr><td class="n">09-24</td><td>轮次 3：Qwen3 14B（440 次，16 分钟）</td><td><span class="pill ok">完成</span></td></tr>
+  <tr><td class="n">09-24</td><td>轮次 4：gpt-6-sol（160 次，$1.71）</td><td><span class="pill ok">完成</span></td></tr>
+  <tr><td class="n">09-25</td><td>轮次 5：gpt-6-sol 高推理强度、gpt-6-astra（30 例子集；中途余额用完）</td><td><span class="pill ok">完成</span></td></tr>
+  <tr><td class="n">09-25</td><td>轮次 6（充值后）：补完轮次 5；astra 每例重复 3 次（余额再次用完，部分完成）</td><td><span class="pill ok">完成（部分）</span></td></tr>
+  <tr><td class="n">09-25</td><td>先导实验定稿，不再追加调用</td><td><span class="pill ok">定稿</span></td></tr>
+</table></div>
+
+<!-- ============================== 实验 1 ============================== -->
+<h2><span class="tag e1">实验 1</span>MIMIC 病历可行性检查</h2>
+<p>原来的设想是让模型从出院小结里读出风险公式需要的数值，再算风险。这个实验先检查：小结里到底有没有这些数值，能不能拿结构化表当标准答案。</p>
+
+<section class="step" id="e1-1">
+  <div class="step-head"><span class="step-id">1.1</span><h3>抽 50 份出院小结</h3></div>
+  <dl class="meta">
+    <dt>代码</dt><dd><code>exp1_mimic_feasibility/01_sample.py</code></dd>
+    <dt>输入</dt><dd>HTN-Concord 已建好的 MIMIC 队列（30–79 岁、有入院当次出院小结，共 5,358 份）</dd>
+    <dt>输出</dt><dd><code>out/sample_notes.csv</code></dd>
+  </dl>
+  <p class="lbl">怎么做</p>
+  <p>用固定随机种子 20260923 抽 50 份：结构化数据「能算出 PREVENT」的 25 份，「算不出」的 25 份。分两组抽，是为了两种情况都覆盖到。</p>
+</section>
+
+<section class="step" id="e1-2">
+  <div class="step-head"><span class="step-id">1.2</span><h3>从 MIMIC 大表里筛出这 50 人的记录</h3></div>
+  <dl class="meta">
+    <dt>代码</dt><dd><code>exp1_mimic_feasibility/01b_extract_subset.sh</code>（当时是终端命令，已按会话记录还原成脚本）</dd>
+    <dt>输入</dt><dd>MIMIC-IV 3.1 的化验、门诊、入院表；MIMIC-IV-ED 2.2 的急诊表</dd>
+    <dt>输出</dt><dd>这 50 人的化验、门诊记录、入院记录、急诊分诊和生命体征</dd>
+  </dl>
+  <p class="lbl">怎么做</p>
+  <p>边解压边按病人编号过滤。化验只保留 9 项：肌酐、血钾、血糖、HbA1c、总胆固醇、HDL、LDL（两种）、甘油三酯。</p>
+</section>
+
+<section class="step" id="e1-3">
+  <div class="step-head"><span class="step-id">1.3</span><h3>小结里写的数值 vs 结构化表</h3></div>
+  <dl class="meta">
+    <dt>代码</dt><dd><code>exp1_mimic_feasibility/02_compare.py</code></dd>
+    <dt>输入</dt><dd>1.1 和 1.2 的输出</dd>
+    <dt>输出</dt><dd><code>value_matches.csv</code>、<code>bp_matches.csv</code>、<code>coverage.csv</code></dd>
+  </dl>
+  <p class="lbl">怎么做</p>
+  <ul class="plain">
+    <li><b>化验模板行</b>（例如 <code>06:30AM BLOOD Creat-0.9</code>）带时间，按「项目 + 时间 + 数值」去化验表里找。</li>
+    <li><b>正文里零散的数值</b>（例如「Cr 1.4」）没有时间，只能在入院前一年内按数值找。为了看是不是巧合，同时检查「数值挪一步」是否也能对上。</li>
+    <li><b>覆盖率：</b>每个变量在小结里写了没有，表格里有没有。</li>
+    <li><b>血压：</b>小结里的血压和急诊读数、入院前最后一次门诊血压比较。</li>
+  </ul>
+  <p class="lbl">结果</p>
+  <div class="tbl"><table>
+    <tr><th>检查项</th><th>结果</th></tr>
+    <tr><td>化验模板行与化验表完全对上</td><td class="n">275 / 282（97.5%）</td></tr>
+    <tr><td>正文数值「挪一步也能对上」的比例（肌酐 / 血钾）</td><td class="n">41% / 53%</td></tr>
+    <tr class="hl"><td>小结里写了总胆固醇 / HDL</td><td class="n">3 / 50、2 / 50</td></tr>
+    <tr><td>化验表里入院前一年有总胆固醇 / HDL</td><td class="n">34 / 50、33 / 50</td></tr>
+    <tr><td>小结血压与门诊血压的差（中位数）</td><td class="n">12 mmHg；32% 差 ≥ 20</td></tr>
+  </table></div>
+  <div class="concl warn"><b>结论：</b>化验模板行可以当标准答案，但正文里零散的数值不行，按数值匹配大多是巧合。<b>血脂几乎不写在出院小结里</b>，光凭小结 94% 的人算不出 PREVENT。小结里的血压是住院时测的，和公式要求的平时血压不是一回事。</div>
+</section>
+
+<section class="step" id="e1-4">
+  <div class="step-head"><span class="step-id">1.4</span><h3>缺血脂时，结论还能定下来吗</h3></div>
+  <dl class="meta">
+    <dt>代码</dt><dd><code>exp1_mimic_feasibility/03_determinability.py</code>（独立运行）</dd>
+    <dt>输入</dt><dd>全队列中能算出 PREVENT 的 2,376 人；NHANES（只用来定血脂的合理范围）</dd>
+    <dt>输出</dt><dd>各阈值下「可判定」的比例（屏幕打印）</dd>
+  </dl>
+  <p class="lbl">怎么做</p>
+  <p>假装不知道总胆固醇和 HDL，让它们在常见范围内变动（总胆固醇 107–300、HDL 28–97 mg/dL，即 NHANES 人群的第 1–99 百分位），在 15×15 的网格上算出风险的最小值和最大值。整个范围都在阈值同一侧，就是「可判定」；跨过阈值，就是「无法判定」。这个方法后来也用在实验 2 的 B 部分。</p>
+  <p class="lbl">结果</p>
+  <div class="tbl"><table>
+    <tr><th>阈值</th><th>可判定</th><th>无法判定</th></tr>
+    <tr><td class="n">5%</td><td class="n">71.3%</td><td class="n">28.7%</td></tr>
+    <tr class="hl"><td class="n">7.5%</td><td class="n">61.8%</td><td class="n">38.2%</td></tr>
+    <tr><td class="n">10%</td><td class="n">56.7%</td><td class="n">43.3%</td></tr>
+    <tr><td class="n">15%</td><td class="n">51.3%</td><td class="n">48.7%</td></tr>
+    <tr><td class="n">20%</td><td class="n">51.6%</td><td class="n">48.4%</td></tr>
+  </table></div>
+  <p>重算的 PREVENT 和原先存的值完全一致；98.4% 病人的真实风险落在算出的范围内。</p>
+  <div class="concl"><b>结论：</b>在 7.5% 阈值下，大约六成可判定、四成不可判定，比例适合做评测：模型既不能一律作答，也不能一律说「无法判断」。</div>
+</section>
+
+<section class="step" id="e1-sum" style="border-color:var(--e1)">
+  <h3>实验 1 总结论</h3>
+  <ul class="plain">
+    <li><b>「从出院小结里读数值再算风险」这个原设计做不成</b>：关键的血脂数据不在小结里。</li>
+    <li><b>「给出部分信息，判断结论能不能定下来」这个设计完全可行</b>，标准答案可以全部由程序算出。这就是后来的研究 B。</li>
+    <li>MIMIC 只能在本机处理，不能发给任何外部 API。</li>
+  </ul>
+</section>
+
+<!-- ============================== 实验 2 ============================== -->
+<h2><span class="tag e2">实验 2</span>先导实验 A + B</h2>
+<p>用公开的 NHANES 数据生成病例，让模型按规则给出开不开药的决定，和程序算出的标准答案比对。流程分四步：准备 → 生成病例 → 出题并调用模型 → 打分；调用模型这一步跑了 5 轮。</p>
+
+<pre class="flow">NHANES + 病史问卷 ─build_cases.py（调用 pce + prevent）─▶ cases.jsonl（140 个病例 + 标准答案）
+cases.jsonl ─run_pilot.py（本机 Ollama / OpenAI）─▶ calls.jsonl（每次调用的原始回答）
+calls.jsonl ─analyze.py─▶ scored.csv（逐条得分） + report.txt（汇总表）</pre>
+
+<section class="step" id="e2-0">
+  <div class="step-head"><span class="step-id">2.0</span><h3>准备：补数据、写旧公式</h3></div>
+  <dl class="meta">
+    <dt>代码</dt><dd><code>shared/pce.py</code>；下载命令见 <code>exp2_pilot_A_B/run_commands.sh</code> 第 0 段</dd>
+    <dt>输出</dt><dd><code>pilot/data/MCQ_J.xpt</code></dd>
+  </dl>
+  <ul class="plain">
+    <li><b>补心血管病史：</b>HTN-Concord 的 NHANES 档案里「有无心血管病」一列全是空的，所以从 CDC 下载公开的病史问卷 MCQ_J，用心衰、冠心病、心绞痛、心梗、卒中五项补上。</li>
+    <li><b>写 PCE 公式：</b>按 Goff 2013 原文的系数表录入，用原文的算例核对：4 组结果都对上（误差 ≤ 0.1 个百分点）。白人男性精确计算得 5.38%，原文印的是 5.3%，原因是原文先把每一项取整再求和。</li>
+    <li><b>发现并修正了一个错误：</b>PREVENT 代码返回的本来就是百分数，第一次生成病例时误以为是小数，又乘了 100。修正后删掉当时的结果，从头重跑。</li>
+  </ul>
+  <div class="concl warn"><b>待办：</b>正式实验前，PCE 的系数需要另一个人对照原文再核一遍。</div>
+</section>
+
+<section class="step" id="e2-1">
+  <div class="step-head"><span class="step-id">2.1</span><h3>生成病例和标准答案</h3></div>
+  <dl class="meta">
+    <dt>代码</dt><dd><code>exp2_pilot_A_B/build_cases.py</code></dd>
+    <dt>输入</dt><dd>NHANES 2017–18 档案（4,806 人）+ MCQ_J 问卷</dd>
+    <dt>输出</dt><dd><code>cases.jsonl</code>（A 80 例 + B 60 例），<code>pilot_seqns.txt</code>（正式实验要排除这些人）</dd>
+  </dl>
+  <p class="lbl">A 部分怎么做</p>
+  <p>筛出 40–79 岁、1 期高血压、没有心血管病 / 糖尿病 / 慢性肾病、没吃降压药的人，用两个公式各算一遍。</p>
+  <div class="tbl"><table>
+    <tr><th>项目</th><th>结果</th></tr>
+    <tr><td>符合条件</td><td class="n">244 人</td></tr>
+    <tr class="hl"><td>新旧规则结论相反（冲突病人）</td><td class="n">14 人（5.7%）</td></tr>
+    <tr><td>其中：旧规则开药、新规则不开 / 反过来</td><td class="n">9 / 5</td></tr>
+    <tr><td>两个公式算出的风险之比（中位数）</td><td class="n">1.11 倍</td></tr>
+  </table></div>
+  <p>14 个冲突病人太少，所以在真人数据上随机改动年龄、血脂、血压（仍在 1 期范围）、吸烟，补了 36 个合成冲突病例，凑满 50 个；另抽 30 个一致病人。</p>
+  <p class="lbl">B 部分怎么做</p>
+  <p>从另一批 30–79 岁的人里随机抽 900 人，隐去血脂，用实验 1 的区间方法判定答案。结果：一定不开 405、无法判断 265、一定开 230。三类各抽 20 人，共 60 例。</p>
+  <div class="concl warn"><b>结论：</b>原方案假设旧公式大约比新公式高一倍、冲突病人至少占 15%，<b>两条都不成立</b>。原因之一是 PREVENT 把心衰也算进去了，两个公式的差距因此缩小。</div>
+</section>
+
+<section class="step" id="e2-2">
+  <div class="step-head"><span class="step-id">2.2</span><h3>出题、调用模型</h3></div>
+  <dl class="meta">
+    <dt>代码</dt><dd><code>exp2_pilot_A_B/run_pilot.py</code>；每轮的实际命令见 <code>run_commands.sh</code></dd>
+    <dt>输出</dt><dd><code>calls.jsonl</code>：每次调用的题目、原始回答、思考 / 推理摘要、token 数、费用</dd>
+  </dl>
+  <p class="lbl">怎么做</p>
+  <p>把每个病例写成一段英文病例描述，要求模型只输出 JSON。每个病例有 6 种问法：</p>
+  <div class="tbl"><table>
+    <tr><th>代号</th><th>给模型什么</th><th>测什么</th></tr>
+    <tr><td><code>C0_current</code></td><td>只说「按现行美国指南」</td><td>不给规则时，模型默认用哪版</td></tr>
+    <tr><td><code>C1_new_rule</code></td><td>明确写出 2025 新规则</td><td>给了新规则，会不会照做</td></tr>
+    <tr><td><code>C5_old_rule</code></td><td>明确写出 2017 旧规则</td><td>反向对照：会不会用旧规则</td></tr>
+    <tr><td><code>C1_plus_risk</code></td><td>新规则 + 直接告诉它算好的 PREVENT 值</td><td>去掉「算」这一步后还会不会错</td></tr>
+    <tr><td><code>B_direct</code></td><td>新规则 + 藏起血脂的病例</td><td>能否判断结论定没定</td></tr>
+    <tr><td><code>B_plus_range</code></td><td>再告诉它风险可能落在哪个范围</td><td>去掉「算范围」这一步后还会不会错</td></tr>
+  </table></div>
+  <p>A 部分要求输出：风险值、自称用的公式、阈值、决定。B 部分要求输出：一定开 / 一定不开 / 无法判断、置信度、还需要哪些数据。本地 Qwen 温度设为 0、固定随机种子；每个病例只问一次。</p>
+</section>
+
+<section class="step" id="e2-3">
+  <div class="step-head"><span class="step-id">2.3</span><h3>打分</h3></div>
+  <dl class="meta">
+    <dt>代码</dt><dd><code>exp2_pilot_A_B/analyze.py</code></dd>
+    <dt>输出</dt><dd><code>scored.csv</code>、<code>report.txt</code></dd>
+  </dl>
+  <p>全部由程序完成：解析模型输出的 JSON，和标准答案比较。主要指标：</p>
+  <ul class="plain">
+    <li><b>正确率：</b>决定是否符合题目要求的规则，冲突病人和一致病人分开算。</li>
+    <li><b>风险值准不准：</b>报出的风险和真实 PREVENT 的相关系数、误差中位数。</li>
+    <li><b>自称用的公式：</b>归为 PREVENT / PCE 一类 / 其他。</li>
+    <li><b>自洽性：</b>决定和它自己报的风险值、阈值是否一致。</li>
+    <li><b>错误分类：</b>阈值错 / 风险值错 / 决定与自己的数字矛盾。</li>
+    <li><b>B 部分：</b>过早下结论（本该「无法判断」却给了结论）、过度弃权（本可判断却说「无法判断」）、方向判反。</li>
+    <li><b>推理文本：</b>用关键词粗筛「笔误」「占位符」和旧公式名，命中的逐条人工阅读。</li>
+  </ul>
+</section>
+
+<h3 id="e2-r1" style="margin-top:30px;font-size:20px;font-family:var(--serif)">五轮运行的结果</h3>
+
+<section class="step">
+  <div class="step-head"><span class="step-id">轮次 1</span><h3>Qwen3 1.7B 和 8B，非思考模式</h3><span class="pill ok">完成</span></div>
+  <dl class="meta"><dt>命令</dt><dd><code>python3 run_pilot.py qwen3:1.7b qwen3:8b</code></dd><dt>规模</dt><dd>2 个模型 × 140 个病例 × 各自条件 = 880 次，本机，免费</dd></dl>
+  <div class="tbl"><table>
+    <tr><th>模型</th><th>C1 一致 / 冲突</th><th>C1 + 风险值 冲突</th><th>自称公式（C1）</th><th>风险值与真实值相关</th><th>B 直接 / + 范围</th></tr>
+    <tr><td>1.7B</td><td class="n">10% / 62%</td><td class="n">76%</td><td>PREVENT 80/80</td><td class="n">−0.07</td><td class="n">25% / 33%</td></tr>
+    <tr><td>8B</td><td class="n">73% / 26%</td><td class="n">100%</td><td>Framingham 80/80</td><td class="n">−0.05</td><td class="n">50% / 97%</td></tr>
+  </table></div>
+  <ul class="plain">
+    <li>1.7B 几乎对所有人都答「开药」。不给规则时，它编出一个 60% 的阈值。给了风险值后仍有 16 次和自己的数字矛盾，例如数值 7.2%、阈值 7.5%，却答开药。</li>
+    <li>8B 只要给了风险值就全对，说明它<b>规则理解得没问题，但算不出风险</b>，报的风险值基本是乱猜。</li>
+    <li>8B 报了新阈值 7.5%，却自称用 Framingham，一个比 PCE 还老的公式。</li>
+    <li>B 部分：8B 在本可判断的时候说了 23 次「无法判断」；告诉它范围后正确率升到 97%。</li>
+  </ul>
+</section>
+
+<section class="step">
+  <div class="step-head"><span class="step-id">轮次 2</span><h3>Qwen3 8B，思考模式</h3><span class="pill ok">完成</span></div>
+  <dl class="meta"><dt>命令</dt><dd><code>python3 run_pilot.py qwen3:8b+think --conds C1_new_rule,B_direct</code></dd><dt>规模</dt><dd>140 次；思考长度中位数 1,666 token；B 有 8/60 次思考到上限还没作答</dd></dl>
+  <div class="tbl"><table>
+    <tr><th>指标</th><th>8B</th><th>8B 思考</th></tr>
+    <tr><td>C1 一致 / 冲突正确率</td><td class="n">73% / 26%</td><td class="n">37% / 38%</td></tr>
+    <tr class="hl"><td>自称用的公式</td><td>Framingham 80/80</td><td>PCE 57/80</td></tr>
+    <tr><td>风险值与 PREVENT / PCE 的相关</td><td class="n">−0.05 / 0.29</td><td class="n">0.30 / 0.43</td></tr>
+    <tr><td>B 直接回答正确率</td><td class="n">50%</td><td class="n">47%</td></tr>
+  </table></div>
+  <p>思考过程里，它把我们给的新规则当成笔误：</p>
+  <blockquote>"Maybe the user meant PREVENT as a placeholder, but in reality, the PCE is the standard."<small>大意：用户说的 PREVENT 可能只是个占位符，PCE 才是标准。</small></blockquote>
+  <div class="concl warn"><b>结论：</b>开了思考模式，模型反而<b>主动换回旧公式</b>，正确率也下降了（一致病人从 73% 降到 37%）。</div>
+</section>
+
+<section class="step">
+  <div class="step-head"><span class="step-id">轮次 3</span><h3>Qwen3 14B，非思考模式</h3><span class="pill ok">完成</span></div>
+  <dl class="meta"><dt>命令</dt><dd><code>python3 run_pilot.py qwen3:14b</code></dd><dt>规模</dt><dd>440 次，16 分钟（加了 <code>caffeinate</code> 防止睡眠）</dd></dl>
+  <div class="tbl"><table>
+    <tr><th>指标</th><th>结果</th></tr>
+    <tr><td>C0（不给规则）报的阈值</td><td class="n">10% 占 78/80，即默认用旧规则</td></tr>
+    <tr><td>C1 一致 / 冲突正确率</td><td class="n">77% / 32%</td></tr>
+    <tr><td>C1 + 风险值 冲突正确率</td><td class="n">100%</td></tr>
+    <tr class="hl"><td>C1 自称用的公式</td><td>ASCVD 风险计算器 80/80（基于 PCE）</td></tr>
+    <tr><td>风险值与真实值相关</td><td class="n">−0.02</td></tr>
+    <tr><td>B 直接 / + 范围 正确率</td><td class="n">35% / 82%</td></tr>
+    <tr><td>B 直接回答时说「无法判断」</td><td class="n">59 / 60</td></tr>
+  </table></div>
+  <div class="concl warn"><b>结论：</b>和 8B 一样，只要给出数值就全对，但自己算不出来。不给规则时默认旧阈值。信息不全时<b>几乎一律说「无法判断」</b>；告诉它范围后仍有 11 次多余的「无法判断」，说明判断这一步也有问题。</div>
+</section>
+
+<section class="step">
+  <div class="step-head"><span class="step-id">轮次 4</span><h3>gpt-6-sol，推理强度 medium</h3><span class="pill ok">完成</span></div>
+  <dl class="meta"><dt>命令</dt><dd><code>run_pilot.py openai:gpt-6-sol --conds C1_new_rule,C1_plus_risk</code>（先 <code>--limit 5</code> 试跑）</dd><dt>规模</dt><dd>160 次，$1.71（按标准价估算，未与账单核对）；只能看到推理摘要，看不到原始思考过程</dd></dl>
+  <div class="tbl"><table>
+    <tr><th>指标</th><th>结果</th></tr>
+    <tr><td>C1 一致 / 冲突正确率</td><td class="n">100% / 42%</td></tr>
+    <tr><td>C1 + 风险值 冲突正确率</td><td class="n">100%</td></tr>
+    <tr class="hl"><td>自称用的公式</td><td>PREVENT 80/80，没有一条把新规则当笔误</td></tr>
+    <tr><td>风险值与 PREVENT / PCE 的相关</td><td class="n">0.84 / 0.77</td></tr>
+    <tr><td>误差中位数 · 误差 ≤ 1 个百分点</td><td class="n">0.92 · 54%</td></tr>
+    <tr><td>冲突病人上的 29 个错误</td><td>全部是风险值不准，没有阈值错误</td></tr>
+  </table></div>
+  <ul class="plain">
+    <li>它会凭记忆重建 PREVENT 的系数，估得接近但不够准。冲突病人大多贴近 7.5%（50 人里 37 人离线不到 1.5 个百分点），差约 1 个百分点就判反。</li>
+    <li><b>较弱的「拿旧公式当参照」：</b>26% 的推理摘要先估 PCE，再说「新公式通常低一些」往下调。回归分析中，控制 PREVENT 后 PCE 仍有影响（系数 0.25，PREVENT 为 0.54）；但在冲突病人里，这和「往平均值靠拢」还分不开。</li>
+  </ul>
+  <div class="concl"><b>结论：</b>前沿模型<b>会用新规则，只是算不准</b>。「把新规则当笔误」到它这里消失了。</div>
+</section>
+
+<section class="step">
+  <div class="step-head"><span class="step-id">轮次 5</span><h3>推理强度 high 与旗舰 gpt-6-astra</h3><span class="pill ok">完成</span></div>
+  <dl class="meta"><dt>命令</dt><dd><code>run_pilot.py openai:gpt-6-sol@high</code> 和 <code>openai:gpt-6-astra</code>，<code>--conds C1_new_rule --seqns</code> 30 例子集</dd><dt>子集</dt><dd>14 个真实冲突 + 前 6 个合成冲突 + 前 10 个一致病人</dd><dt>目的</dt><dd>多推理（sol 从 medium 调到 high）和换更强的模型（astra），哪个能让风险算得更准</dd><dt>过程</dt><dd>中途 OpenAI 余额用完，充值后在轮次 6 补完</dd></dl>
+  <p class="lbl">同一批 30 例上的对比</p>
+  <div class="tbl"><table>
+    <tr><th>配置</th><th>正确率</th><th>冲突组</th><th>一致组</th><th>误差中位数（百分点）</th><th>30 例费用</th></tr>
+    <tr><td>sol（medium）</td><td class="n">63%</td><td class="n">45%</td><td class="n">100%</td><td class="n">0.75</td><td class="n">$0.63</td></tr>
+    <tr><td>sol（high）</td><td class="n">67%</td><td class="n">55%</td><td class="n">90%</td><td class="n">0.80</td><td class="n">$1.28</td></tr>
+    <tr class="hl"><td>astra（medium）</td><td class="n">90%</td><td class="n">90%</td><td class="n">90%</td><td class="n">0.03</td><td class="n">约 $1.9</td></tr>
+  </table></div>
+  <div class="concl"><b>结论：</b>把推理强度调高，费用翻倍，误差却没有变小；<b>换成更强的模型，误差降低一个数量级</b>。astra 基本能把 PREVENT 算准。</div>
+</section>
+
+<section class="step">
+  <div class="step-head"><span class="step-id">轮次 6</span><h3>gpt-6-astra 每例重复 3 次</h3><span class="pill ok">完成（部分）</span></div>
+  <dl class="meta"><dt>命令</dt><dd><code>run_pilot.py openai:gpt-6-astra --conds C1_new_rule</code>，全部 80 例各采样 3 次</dd><dt>目的</dt><dd>估计「静默替换」（自称用 PREVENT、报的却是 PCE 的值）有多常见</dd><dt>实际完成</dt><dd>余额再次用完：第 1 次采样 66/80 例（缺 14 个合成冲突病例），3 次采样齐全的只有 42 例，共 149 次</dd></dl>
+  <div class="tbl"><table>
+    <tr><th>指标（astra，149 次调用）</th><th>结果</th></tr>
+    <tr><td>决定正确</td><td class="n">95%（一致组 94%，冲突组 97%）</td></tr>
+    <tr><td>误差 ≤ 0.1 / ≤ 0.5 个百分点</td><td class="n">94% / 98%</td></tr>
+    <tr><td>自称用 PREVENT、阈值 7.5%</td><td class="n">149 / 149</td></tr>
+    <tr><td>3 次采样决定一致</td><td class="n">41 / 42 例</td></tr>
+    <tr><td>静默替换</td><td class="n">1 / 92 次（约 1%），重复采样时没有再出现</td></tr>
+    <tr class="hl"><td>以「缺 BMI」为由不算</td><td class="n">7 / 149（其中 6 次连决定都不给）</td></tr>
+  </table></div>
+  <ul class="plain">
+    <li><b>静默替换只是偶发：</b>病例 102789 第 1 次报 8.5%（正好是 PCE 的 8.47%），后两次都报 6.4%（正好是 PREVENT 的 6.42%）。</li>
+    <li><b>新发现：错误地声称缺输入。</b>PREVENT 的总心血管病方程里<b>没有 BMI</b>，BMI 只用在心衰方程里。模型可能记住的是官方在线计算器的界面（那里要求填 BMI），而不是方程本身。这和研究 B 的「过度弃权」是同一类失败：以为缺了必要的输入，其实不缺。</li>
+    <li>这一轮还修正了一个打分问题：模型不给决定时，原来被算成「不开药」，现在单独记为「拒绝作答」。只影响本轮 astra 的数字。</li>
+  </ul>
+  <div class="concl"><b>结论：</b>最强的模型基本不「退回旧版」。它剩下的问题是另一种：<b>以为缺了其实不需要的输入</b>。</div>
+</section>
+
+<section class="step" id="e2-sum" style="border-color:var(--e2)">
+  <h3>实验 2 总结论</h3>
+  <div class="tbl"><table>
+    <tr><th>失败类型</th><th>出现在</th><th>什么能修好</th></tr>
+    <tr><td>算不准风险</td><td>所有模型</td><td>给数值 / 计算工具 <span class="pill ok">已验证</span></td></tr>
+    <tr><td>决定和自己的数字矛盾</td><td>1.7B</td><td>给数值也修不好 <span class="pill warn">待研究</span></td></tr>
+    <tr><td>接受新阈值，却用旧公式</td><td>8B、8B 思考、14B</td><td>待测</td></tr>
+    <tr><td>把新规则当笔误</td><td>8B 思考</td><td>在 gpt-6-sol 上消失</td></tr>
+    <tr><td>拿旧公式当参照（较弱）</td><td>gpt-6-sol</td><td>换更强的模型后消失；需要更好的对照才能测准</td></tr>
+    <tr><td>静默替换：自称用新公式，报的却是旧公式的值</td><td>gpt-6-astra，约 1%</td><td>偶发，重复采样没有再出现</td></tr>
+    <tr><td>以为缺了其实不需要的输入（BMI）</td><td>gpt-6-astra，4.7%</td><td>待测：提示里写明方程需要哪些输入</td></tr>
+    <tr><td>本可判断却说「无法判断」</td><td>8B、14B</td><td>给范围后大部分修好，14B 仍有残留</td></tr>
+  </table></div>
+  <p><b>一句话：</b>「退回旧版」随模型变强而减弱，不能单独撑起一篇论文。不同规模卡在不同环节，同一种修法（给数值）只修得好一部分，这正是建议方案要研究的问题。</p>
+</section>
+
+<h2 id="plan">对方案选择的含义</h2>
+<div class="tbl"><table>
+  <tr><th></th><th>原方案：A / B / C 三篇各自独立</th><th>建议方案：诊断 → 修复 → 训练</th></tr>
+  <tr><td>论文 1</td><td>A：新旧规则冲突时听谁的</td><td>诊断：把 A、B 合并，逐环节定位错误</td></tr>
+  <tr><td>论文 2</td><td>B：信息不全时能否判断</td><td>修复：从便宜到昂贵试各种办法，看哪种修好哪类错</td></tr>
+  <tr><td>论文 3</td><td>C：强化学习训练小模型</td><td>训练：强化学习，和最好的修法比</td></tr>
+  <tr><td>前提</td><td>A 的效应要大到能单独成篇</td><td>错误能分成几类，修法各不相同</td></tr>
+  <tr class="hl"><td>先导实验</td><td><span class="pill bad">前提不成立</span> 冲突人群只有 5.7%；最强的模型会算，也不退回旧版</td><td><span class="pill ok">前提得到支持</span> 至少八类失败，不同规模主导的失败不同</td></tr>
+</table></div>
+<p><b>建议选「诊断 → 修复 → 训练」。</b>「新旧规则冲突」保留为诊断里的一个维度。这个转向最好和导师确认。</p>
+
+<h2 id="limits">局限</h2>
+<ul class="plain">
+  <li>实验 1 只有 50 份小结，比例的置信区间很宽；正则规则比较粗；队列只选了入院前有门诊血压的人。</li>
+  <li>实验 2 每个病例只问一次，只用了一种问法；50 个冲突病人里 36 个是合成的。</li>
+  <li>前沿模型只测了研究 A；研究 B 的结论只来自 Qwen。两次余额用完：astra 只跑了 66/80 例，重复采样只在 42 例上齐全，所以 4.7% 和 1% 的置信区间很宽。</li>
+  <li>OpenAI 只提供推理摘要，看不到原始思考过程；astra 约六成的摘要是空的。</li>
+  <li>心血管病史来自问卷自报；PCE 系数需要第二人核对。</li>
+</ul>
+
+<h2 id="next">留给正式实验</h2>
+<p>先导实验已定稿，不再追加调用。以下几项放进正式实验的设计，前四项是必须做的：</p>
+<ol class="plain">
+  <li><b>把规则选择和计算分开：</b>同时给出 PCE 和 PREVENT 两个数值。</li>
+  <li><b>贴近阈值的对照：</b>一致组补充离 7.5% 不到 1.5 个百分点的病例。</li>
+  <li><b>「缺输入」检测项：</b>检测模型是否声称缺了其实不需要的输入（A、B 共用）。</li>
+  <li><b>重复采样和多种问法：</b>每例至少采样 3 次，至少两种提示写法；前沿模型用 Batch API（半价）。实测单价：astra 每次约 $0.062，sol 约 $0.02。</li>
+  <li>在前沿模型上测研究 B；14B 思考模式；PCE 系数第二人核对。</li>
+  <li>实验 1 的后续：糖尿病、吸烟、降压药、他汀四项与 HTN-Concord 银标对照。</li>
+  <li>确定方案后，改写方案文档和网页，补修复手段的文献。</li>
+</ol>
+
+<h2 id="files">文件索引</h2>
+<div class="tbl"><table>
+  <tr><th>内容</th><th>位置</th></tr>
+  <tr><td>带注释的代码快照，按实验分目录（轮次 1–4）</td><td><code>cv-llm-rulebench/code_export_2026-09-25/</code> 及同名 .zip</td></tr>
+  <tr><td>按轮次分目录的代码与命令（E0–E5，含最新的打分修正）</td><td><code>cv-llm-rulebench/pilot/code_export_2026-09-25/</code></td></tr>
+  <tr><td>实验 1 详细报告</td><td><code>cv-llm-risk-extraction/docs/feasibility_2026-09-23.md</code></td></tr>
+  <tr><td>实验 2 详细报告</td><td><code>cv-llm-rulebench/docs/pilot_2026-09-23.md</code></td></tr>
+  <tr><td>实验 2 通俗版结果页</td><td><a href="https://claude.ai/artifact/3Ta9XJh4EGHaestEgYgwfA">RuleBench 先导实验</a></td></tr>
+  <tr><td>实验 2 原始回答与得分</td><td><code>cv-llm-rulebench/pilot/out/</code>（calls.jsonl、scored.csv、report.txt）</td></tr>
+  <tr><td>实验 1 原始数据（MIMIC，只能留在本机）</td><td><code>cv-llm-risk-extraction/feasibility/out/</code></td></tr>
+  <tr><td>研究方案</td><td><code>cv-llm-rulebench/docs/proposal_A_B_C_2026-09-23.md</code></td></tr>
+</table></div>
+
+<footer>2026-09-25 定稿。数字来自 <code>analyze.py</code> 对 <code>calls.jsonl</code> 的汇总、实验 2 定稿报告和实验 1 报告。OpenAI 费用按标准价估算，未与账单核对。</footer>
+</main>
+</div>

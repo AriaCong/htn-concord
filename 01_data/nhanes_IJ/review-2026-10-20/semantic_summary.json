@@ -1,0 +1,29 @@
+{
+  "checks": 17,
+  "failed": 0,
+  "dialysis_complete": 4,
+  "dialysis_pool": 6,
+  "recent_cigarettes_current_nonsmoker": 69,
+  "recent_cigarettes_skip_logic": 27,
+  "statin_hmg_unresolved": 1,
+  "local_cycles": [
+    {
+      "folder": "NHANES_I",
+      "xpt_files": 30,
+      "participants": 9971,
+      "aged_30_79": 4369
+    },
+    {
+      "folder": "NHANES",
+      "xpt_files": 32,
+      "participants": 9254,
+      "aged_30_79": 4314
+    },
+    {
+      "folder": "NHANES_L_separate/data",
+      "xpt_files": 29,
+      "participants": 11933,
+      "aged_30_79": 6380
+    }
+  ]
+}

@@ -1,0 +1,170 @@
+[
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/DEMO_I.XPT",
+    "sha256": "c9297c6c37ae8f78f29be9568fa2a03cf3b112616a39afee04030fc775a66a0d",
+    "bytes": 3756480
+  },
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/BPX_I.XPT",
+    "sha256": "45d5c9fa101ccc6da82241bd45c99611595e699665eed2cfed232e9070b52cc1",
+    "bytes": 1607120
+  },
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/BIOPRO_I.XPT",
+    "sha256": "1c6dd63f97db81f50891a0327c2b0f90d889c991518fea5ac2113cbf8e1a94ac",
+    "bytes": 2056320
+  },
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/TCHOL_I.XPT",
+    "sha256": "e7f51cf7c002db01d023278922d89d72318c679967e72ff259ba532b2d72e54d",
+    "bytes": 193760
+  },
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/HDL_I.XPT",
+    "sha256": "c967ff1ba25e2f8c7611e078c68ede2e1287823c10f109e3a0b8590532e56747",
+    "bytes": 193760
+  },
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/GHB_I.XPT",
+    "sha256": "e4bc626cd12f6057c7806aef4f85874c9bf1407a7480d6621a4af142260addd2",
+    "bytes": 108960
+  },
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/ALB_CR_I.XPT",
+    "sha256": "af61c16db8d9e96549bf0fb446049ff0631ae1ccf7e2dcd017d28edba84dbe3d",
+    "bytes": 552800
+  },
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/BMX_I.XPT",
+    "sha256": "d31da84e14212b4e58e8340598a5b8e2144fac83333563e966eb1b332e4141d6",
+    "bytes": 1989600
+  },
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/BPQ_I.XPT",
+    "sha256": "7f7e51cd0497eb648f64eaafaf7ed07825d617c32b2cd6853ed249fce1143a38",
+    "bytes": 559120
+  },
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/DIQ_I.XPT",
+    "sha256": "e87587479b29f175b63eee5dd40d582837e3e3fe2665503012085eefdb978e0d",
+    "bytes": 4144720
+  },
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/SMQ_I.XPT",
+    "sha256": "529ce1c407e99dce937ca75d14c8c630e0c9c30a4a9a851760cd2884bbb28fe0",
+    "bytes": 2681040
+  },
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/MCQ_I.XPT",
+    "sha256": "8b2bd62f5bcd5820d6aac380e4bad233d22ecab42fcf4a3a9a023ffc6b9f4002",
+    "bytes": 6907360
+  },
+  {
+    "cycle": "I",
+    "file": "01_data/raw/NHANES_I/RXQ_RX_I.XPT",
+    "sha256": "a148b3c38e6823f3750b5835385a85ac1d65aeeefd8d8b351ba8ad9c9f6095aa",
+    "bytes": 9629600
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/DEMO_J.XPT",
+    "sha256": "c0b46e0345ea19404928656277c8b0d10b0cca348a9b2fe4fc3c67e8b7ee73ec",
+    "bytes": 3412720
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/BPX_J.XPT",
+    "sha256": "f98f1d9a4c18173e715c749b4294f6f1525140d5ad5751316bb17cc038fb3423",
+    "bytes": 1466000
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/BPXO_J.XPT",
+    "sha256": "9a7f4b6d0e327282b0032c94ab85936c9b1027e5e4d410bcda6af23f188665c4",
+    "bytes": 694400
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/BIOPRO_J.XPT",
+    "sha256": "5bcd5722c1892883b96a9d7fed0befadabacae313f800fadc0133cd5dd00c4c6",
+    "bytes": 2106080
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/TCHOL_J.XPT",
+    "sha256": "0291a6a4f6d82dac8392c8c992b519946824dfeda01647935520cf506ed9f4ab",
+    "bytes": 179680
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/HDL_J.XPT",
+    "sha256": "9f4eb41b89f0c9f3d6262f873e671eeb2f2eb40581a8426b2a3c8fd4fc19439e",
+    "bytes": 179680
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/GHB_J.XPT",
+    "sha256": "35f07094573a0061a03ed609a5a363b34eb1b1c7065d1623b43d72e132a8a654",
+    "bytes": 103520
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/ALB_CR_J.XPT",
+    "sha256": "0017a7b8d87d29009923e22300b4ec393b06c9bbf6147eb6b2d777aca605bcbf",
+    "bytes": 509760
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/BMX_J.XPT",
+    "sha256": "8d675e42d8826ac98714b2c3dd4c5138a5e353fb4424f7eff5e6db4a01ce838a",
+    "bytes": 1466000
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/BPQ_J.XPT",
+    "sha256": "63cfe1c331a1e7d3534328ac86312a21ffee3e01aa189bc1f74d06855239e5aa",
+    "bytes": 544560
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/DIQ_J.XPT",
+    "sha256": "1ecbf5360dfc331d1efbf32198553dc30e9a1f4cff0a907ed30ca72bac797f89",
+    "bytes": 3851840
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/SMQ_J.XPT",
+    "sha256": "73c3708e540cbf520a566508aa629c3e4ba53cad77dae9388ca36384646455f4",
+    "bytes": 2305600
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/MCQ_J.XPT",
+    "sha256": "79c50c805a377fcd61d44fae8b86a16af0a5741f8b1aeebda918d7d743c68f98",
+    "bytes": 5420800
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/RXQ_RX_J.XPT",
+    "sha256": "6196e6753f9bf23b47456f4fcc2d32de05f89388b512594d02b0735949165545",
+    "bytes": 9627680
+  },
+  {
+    "cycle": "J",
+    "file": "01_data/raw/NHANES/RXQ_DRUG.XPT",
+    "sha256": "a872fb3c7ce589971e603a6266bbd07f09e15d11bab2e3f574c56529081e4bbe",
+    "bytes": 3372240
+  }
+]

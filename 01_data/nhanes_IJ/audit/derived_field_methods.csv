@@ -1,0 +1,15 @@
+field,inputs,rule,unknown_when
+sex,RIAGENDR,"1 male, 2 female",other codes
+sbp_mean,"BPXSY1-4 (auscultatory, both cycles)",mean of readings > 0; no rounding; reading 1 kept,no reading > 0
+dbp_mean,BPXDI1-4,"mean of readings > 0; recorded 0 kept in source, excluded from mean, counted in dbp_zero_readings",no reading > 0
+sbp_mean_oscillometric_J_only,BPXOSY1-3,"J-only sensitivity measure, same rule",cycle I (not fielded)
+creatinine_J_scale,"LBXSCR, cycle",J unchanged; I = 0.9515 * LBXSCR + 0.06608 (mg/dL),LBXSCR missing
+egfr,"creatinine_J_scale, age, sex","CKD-EPI 2021 creatinine (race-free), no rounding","creatinine missing/<=0, age <18 or 80 (top-code), sex missing"
+non_hdl_mgdl,"LBXTC, LBDHDD",TC - HDL,either missing
+"wtint_pooled, wtmec_pooled","WTINT2YR, WTMEC2YR",2-year weight / 2 for the pooled 4-year analysis,never (0 stays 0)
+on_bp_meds,"BPQ050A, BPQ020, BPQ040A",BPQ050A 1 yes / 2 no; else BPQ020=2 -> no (skip to BPQ080); else BPQ020=1 & BPQ040A=2 -> no (skip to BPQ080),"BPQ020 or BPQ040A refused/don't know, or no BPQ record"
+current_smoker,"SMQ040, SMQ020","SMQ040 1/2 yes, 3 no; else SMQ020=2 -> no (skip past SMQ040)","SMQ020 refused/don't know, or no SMQ record"
+diabetes,DIQ010,"1 yes, 2 no; borderline (3) NOT recoded as no","3, 7, 9 or missing"
+hba1c_ge_6_5,LBXGH,"separate lab screening evidence, not merged into diabetes",LBXGH missing
+cvd_history,MCQ160B-F,any 1 -> yes; all five 2 -> no,otherwise
+statin,"RXDUSE, RXDDRUG",ingredient-word match to 7 statins; RXDUSE=2 -> no; all names resolved without statin -> no,unresolved name or status

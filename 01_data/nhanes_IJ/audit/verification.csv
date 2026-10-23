@@ -1,0 +1,135 @@
+check,result
+sha256 unchanged: 01_data/raw/NHANES_I/DEMO_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES_I/BPX_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES_I/BIOPRO_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES_I/TCHOL_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES_I/HDL_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES_I/GHB_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES_I/ALB_CR_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES_I/BMX_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES_I/BPQ_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES_I/DIQ_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES_I/SMQ_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES_I/MCQ_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES_I/RXQ_RX_I.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/DEMO_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/BPX_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/BPXO_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/BIOPRO_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/TCHOL_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/HDL_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/GHB_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/ALB_CR_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/BMX_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/BPQ_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/DIQ_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/SMQ_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/MCQ_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/RXQ_RX_J.XPT,PASS
+sha256 unchanged: 01_data/raw/NHANES/RXQ_DRUG.XPT,PASS
+"participants I=9971, J=9254",PASS
+SEQN unique and aligned,PASS
+original == raw: I DEMO__RIDSTATR,PASS
+original == raw: I DEMO__RIDAGEYR,PASS
+original == raw: I DEMO__RIAGENDR,PASS
+original == raw: I DEMO__RIDRETH3,PASS
+original == raw: I DEMO__RIDEXPRG,PASS
+original == raw: I DEMO__WTINT2YR,PASS
+original == raw: I DEMO__WTMEC2YR,PASS
+original == raw: I DEMO__SDMVPSU,PASS
+original == raw: I DEMO__SDMVSTRA,PASS
+original == raw: I BPX__BPXSY1,PASS
+original == raw: I BPX__BPXSY2,PASS
+original == raw: I BPX__BPXSY3,PASS
+original == raw: I BPX__BPXSY4,PASS
+original == raw: I BPX__BPXDI1,PASS
+original == raw: I BPX__BPXDI2,PASS
+original == raw: I BPX__BPXDI3,PASS
+original == raw: I BPX__BPXDI4,PASS
+BPXO absent in I,PASS
+BPXO absent in I,PASS
+BPXO absent in I,PASS
+BPXO absent in I,PASS
+BPXO absent in I,PASS
+BPXO absent in I,PASS
+original == raw: I BIOPRO__LBXSCR,PASS
+original == raw: I BIOPRO__LBXSKSI,PASS
+original == raw: I TCHOL__LBXTC,PASS
+original == raw: I HDL__LBDHDD,PASS
+original == raw: I GHB__LBXGH,PASS
+original == raw: I ALB_CR__URDACT,PASS
+original == raw: I BMX__BMXBMI,PASS
+original == raw: I BPQ__BPQ020,PASS
+original == raw: I BPQ__BPQ030,PASS
+original == raw: I BPQ__BPQ040A,PASS
+original == raw: I BPQ__BPQ050A,PASS
+original == raw: I DIQ__DIQ010,PASS
+original == raw: I DIQ__DIQ050,PASS
+original == raw: I DIQ__DIQ070,PASS
+original == raw: I SMQ__SMQ020,PASS
+original == raw: I SMQ__SMQ040,PASS
+original == raw: I MCQ__MCQ160B,PASS
+original == raw: I MCQ__MCQ160C,PASS
+original == raw: I MCQ__MCQ160D,PASS
+original == raw: I MCQ__MCQ160E,PASS
+original == raw: I MCQ__MCQ160F,PASS
+original == raw: J DEMO__RIDSTATR,PASS
+original == raw: J DEMO__RIDAGEYR,PASS
+original == raw: J DEMO__RIAGENDR,PASS
+original == raw: J DEMO__RIDRETH3,PASS
+original == raw: J DEMO__RIDEXPRG,PASS
+original == raw: J DEMO__WTINT2YR,PASS
+original == raw: J DEMO__WTMEC2YR,PASS
+original == raw: J DEMO__SDMVPSU,PASS
+original == raw: J DEMO__SDMVSTRA,PASS
+original == raw: J BPX__BPXSY1,PASS
+original == raw: J BPX__BPXSY2,PASS
+original == raw: J BPX__BPXSY3,PASS
+original == raw: J BPX__BPXSY4,PASS
+original == raw: J BPX__BPXDI1,PASS
+original == raw: J BPX__BPXDI2,PASS
+original == raw: J BPX__BPXDI3,PASS
+original == raw: J BPX__BPXDI4,PASS
+original == raw: J BPXO__BPXOSY1,PASS
+original == raw: J BPXO__BPXOSY2,PASS
+original == raw: J BPXO__BPXOSY3,PASS
+original == raw: J BPXO__BPXODI1,PASS
+original == raw: J BPXO__BPXODI2,PASS
+original == raw: J BPXO__BPXODI3,PASS
+original == raw: J BIOPRO__LBXSCR,PASS
+original == raw: J BIOPRO__LBXSKSI,PASS
+original == raw: J TCHOL__LBXTC,PASS
+original == raw: J HDL__LBDHDD,PASS
+original == raw: J GHB__LBXGH,PASS
+original == raw: J ALB_CR__URDACT,PASS
+original == raw: J BMX__BMXBMI,PASS
+original == raw: J BPQ__BPQ020,PASS
+original == raw: J BPQ__BPQ030,PASS
+original == raw: J BPQ__BPQ040A,PASS
+original == raw: J BPQ__BPQ050A,PASS
+original == raw: J DIQ__DIQ010,PASS
+original == raw: J DIQ__DIQ050,PASS
+original == raw: J DIQ__DIQ070,PASS
+original == raw: J SMQ__SMQ020,PASS
+original == raw: J SMQ__SMQ040,PASS
+original == raw: J MCQ__MCQ160B,PASS
+original == raw: J MCQ__MCQ160C,PASS
+original == raw: J MCQ__MCQ160D,PASS
+original == raw: J MCQ__MCQ160E,PASS
+original == raw: J MCQ__MCQ160F,PASS
+no residual 5.4e-79 values,PASS
+creatinine: J unchanged,PASS
+creatinine: I = 0.9515x + 0.06608,PASS
+weights halved,PASS
+pooled population = mean of cycle totals,PASS
+interview-only have MEC weight exactly 0,PASS
+bp: direct yes kept,PASS
+bp: direct no kept,PASS
+bp: skip only when BPQ050A missing and (BPQ020=2 or BPQ040A=2),PASS
+bp: refused/don't know stay unknown,PASS
+smoke: direct answers kept,PASS
+smoke: skip only when SMQ040 missing and SMQ020=2,PASS
+diabetes borderline stays unknown,PASS
+pool = complete + incomplete,PASS
+complete = pool & all known,PASS
+every excluded row has a reason,PASS

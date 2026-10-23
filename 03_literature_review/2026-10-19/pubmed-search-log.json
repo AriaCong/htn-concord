@@ -1,0 +1,20 @@
+[
+  {
+    "name": "calculation",
+    "query": "(\"large language model*\"[Title/Abstract] OR ChatGPT[Title/Abstract]) AND (\"medical calculation*\"[Title/Abstract] OR \"clinical risk score*\"[Title/Abstract])",
+    "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%28%28%22large+language+model%2A%22%5BTitle%2FAbstract%5D+OR+ChatGPT%5BTitle%2FAbstract%5D%29+AND+%28%22medical+calculation%2A%22%5BTitle%2FAbstract%5D+OR+%22clinical+risk+score%2A%22%5BTitle%2FAbstract%5D%29%29+AND+%28%222023%2F01%2F01%22%5BDate+-+Publication%5D+%3A+%222026%2F10%2F19%22%5BDate+-+Publication%5D%29&retmax=100&retmode=json&sort=relevance",
+    "error": "<urlopen error [Errno 8] nodename nor servname provided, or not known>"
+  },
+  {
+    "name": "determinability",
+    "query": "(\"large language model*\"[Title/Abstract] OR LLM[Title/Abstract]) AND (determinability[Title/Abstract] OR abstention[Title/Abstract] OR \"missing information\"[Title/Abstract]) AND (clinical[Title/Abstract] OR medical[Title/Abstract])",
+    "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%28%28%22large+language+model%2A%22%5BTitle%2FAbstract%5D+OR+LLM%5BTitle%2FAbstract%5D%29+AND+%28determinability%5BTitle%2FAbstract%5D+OR+abstention%5BTitle%2FAbstract%5D+OR+%22missing+information%22%5BTitle%2FAbstract%5D%29+AND+%28clinical%5BTitle%2FAbstract%5D+OR+medical%5BTitle%2FAbstract%5D%29%29+AND+%28%222023%2F01%2F01%22%5BDate+-+Publication%5D+%3A+%222026%2F10%2F19%22%5BDate+-+Publication%5D%29&retmax=100&retmode=json&sort=relevance",
+    "error": "<urlopen error [Errno 8] nodename nor servname provided, or not known>"
+  },
+  {
+    "name": "cardiovascular",
+    "query": "(\"large language model*\"[Title/Abstract] OR ChatGPT[Title/Abstract]) AND (cardiovascular[Title/Abstract] OR hypertension[Title/Abstract]) AND (calculation[Title/Abstract] OR \"risk score*\"[Title/Abstract] OR guideline*[Title/Abstract])",
+    "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%28%28%22large+language+model%2A%22%5BTitle%2FAbstract%5D+OR+ChatGPT%5BTitle%2FAbstract%5D%29+AND+%28cardiovascular%5BTitle%2FAbstract%5D+OR+hypertension%5BTitle%2FAbstract%5D%29+AND+%28calculation%5BTitle%2FAbstract%5D+OR+%22risk+score%2A%22%5BTitle%2FAbstract%5D+OR+guideline%2A%5BTitle%2FAbstract%5D%29%29+AND+%28%222023%2F01%2F01%22%5BDate+-+Publication%5D+%3A+%222026%2F10%2F19%22%5BDate+-+Publication%5D%29&retmax=100&retmode=json&sort=relevance",
+    "error": "<urlopen error [Errno 8] nodename nor servname provided, or not known>"
+  }
+]

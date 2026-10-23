@@ -1,0 +1,163 @@
+=== A: decision accuracy against the rule the prompt asks for ===
+group                               agree  conflict
+model                 cond                         
+openai:gpt-6-astra    C1_new_rule    0.94      0.97
+openai:gpt-6-sol      C1_new_rule    1.00      0.42
+                      C1_plus_risk   1.00      1.00
+openai:gpt-6-sol@high C1_new_rule    0.90      0.55
+qwen3:1.7b            C0_current     0.10      0.62
+                      C1_new_rule    0.10      0.62
+                      C1_plus_risk   0.87      0.76
+                      C5_old_rule    0.10      0.38
+qwen3:14b             C0_current     0.10      0.58
+                      C1_new_rule    0.77      0.32
+                      C1_plus_risk   1.00      1.00
+                      C5_old_rule    0.90      0.72
+qwen3:8b              C0_current     0.90      0.28
+                      C1_new_rule    0.73      0.26
+                      C1_plus_risk   1.00      1.00
+                      C5_old_rule    0.30      0.68
+qwen3:8b+think        C1_new_rule    0.37      0.38
+
+=== A, conflict set only ===
+                                     n  parsed follows_new follows_old thr_ok  eq_PREVENT  eq_PCE  med_risk_err_pp closer_to_pce self_consistent
+model                 cond                                                                                                                      
+openai:gpt-6-astra    C1_new_rule   64    1.00     0.96875         0.0    1.0        1.00    0.00             0.03      0.016129             1.0
+openai:gpt-6-sol      C1_new_rule   50    1.00        0.42        0.58    1.0        1.00    0.00             1.44          0.38             1.0
+                      C1_plus_risk  50    1.00         1.0         0.0    1.0        1.00    0.00             0.02           0.0             1.0
+openai:gpt-6-sol@high C1_new_rule   20    1.00        0.55        0.45    1.0        1.00    0.00             0.99           0.3             1.0
+qwen3:1.7b            C0_current    50    1.00        0.62        0.38    0.0        0.00    0.00            55.77          0.66             1.0
+                      C1_new_rule   50    1.00        0.62        0.38    1.0        1.00    0.00             0.86          0.32             1.0
+                      C1_plus_risk  50    1.00        0.76        0.24    1.0        1.00    0.00             0.02           0.0            0.76
+                      C5_old_rule   50    1.00        0.62        0.38    1.0        0.00    1.00             1.32          0.64             1.0
+qwen3:14b             C0_current    50    1.00        0.58        0.42    0.0        0.00    1.00             4.52          0.62             1.0
+                      C1_new_rule   50    1.00        0.32        0.68    1.0        0.00    1.00             2.73          0.38             1.0
+                      C1_plus_risk  50    1.00         1.0         0.0    1.0        1.00    0.00             0.02           0.0             1.0
+                      C5_old_rule   50    1.00        0.28        0.72    1.0        0.00    1.00             2.11           0.5             1.0
+qwen3:8b              C0_current    50    1.00        0.28        0.72    0.0        0.00    0.00             6.00          0.46            0.98
+                      C1_new_rule   50    1.00        0.26        0.74    1.0        0.00    0.00             3.41          0.62             1.0
+                      C1_plus_risk  50    1.00         1.0         0.0    1.0        1.00    0.00             0.02           0.0             1.0
+                      C5_old_rule   50    1.00        0.32        0.68    1.0        0.00    1.00             2.73          0.66             1.0
+qwen3:8b+think        C1_new_rule   50    0.96        0.38        0.58   0.96        0.08    0.84             1.96        0.4375        0.979167
+
+=== A: failure types among wrong answers (all A cases) ===
+type                                decision_contradicts_own_numbers  declined  unparsed  wrong_risk_value  wrong_threshold
+model                 cond                                                                                                 
+openai:gpt-6-astra    C1_new_rule                                  0         6         0                 1                0
+openai:gpt-6-sol      C1_new_rule                                  0         0         0                29                0
+openai:gpt-6-sol@high C1_new_rule                                  0         0         0                10                0
+qwen3:1.7b            C0_current                                   0         0         0                 0               46
+                      C1_new_rule                                  0         0         0                46                0
+                      C1_plus_risk                                16         0         0                 0                0
+                      C5_old_rule                                  0         0         0                58                0
+qwen3:14b             C0_current                                   0         0         0                 0               48
+                      C1_new_rule                                  0         0         0                41                0
+                      C5_old_rule                                  0         0         0                17                0
+qwen3:8b              C0_current                                   0         0         0                 0               39
+                      C1_new_rule                                  0         0         0                45                0
+                      C5_old_rule                                  0         0         0                37                0
+qwen3:8b+think        C1_new_rule                                  0         0         5                45                0
+
+=== B (tau = 7.5%, TC and HDL hidden) ===
+                              n  parsed   acc premature over_abstain wrong_dir
+model          cond                                                           
+qwen3:1.7b     B_direct      60    1.00  0.25        20            0        25
+               B_plus_range  60    1.00  0.33        20            0        20
+qwen3:14b      B_direct      60    1.00  0.35         0           39         0
+               B_plus_range  60    1.00  0.82         0           11         0
+qwen3:8b       B_direct      60    1.00  0.50         5           23         2
+               B_plus_range  60    1.00  0.97         1            1         0
+qwen3:8b+think B_direct      60    0.87  0.47         5           15         4
+
+B accuracy by true label
+label                        CANNOT_DETERMINE  DO_NOT_START  START
+model          cond                                               
+qwen3:1.7b     B_direct                  0.00          0.05   0.70
+               B_plus_range              0.00          0.00   1.00
+qwen3:14b      B_direct                  1.00          0.05   0.00
+               B_plus_range              1.00          0.55   0.90
+qwen3:8b       B_direct                  0.75          0.70   0.05
+               B_plus_range              0.95          1.00   0.95
+qwen3:8b+think B_direct                  0.70          0.70   0.00
+
+B answer distribution
+answer                       CANNOT_DETERMINE  DO_NOT_START  START
+model          cond                                               
+qwen3:1.7b     B_direct                     0             9     51
+               B_plus_range                 0             0     60
+qwen3:14b      B_direct                    59             1      0
+               B_plus_range                31            11     18
+qwen3:8b       B_direct                    38            21      1
+               B_plus_range                20            21     19
+qwen3:8b+think B_direct                    29            23      0
+
+B accuracy on truly undetermined cases, by interval's distance to tau (min of |lo-7.5|, |hi-7.5|)
+near                         <1pp  1-3pp  >3pp
+model          cond                           
+qwen3:1.7b     B_direct      0.00   0.00  0.00
+               B_plus_range  0.00   0.00  0.00
+qwen3:14b      B_direct      1.00   1.00  1.00
+               B_plus_range  1.00   1.00  1.00
+qwen3:8b       B_direct      0.83   0.62  0.83
+               B_plus_range  0.83   1.00  1.00
+qwen3:8b+think B_direct      0.67   0.62  0.83
+
+=== A, C1_new_rule: reported risk against the true values (all 80 cases) ===
+                         n  r_prevent  r_pce  med_err_pp  within_1pp closer_to_pce  eq_PREVENT
+model                                                                                         
+openai:gpt-6-astra     142       0.99   0.83        0.02        0.99      0.014085        1.00
+openai:gpt-6-sol        80       0.84   0.77        0.92        0.54        0.3375        1.00
+openai:gpt-6-sol@high   30       0.71   0.61        0.80        0.60           0.3        1.00
+qwen3:1.7b              80      -0.07   0.07        1.61        0.39          0.35        1.00
+qwen3:14b               80      -0.02   0.24        2.64        0.20          0.35        0.00
+qwen3:8b                80      -0.05   0.29        3.19        0.14         0.525        0.00
+qwen3:8b+think          75       0.30   0.43        2.71        0.23      0.424658        0.07
+
+=== A: reasoning text flags (share of calls) ===
+                                      n  mentions_old_eq  typo_words
+model                 cond                                          
+openai:gpt-6-astra    C1_new_rule   149             0.02        0.01
+openai:gpt-6-sol      C1_new_rule    80             0.26        0.01
+                      C1_plus_risk   80             0.00        0.00
+openai:gpt-6-sol@high C1_new_rule    30             0.37        0.00
+qwen3:1.7b            C1_new_rule    80             0.00        0.00
+                      C1_plus_risk   80             0.00        0.00
+qwen3:14b             C1_new_rule    80             0.00        0.00
+                      C1_plus_risk   80             0.00        0.00
+qwen3:8b              C1_new_rule    80             0.00        0.00
+                      C1_plus_risk   80             0.00        0.00
+qwen3:8b+think        C1_new_rule    80             0.96        0.68
+
+=== API usage (OpenAI) ===
+                                      n  med_reasoning_tok  max_reasoning_tok  mean_cost  total_cost
+model                 cond                                                                          
+openai:gpt-6-astra    C1_new_rule   149             1140.0             2398.0     0.0616      9.1748
+openai:gpt-6-sol      C1_new_rule    80             1970.0             3980.0     0.0203      1.6256
+                      C1_plus_risk   80               32.0               83.0     0.0011      0.0868
+openai:gpt-6-sol@high C1_new_rule    30             3756.0             8804.0     0.0428      1.2834
+total cost USD 12.171
+
+=== A, C1_new_rule: silent substitution (reports the PCE value, names another equation) ===
+flag: |risk - PCE| <= 0.1pp and |risk - PREVENT| > 1pp; only cases with |PCE - PREVENT| > 1.1pp can flag
+                       eligible_calls  flagged   rate
+model                                                
+openai:gpt-6-astra                 92        1  0.011
+openai:gpt-6-sol                   52        0  0.000
+openai:gpt-6-sol@high              23        0  0.000
+qwen3:1.7b                         52        1  0.019
+qwen3:14b                          52        0  0.000
+qwen3:8b                           52        0  0.000
+qwen3:8b+think                     49        0  0.000
+                   model     seqn  rep     group  prevent   pce  risk       eq  correct
+225           qwen3:1.7b  9000013    0  conflict     8.63  7.53   7.5  PREVENT     True
+1648  openai:gpt-6-astra   102789    0     agree     6.42  8.47   8.5  PREVENT    False
+
+=== A, C1_new_rule: repeat samples (models with k > 1) ===
+                    cases  k  decision_stable  median_risk_sd  mean_acc  cases_all_correct
+model                                                                                     
+openai:gpt-6-astra     42  3            0.976             0.0     0.964              0.905
+
+=== A: declined to decide (null / cannot_determine), share of calls ===
+                                  n declined      rate
+model              cond                               
+openai:gpt-6-astra C1_new_rule  149        6  0.040268
