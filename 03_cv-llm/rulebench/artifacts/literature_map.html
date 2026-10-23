@@ -1,0 +1,556 @@
+<title>CV-RuleBench 文献地图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,650&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --surface-2:#E9EDF1;
+  --ink:#16202A; --ink-2:#3E4D5B; --muted:#6C7B88;
+  --line:#D8DFE6; --line-2:#C3CDD6;
+  --accent:#9B2335; --accent-ink:#7A1A29; --accent-wash:#F6E3E6;
+  --rqA:#1F6F8B; --rqA-wash:#DDEFF5;
+  --rqB:#7A5A12; --rqB-wash:#F4ECD6;
+  --rqC:#4B3F9E; --rqC-wash:#E6E3F6;
+  --ok:#1E6B4F; --ok-wash:#DDF0E7;
+  --sans:"Instrument Sans","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --serif:"Newsreader","Songti SC","Source Han Serif SC",Georgia,serif;
+  --mono:"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1419; --surface:#161D24; --surface-2:#1E2731;
+    --ink:#E5EBF0; --ink-2:#B2C0CC; --muted:#7E8D99;
+    --line:#26313C; --line-2:#34414E;
+    --accent:#E0707F; --accent-ink:#F0A0AB; --accent-wash:#3A1D23;
+    --rqA:#6FC0DA; --rqA-wash:#12303A;
+    --rqB:#D9B560; --rqB-wash:#332A12;
+    --rqC:#A99CF0; --rqC-wash:#241F42;
+    --ok:#6FCBA5; --ok-wash:#123027;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1419; --surface:#161D24; --surface-2:#1E2731;
+  --ink:#E5EBF0; --ink-2:#B2C0CC; --muted:#7E8D99;
+  --line:#26313C; --line-2:#34414E;
+  --accent:#E0707F; --accent-ink:#F0A0AB; --accent-wash:#3A1D23;
+  --rqA:#6FC0DA; --rqA-wash:#12303A;
+  --rqB:#D9B560; --rqB-wash:#332A12;
+  --rqC:#A99CF0; --rqC-wash:#241F42;
+  --ok:#6FCBA5; --ok-wash:#123027;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid var(--line-2)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:24px}
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{padding-block:36px 28px;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:32px;align-items:end}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:650;font-size:clamp(30px,4.2vw,44px);line-height:1.08;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.lede{margin:14px 0 0;color:var(--ink-2);max-width:62ch;font-size:16px}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--line);background:var(--line);gap:1px}
+.stat{background:var(--surface);padding:12px 14px}
+.stat b{display:block;font-family:var(--mono);font-size:24px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.stat.a b{color:var(--rqA)} .stat.b b{color:var(--rqB)} .stat.c b{color:var(--rqC)} .stat.p b{color:var(--ok)}
+section{padding-block:34px 0}
+h2{font-family:var(--serif);font-weight:650;font-size:23px;margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 18px;max-width:80ch}
+.gaps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.gap{background:var(--surface);border:1px solid var(--line);padding:18px 20px 20px;display:flex;flex-direction:column;gap:10px}
+.gap .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.gap.A .k{color:var(--rqA)} .gap.B .k{color:var(--rqB)} .gap.C .k{color:var(--rqC)} .gap.P2 .k{color:var(--ok)}
+.gap h3{margin:0;font-size:16.5px;line-height:1.35;text-wrap:balance}
+.gap p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.gap .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:2px}
+.gap ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2)}
+.gap li{margin:2px 0}
+.gap .open{border-top:1px dashed var(--line-2);padding-top:10px;color:var(--ink)}
+.controls{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:14px 12px;border-bottom:1px solid var(--line);margin-top:10px}
+.row-c{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.row-c+.row-c{margin-top:8px}
+.cl{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);width:70px;flex:none}
+button.chip{font-family:var(--sans);font-size:12.5px;color:var(--ink-2);cursor:pointer;background:var(--surface);border:1px solid var(--line-2);padding:3px 10px;border-radius:3px;line-height:1.55}
+button.chip:hover{border-color:var(--accent)}
+button.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+button.chip .n{font-family:var(--mono);font-size:10.5px;opacity:.65;margin-left:5px}
+button.chip.rA[aria-pressed="true"]{background:var(--rqA);border-color:var(--rqA);color:#fff}
+button.chip.rB[aria-pressed="true"]{background:var(--rqB);border-color:var(--rqB);color:#fff}
+button.chip.rC[aria-pressed="true"]{background:var(--rqC);border-color:var(--rqC);color:#fff}
+button.chip.rP2[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
+input[type=search]{font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line-2);border-radius:3px;padding:5px 10px;width:240px;max-width:100%}
+.count{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.rows{border:1px solid var(--line);border-top:0;background:var(--surface)}
+.item{display:grid;grid-template-columns:320px minmax(0,1fr);border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.ca{padding:16px 18px;border-right:1px solid var(--line)}
+.cb{padding:16px 18px;min-width:0}
+.it{font-size:14.5px;font-weight:600;line-height:1.35;margin:0 0 5px;text-wrap:balance}
+.im{font-family:var(--mono);font-size:11.5px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.tag{font-family:var(--mono);font-size:10.5px;padding:2px 6px;border-radius:2px;background:var(--surface-2);color:var(--ink-2)}
+.tag.A{background:var(--rqA-wash);color:var(--rqA);font-weight:600}
+.tag.B{background:var(--rqB-wash);color:var(--rqB);font-weight:600}
+.tag.C{background:var(--rqC-wash);color:var(--rqC);font-weight:600}
+.tag.P2{background:var(--ok-wash);color:var(--ok);font-weight:600}
+.tag.arch{background:var(--accent-wash);color:var(--accent-ink)}
+.tag.v{background:transparent;border:1px solid var(--line-2);color:var(--muted)}
+.what{margin:0 0 10px;font-size:14px}
+dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:0;font-size:13px}
+dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--muted);padding-top:2.5px;white-space:nowrap}
+dd{margin:0;color:var(--ink-2);min-width:0;overflow-wrap:anywhere}
+dd.res{color:var(--ink)}
+dd.rel{color:var(--ink);border-left:2px solid var(--ok-wash);padding-left:9px;margin-left:-2px}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+footer{border-top:1px solid var(--line);margin-top:44px;padding-block:22px 56px;color:var(--muted);font-size:12.5px}
+footer p{margin:0 0 7px;max-width:88ch}
+@media (max-width:980px){
+  .top-in{grid-template-columns:1fr}
+  .gaps{grid-template-columns:1fr}
+  .item{grid-template-columns:1fr}
+  .ca{border-right:0;border-bottom:1px solid var(--line)}
+  .cl{width:100%}
+  .count{margin-left:0}
+}
+@media (max-width:520px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+
+<header class="top">
+  <div class="wrap top-in">
+    <div>
+      <p class="eyebrow">CV-RuleBench · 文献地图 · 2026-09-23</p>
+      <h1>大模型执行可计算临床规则：相关研究全景</h1>
+      <p class="lede">这张地图服务三个研究问题：<b>A</b> 指南更新时模型听上下文还是听记忆；<b>B</b> 信息不全时模型知不知道能否下结论；<b>C</b> 能否用程序打分的强化学习训练本地小模型；以及方案 v2 新增的 <b>P2 干预阶梯</b>：哪种修法修好哪类错误。每条文献列出它做了什么、用什么方法和数据、用什么架构、得出什么结论，以及和本项目的关系。</p>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+</header>
+
+<main class="wrap">
+<section>
+  <h2>各研究问题的空位</h2>
+  <p class="sub">每张卡片列出最接近的前作，以及检索后仍然空着的部分。「仍空」是指在本轮检索范围内没有找到，不等于穷尽。</p>
+  <div class="gaps">
+    <div class="gap A">
+      <span class="k">RQ-A · 知识冲突</span>
+      <h3>指南更新后，模型会不会悄悄沿用旧规则</h3>
+      <div><span class="lbl">最接近的前作</span>
+      <ul><li>TempoMed-Bench：选择题，考察新旧推荐的回忆</li><li>DriftMedQA：人工构造的「伪过时」推荐</li><li>MedCounterFact：模型几乎无条件接受上下文里的假证据</li><li>Adaptive Chameleon：通用领域的事实型知识冲突</li><li>GuideBench：规则更新后的鲁棒性，非医学</li></ul></div>
+      <p class="open"><span class="lbl">仍空</span>病人层面、新旧两版都真实存在、结论可以由程序算出的<b>程序性规则冲突</b>（PCE ≥10% 对 PREVENT ≥7.5%）；用<b>数值指纹</b>识别模型实际在用哪个方程；「新阈值配旧方程」的混用。</p>
+    </div>
+    <div class="gap B">
+      <span class="k">RQ-B · 可判定性</span>
+      <h3>缺数据时，模型知不知道结论其实已经确定</h3>
+      <div><span class="lbl">最接近的前作</span>
+      <ul><li>ClinDet-Bench：94 个人造病例、计分式量表</li><li>MedAbstain：选择题改造成弃权题</li><li>When Confidence Fails：置信度对信息缺失不敏感</li><li>SCORE2 基准：抽取好、计算差，但没有测弃权</li><li>语义熵、P(True)：通用不确定性方法</li></ul></div>
+      <p class="open"><span class="lbl">仍空</span><b>连续方程 + 区间运算</b>给出的精确可判定性标签；按「区间到阈值的距离」连续控制难度；真实病历里的自然缺失，以及模型<b>编造缺失数值</b>的比例。</p>
+    </div>
+    <div class="gap C">
+      <span class="k">RQ-C · 可验证奖励 RL</span>
+      <h3>程序打分的强化学习，能不能把这些能力训练进小模型</h3>
+      <div><span class="lbl">最接近的前作</span>
+      <ul><li>HuatuoGPT-o1：医学可验证问题 + 验证器奖励</li><li>MedCalc-R1：奖励里仍用了 LLM 评委</li><li>Yue 2025：RLVR 提高采样效率，但不扩展能力边界</li><li>精神科轻量模型 RL：Qwen3 0.6–8B + LoRA</li><li>AgentMD / npj 工具研究：给工具就能大幅减错</li></ul></div>
+      <p class="open"><span class="lbl">仍空</span>心血管方程上<b>完全由程序给分</b>的 RL；从模板病例迁移到真实病历、迁移到新方程的泛化；区分「学会计算」和「学会格式」；和「小模型 + 工具」的正面对比。</p>
+    </div>
+    <div class="gap P2">
+      <span class="k">P2 · 干预阶梯（方案 v2）</span>
+      <h3>哪种修法修好哪类错误、代价多大、能否迁移</h3>
+      <div><span class="lbl">最接近的前作</span>
+      <ul><li>自动提示优化（APE、OPRO、DSPy / MIPRO）：只报总分提升；临床上已有 DSPy 用于电子病历问答</li><li>工具与程序计算（PAL、PoT）：算术错误大幅减少</li><li>上下文感知解码：能压住与上下文冲突的先验知识</li><li>知识编辑（ROME、MEMIT）：医学上只停留在表面记忆（MedEditBench）；规则层面的编辑刚起步</li><li>微调注入新知识会增加编造（Gekhman 2024）</li></ul></div>
+      <p class="open"><span class="lbl">仍空</span>在<b>同一个测试台、同一套分环节指标</b>上，把提示、优化、工具、解码干预、软提示、LoRA、知识编辑放在一起比较，报告每种修法修好了<b>哪类错误</b>、代价多大、换病人或换写法后还剩多少；知识编辑能否改写<b>临床公式和阈值</b>这类程序性规则。</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>文献清单</h2>
+  <p class="sub">可以按主题、研究问题、架构或核验程度筛选，也可以搜索标题、数据库或模型名。核验程度：<b>全文</b> = 读过正文并核对数字；<b>摘要</b> = 核对过摘要或官方页面；<b>检索</b> = 只看过检索结果摘要，引用前必须读原文。</p>
+</section>
+<div class="controls">
+  <div class="row-c"><span class="cl">主题</span><span id="f-cat" style="display:contents"></span></div>
+  <div class="row-c"><span class="cl">研究问题</span><span id="f-rq" style="display:contents"></span></div>
+  <div class="row-c"><span class="cl">架构</span><span id="f-arch" style="display:contents"></span></div>
+  <div class="row-c"><span class="cl">核验</span><span id="f-v" style="display:contents"></span>
+    <input type="search" id="q" placeholder="搜标题 / 数据库 / 模型…" aria-label="搜索文献">
+    <button class="chip" id="reset" type="button">清空</button>
+    <span class="count" id="count"></span></div>
+</div>
+<div class="rows" id="rows"></div>
+
+<footer>
+  <p>本地图由三部分汇总而成：HTN-Concord 文献地图（2026-09-20）中与本项目相关的条目；方向 ①②③ 的三轮新颖性检索；针对「大模型本身」的补充检索（知识冲突、弃权与不确定性、可验证奖励 RL、推理算力、探针）；2026-09-25 补充了干预阶梯的 35 篇文献，并给原有的 4 篇加上 P2 标签（标题、年份、作者用 arXiv 接口核对，结论依据摘要）。</p>
+  <p>「与本项目的关系」一栏是本项目自己的定位判断，不是对论文质量的评价。标为「检索」的条目，其方法、数据等细节来自检索结果摘要，可能不完整。</p>
+  <p>文件位置：<code>cv-llm-rulebench/artifacts/literature_map.html</code>。配套文档在 <code>cv-llm-rulebench/docs/</code>。</p>
+</footer>
+</main>
+
+<script>
+const CATS={
+ CV:"心血管 / 高血压应用",CALC:"风险计算与工具调用",KC:"知识冲突与知识更新",ABS:"弃权与不确定性",
+ RL:"强化学习与后训练",ROB:"鲁棒性与一致性",PROBE:"机制与探针",TTC:"推理算力",
+ EXEC:"可执行指南与神经-符号",EVAL:"评测方法与规范",EQ:"方程与指南原文（背景）",
+ LADDER:"干预阶梯：修复手段"
+};
+const RQN={A:"A 知识冲突",B:"B 可判定性",C:"C 可验证奖励 RL",P2:"P2 干预阶梯",bg:"背景"};
+const P=[
+// ---------- CV ----------
+{c:"CV",rq:["A","bg"],dom:"高血压",arch:"直接提示",v:"摘要",t:"Performance of Large Language Models in Analyzing Common Hypertension Scenarios",m:"Hypertension (AHA) 2026",u:"https://www.ahajournals.org/doi/10.1161/HYPERTENSIONAHA.125.25492",
+ w:"51 个高血压情境，三位盲评者分别给准确性和安全性打分，并判断回答出自 LLM 还是专家。",me:"自撰 vignette；人工双量表评分",d:"51 个自撰情境",mo:"GPT-4、Gemini、MedLM",
+ r:"GPT-4 准确 83% / 安全 86%；Gemini 64% / 73%；MedLM 35% / 39%；专家 92% / 93%",rel:"同病种最直接的应用型评测；规模小、人工评分、没有问「用的是哪一版指南」。"},
+{c:"CV",rq:["A","bg"],dom:"高血压",arch:"提示工程",v:"摘要",t:"The effects of multitype prompt engineering for LLMs in hypertension treatment decisions",m:"npj Digital Medicine 2026 · PMID 41986562",u:"https://www.nature.com/articles/s41746-026-02645-y",
+ w:"比较多种提示策略；另设医生在环的一条臂，看 LLM 建议如何改变三个层级医院医生的准确率。",me:"多提示策略（含 Guidance-Self-Consistency）；人机协同实验",d:"高血压治疗决策题集；三级医院医生",mo:"ChatGPT-4.1、Claude-4、Gemini-2.5 Pro、DeepSeek-V3",
+ r:"准确率从 62.7%（DeepSeek-V3 零样本）到 91.3%（GPT-4.1 + GSC）；最差配置把不当方案率从 26.6% 推高到 35.2%（自动化偏倚）",rel:"说明提示方式影响巨大，所以 A 必须把「给规则的方式」作为实验变量，并且提示要冻结。"},
+{c:"CV",rq:["bg"],dom:"高血压",arch:"直接提示",v:"摘要",t:"Assessment of Stage Two Hypertension Treatment Plans Written by Generative AI",m:"J Clin Med 2026;15:3103",u:"https://pmc.ncbi.nlm.nih.gov/articles/PMC13118107/",
+ w:"12 个面向公众的 AI 助手各写一份二期高血压治疗方案，6 位盲评者按三个维度打分。",me:"单一提示；人工评分",d:"1 个提示 × 12 个系统",mo:"GPT-4o、Claude 4 Sonnet、Gemini 2.5 Flash、DeepSeek-V3、OpenEvidence 等",
+ r:"Perplexity 8.17 / 9 最高，Dyna AI 3.75 最低",rel:"典型的「一个提示一个分数」产品比较，可以用来对照说明本项目为什么要可计算的真值和病人层面的规模。"},
+{c:"CV",rq:["bg"],dom:"高血压",arch:"Agent / 工具",v:"检索",t:"LLM Agent for Managing Patients With Suspected Hypertension (Cascade Framework)",m:"Hypertension (AHA) 2026 · PMID 41064862",u:"https://pubmed.ncbi.nlm.nih.gov/41064862/",
+ w:"基于 Dify 的级联 agent，做基准测试并在疑似高血压真实队列上外部验证。",me:"多阶段 agent 编排",d:"真实疑似高血压队列",mo:"GPT-4o、GPT-4o-mini、DeepSeek-V3 及其级联增强版",
+ r:"级联增强版优于各自基线",rel:"属于「造系统」；本项目研究的是模型本身的机制，可以作为应用侧的对照。"},
+{c:"CV",rq:["bg"],dom:"高血压",arch:"直接提示",v:"摘要",t:"Diagnostic Performance and Workup Efficiency of LLMs in Secondary Hypertension",m:"Diagnostics 2026;16:2165",u:"https://pmc.ncbi.nlm.nih.gov/articles/PMC13409298/",
+ w:"10 个专家撰写的继发性高血压病例，盲法比较诊断表现和检查安排效率。",me:"盲法横断面比较",d:"10 个病例",mo:"GPT-5.2、Claude Sonnet 4.6、Gemini 3.0 Pro",
+ r:"Claude Sonnet 4.6 在 10 例中的 9 例排第一；作者承认没有评估重复调用的稳定性",rel:"前沿模型在小样本上的应用评测；「没测稳定性」这个局限，正是 k 次重复设计要补的。"},
+{c:"CV",rq:["A"],dom:"高血压",arch:"直接提示",v:"检索",t:"Adherence of Free-Tier LLMs to the 2024 ESC Guidelines for Elevated BP and Hypertension",m:"PMC13015764",u:"https://pmc.ncbi.nlm.nih.gov/articles/PMC13015764/",
+ w:"40 道题，以 ESC 2024 为唯一真值，测免费模型的遵从度。",me:"问答 + 条文比对",d:"40 道自撰题",mo:"免费层模型",
+ r:"未定位",rel:"说明「新版指南遵从」是真实关切；但形式是问答题，不是病人层面的规则冲突。"},
+{c:"CV",rq:["bg"],dom:"高血压",arch:"微调",v:"检索",t:"ChatHTN: a consultation model for hypertension",m:"Scientific Reports 2026",u:"https://www.nature.com/articles/s41598-026-47937-1",
+ w:"面向高血压咨询的领域微调模型。",me:"领域微调",d:"未定位",mo:"专用微调模型",r:"未定位",rel:"高血压领域少有的训练类工作；不是可验证奖励，也没有可计算的真值。"},
+{c:"CV",rq:["bg"],dom:"高血压",arch:"非 LLM",v:"检索",t:"Hypertension Medication Recommendation via Synergistic and Selective Modeling of Heterogeneous Medical Entities",m:"JMIR Med Inform 2025;13:e74170",u:"https://medinform.jmir.org/2025/1/e74170",
+ w:"非 LLM 的图神经模型做高血压用药推荐。",me:"异质实体图建模",d:"MIMIC-III / MIMIC-IV（按 ICD 高血压码选人）",mo:"自研模型",r:"优于既有用药推荐基线",rel:"证明 MIMIC 上的高血压队列路线可行；任务是模仿实际处方。"},
+{c:"CV",rq:["B","bg"],dom:"心血管",arch:"提示工程",v:"摘要",t:"Assessing the Limitations of LLMs in CPG-Concordant Treatment Decision-Making on Real-World Data",m:"JMIRx Med 2025 · Roeschl 等",u:"https://xmed.jmir.org/2025/1/e74899",
+ w:"80 例重度主动脉瓣狭窄；2×2 设计：原始病历或医生摘要 × 是否注入指南知识。",me:"四个输入条件；κ、ICC、FBI 公平性指标",d:"单中心真实病历 n = 80",mo:"GPT-3.5 / 4 / 4o、LLaMA-2、Mistral、PaLM 2、DeepSeek-R1 等 9 个",
+ r:"原始病历 κ −0.47 到 0.22；摘要 + 指南知识 κ −0.02 到 0.63",rel:"真实病历输入会大幅拉低表现；B 的真实病历分支可以引用它作为动机。"},
+{c:"CV",rq:["bg"],dom:"心血管",arch:"提示工程",v:"摘要",t:"Improving LLM accuracy for aortic stenosis treatment via Heart Team simulation",m:"PMID 40703127 · 2025",u:"https://pubmed.ncbi.nlm.nih.gov/40703127/",
+ w:"用「模拟心脏团队多角色讨论」的提示提升主动脉瓣狭窄治疗选择的准确率。",me:"多角色提示编排",d:"主动脉瓣狭窄病例",mo:"未定位",r:"提示设计显著改变准确率",rel:"又一个「换提示改分数」的证据。"},
+{c:"CV",rq:["bg"],dom:"心血管",arch:"直接提示",v:"摘要",t:"Benchmarking LLMs against clinicians across hospital levels in cardiovascular decision-making",m:"Scientific Reports 2025",u:"https://www.nature.com/articles/s41598-025-32602-w",
+ w:"vignette 研究，把 LLM 和不同层级医院的医生做对比。",me:"vignette + 医生对照",d:"心血管 vignette",mo:"多个主流 LLM",r:"模型相对医生的表现与医院层级有关",rel:"部署效用问题，与本项目的机制问题正交。"},
+{c:"CV",rq:["bg"],dom:"房颤",arch:"提示工程",v:"检索",t:"Evaluating performance of LLMs for atrial fibrillation management using different prompting strategies and languages",m:"Scientific Reports 2025",u:"https://www.nature.com/articles/s41598-025-04309-5",
+ w:"比较不同提示策略和语言下 LLM 管理房颤的表现与一致性。",me:"多提示 × 多语言",d:"房颤题目",mo:"Claude 3.5 等",r:"最佳组合（Claude 3.5 + P-COT）的分类一致性也只有 60.3%",rel:"心血管领域「稳定性差」的直接证据。"},
+{c:"CV",rq:["bg"],dom:"房颤",arch:"直接提示",v:"检索",t:"Performance evaluation of 9 LLMs in anticoagulation decision-making for nonvalvular AF",m:"PubMed 41704798",u:"https://pubmed.ncbi.nlm.nih.gov/41704798/",
+ w:"9 个 LLM 做非瓣膜性房颤抗凝决策。",me:"情境提问",d:"房颤病例",mo:"9 个 LLM",r:"模型间差异大；常见错误包括混淆抗血小板药和抗凝药",rel:"领域背景。"},
+{c:"CV",rq:["bg"],dom:"心血管",arch:"直接提示",v:"检索",t:"Evaluation of LLMs in percutaneous coronary intervention decision-making",m:"Frontiers in Cardiovascular Medicine 2026",u:"https://www.frontiersin.org/journals/cardiovascular-medicine/articles/10.3389/fcvm.2026.1690716/full",
+ w:"评估 LLM 做 PCI 决策的能力。",me:"情境评测",d:"PCI 病例",mo:"多个 LLM",r:"作者指出专业知识深度和输出稳定性都有不足",rel:"领域背景。"},
+{c:"CV",rq:["bg"],dom:"心血管",arch:"综述 / 立场",v:"检索",t:"Concordance of LLM Recommendations with Multidisciplinary Heart Team Decisions: Systematic Review and Pooled Analysis",m:"PMC13542011",u:"https://pmc.ncbi.nlm.nih.gov/articles/PMC13542011/",
+ w:"系统综述：LLM 在冠脉血运重建和主动脉瓣干预上与心脏团队决策的一致性。",me:"系统综述 + 合并分析",d:"已发表研究",mo:"多个",r:"未定位",rel:"领域综述，可以用在引言。"},
+{c:"CV",rq:["bg"],dom:"心血管",arch:"综述 / 立场",v:"检索",t:"Applications of large language models in cardiovascular disease: a systematic review",m:"Eur Heart J Digit Health 2025",u:"https://academic.oup.com/ehjdh/article/6/4/540/8102875",
+ w:"心血管领域 LLM 应用的系统综述。",me:"系统综述",d:"已发表研究",mo:"—",r:"未定位",rel:"引言背景：多数研究是应用评测，而不是研究模型机制。"},
+{c:"CV",rq:["bg"],dom:"心血管",arch:"综述 / 立场",v:"检索",t:"Large Language Models in Cardiovascular Prevention: Narrative Review and Governance Framework",m:"Diagnostics 2026 · PMC12896711",u:"https://pmc.ncbi.nlm.nih.gov/articles/PMC12896711/",
+ w:"心血管预防中的 LLM 叙述性综述，并提出治理框架。",me:"叙述综述",d:"—",mo:"—",r:"未定位",rel:"引言背景。"},
+{c:"CV",rq:["bg"],dom:"心电图",arch:"直接提示",v:"检索",t:"How well do LLMs interpret ECGs? Benchmark of GPT-4o, Claude and Gemini on teaching cases",m:"PMC12795163",u:"https://pmc.ncbi.nlm.nih.gov/articles/PMC12795163/",
+ w:"70 张教学心电图，比较三个多模态模型的判读。",me:"图像判读",d:"Podrid's Real World ECGs 中的 70 张",mo:"GPT-4o、Claude、Gemini",r:"未定位",rel:"多模态方向，与本项目的纯文本 / 结构化任务正交。"},
+{c:"CV",rq:["A"],dom:"心血管",arch:"RAG",v:"检索",t:"Cardiology Knowledge Assessment of Retrieval-Augmented Open versus Proprietary LLMs",m:"medRxiv 2025.09",u:"https://www.medrxiv.org/content/10.1101/2025.09.11.25335607.full.pdf",
+ w:"用 ACCSAP 心内科题目比较开源和闭源模型，有无 RAG 两种条件。",me:"RAG 对照",d:"ACCSAP 题库",mo:"开源与闭源 LLM",r:"未定位",rel:"RAG 在心内科知识题上的对照；A 里的 RAG 条件可以参考它的设置。"},
+{c:"CV",rq:["A"],dom:"心血管",arch:"RAG",v:"检索",t:"Evaluating LLMs and RAG for Guideline-Adherent Nutrition Information for CVD Prevention",m:"JMIR 2025 · PubMed 41057043",u:"https://pubmed.ncbi.nlm.nih.gov/41057043/",
+ w:"把 AHA 2021 饮食指南做成知识库，比较现成模型与 Llama 3-70B + RAG。",me:"RAG 对照 + 专家评分",d:"AHA 2021 饮食指南",mo:"ChatGPT-4o、Perplexity、Llama 3-70B(+RAG)",r:"Llama 3 + RAG 在所有指标上最好",rel:"「给指南原文」能改变输出的证据；但没有测新旧版本冲突。"},
+{c:"CV",rq:["A"],dom:"心血管",arch:"RAG",v:"检索",t:"Evaluating RAG-LLMs for Infective Endocarditis Prophylaxis",m:"PMC12828207",u:"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12828207/",
+ w:"10 个 LLM 接入 RAG（MiniLM + FAISS），检索 AHA 2021 心内膜炎指南。",me:"RAG，取前 5 段",d:"AHA 2021 IE 指南",mo:"10 个 LLM",r:"RAG 提升指南遵从",rel:"A 里 RAG 条件的工程参照（切块、取前 5 段）。"},
+{c:"CV",rq:["B","C"],dom:"心血管",arch:"直接提示",v:"摘要",t:"LLMs for Cardiovascular Risk Prediction from Structured Clinical Data",m:"arXiv 2606.00031",u:"https://arxiv.org/abs/2606.00031",
+ w:"1,190 条记录，同时生成结构化摘要和合成病历，比较 LLM 与传统机器学习的冠心病预测。",me:"零样本 / 少样本；反向抽取检验一致性（94.61%）",d:"公开数据集，1,190 条记录、11 个属性",mo:"GPT、Gemini；随机森林等",r:"随机森林最好",rel:"LLM 直接做风险预测不如传统模型；支持「计算交给程序」的思路。"},
+{c:"CV",rq:["bg"],dom:"心血管",arch:"直接提示",v:"检索",t:"Large-language-model-based 10-year risk prediction of cardiovascular disease: UK Biobank",m:"medRxiv 2023",u:"https://www.medrxiv.org/content/10.1101/2023.05.22.23289842v1",
+ w:"用 LLM 在 UK Biobank 上预测 10 年心血管病风险。",me:"提示式预测",d:"UK Biobank",mo:"ChatGPT 等",r:"未定位",rel:"早期 LLM 做心血管风险预测的尝试。"},
+// ---------- CALC ----------
+{c:"CALC",rq:["B","C"],dom:"心血管",arch:"抽取+确定性计算",v:"全文",t:"LLMs approach clinician performance in ESC cardiovascular risk stratification (SCORE2)",m:"Eur Heart J Digit Health 2026;7(5):ztag073",u:"https://pmc.ncbi.nlm.nih.gov/articles/PMC13215473/",
+ w:"11 个 LLM 抽取 SCORE2 输入、计算风险、分类；另外用模型抽出的变量由程序重算；与 8 名医生对照。",me:"30 个 vignette，葡萄牙语和英语；三名心内科医生定参考标准",d:"30 个模拟门诊病例",mo:"GPT-4o、GPT-5、Claude Sonnet 4.5、Gemini 2.5 Pro、DeepSeek V3 等",
+ r:"抽取 F1 0.97–0.99；分类 κw 最高 0.69；程序重算后 κw 0.85–0.90，说明计算执行是主要失败环节",rel:"B 和 C 最强的相邻工作：「会读不会算」已被证明。本项目的重心放在弃权和训练上。"},
+{c:"CALC",rq:["B","C"],dom:"心血管",arch:"抽取+确定性计算",v:"摘要",t:"LLM pipeline exceeding physician-documented cardiovascular risk scores",m:"Eur Heart J Digit Health 2026;7(7):ztag124",u:"https://academic.oup.com/ehjdh/article/7/7/ztag124/8746371",
+ w:"三段式管线：专家知识注入 → LLM 抽取 → 程序计算。",me:"与单独 LLM、LLM + RAG、医师三组对照",d:"真实临床文本；CHA₂DS₂-VASc、HAS-BLED、EuroSCORE II",mo:"未列名",
+ r:"Krippendorff α：管线 0.78，单独 LLM 0.32，LLM + RAG 0.39，医师 0.31",rel:"「抽取与计算分离」的真实病历证据；B 里的神经-符号条件就是这个思路。"},
+{c:"CALC",rq:["B","C"],dom:"多科",arch:"基准构建",v:"检索",t:"MedCalc-Bench: Evaluating LLMs for Medical Calculations",m:"NeurIPS 2024 D&B · arXiv 2406.12036",u:"https://arxiv.org/abs/2406.12036",
+ w:"1,047 道医学计算题，每题配病历、问题、标准答案和逐步解释。",me:"计点式和方程式计算器",d:"病例报告摘录（来自 PubMed）+ 合成病历",mo:"Llama 3、Mistral、GPT-3.5 / 4、PMC-LLaMA、MediTron",r:"LLM 在医学计算上明显不足",rel:"C 的公开对照基准；本项目的题目由程序无限生成，而且集中在心血管方程。"},
+{c:"CALC",rq:["C"],dom:"多科",arch:"基准构建",v:"检索",t:"From Scores to Steps: Diagnosing and Improving LLM Performance in Evidence-Based Medical Calculations",m:"EMNLP 2025 · arXiv 2509.16584",u:"https://arxiv.org/abs/2509.16584",
+ w:"把评分拆成公式选择、实体抽取、算术三段分别评，并做自动错误归因；提出 MedRaC。",me:"分步评分 + 错误归因",d:"MedCalc-Bench 清洗版",mo:"GPT-4o 等",r:"细粒度评分下 GPT-4o 从 62.7% 降到 43.6%；MedRaC 把准确率从 16.35% 提到 53.19%",rel:"C 里「错误类型分布」分析的直接前作。"},
+{c:"CALC",rq:["C"],dom:"多科",arch:"Agent / 工具",v:"检索",t:"MedCalc-Pro: Solving Complex Medical Calculations with LLM Agents",m:"arXiv 2607.02879",u:"https://arxiv.org/abs/2607.02879",
+ w:"单计算器、多计算器、嵌套计算器三种场景；四阶段 agent：改写问题、检索、选工具、执行。",me:"Agent + 结构化验证",d:"2,268 个真实病例、77 个计算器、14 个科室",mo:"开源、闭源和医学专用 LLM",r:"该框架在三种场景下都最好",rel:"C 里「小模型 + 工具」对照的工程参照。"},
+{c:"CALC",rq:["C"],dom:"多科",arch:"Agent / 工具",v:"检索",t:"AgentMD: Empowering language agents for risk prediction with large-scale clinical tool learning",m:"Nature Communications 2025 · arXiv 2402.13225",u:"https://www.nature.com/articles/s41467-025-64430-x",
+ w:"自动从 PubMed 整理出 2,164 个可执行的临床计算器（RiskCalcs），agent 负责选择和调用。",me:"工具制造 + 工具使用",d:"RiskCalcs；RiskQA 基准",mo:"GPT-4 等",r:"RiskQA 上 87.7%，GPT-4 思维链只有 40.9%",rel:"「给工具」的强基线；C 必须与之对比。"},
+{c:"CALC",rq:["C"],dom:"多科",arch:"Agent / 工具",v:"检索",t:"Large language model agents can use tools to perform clinical calculations",m:"npj Digital Medicine 2025;8:163",u:"https://www.nature.com/articles/s41746-025-01475-8",
+ w:"48 个计算任务，比较 RAG、代码解释器、任务专用工具（OpenMedCalc）三种增强方式。",me:"约 10,000 次试验",d:"合成计算题",mo:"LLaMA、GPT 系列",r:"任务专用工具让错误减少 5.5 倍到 13 倍",rel:"工具是强基线，RL 训练必须超过「小模型 + 工具」才有意义。"},
+{c:"CALC",rq:["B"],dom:"多科",arch:"直接提示",v:"检索",t:"Clinical Risk Computation by Large Language Models Using Validated Risk Scores",m:"J Med Syst 2025 · PMID 41023468",u:"https://link.springer.com/article/10.1007/s10916-025-02261-5",
+ w:"3 个公开 LLM 计算 5 个风险评分。",me:"直接计算",d:"CHA₂DS₂-VASc、HAS-BLED、Wells、Charlson、Framingham",mo:"GPT-4o-mini、DeepSeek v3、Gemini 2.5 Flash",r:"多数评分接近完美，但都在 Framingham（连续方程）上失败",rel:"连续方程更难，这支持 B 和 C 选 PREVENT。"},
+{c:"CALC",rq:["C"],dom:"心血管",arch:"直接提示",v:"检索",t:"LLM Chatbots Cannot Reliably Calculate Clinical Risk Scores",m:"MDPI 2026",u:"https://www.mdpi.com/1664-204X/29/3/31",
+ w:"EuroSCORE II：直接计算和给出公式两种条件。",me:"两种条件对照",d:"EuroSCORE II 病例",mo:"ChatGPT、Claude、Gemini 等 4 个",r:"MAE 3.3–6.4%；给出公式后改善但一致率最高也只约 51%",rel:"「给公式」不足以解决问题，可以作为 C 的动机。"},
+{c:"CALC",rq:["A","B"],dom:"心血管",arch:"直接提示",v:"检索",t:"Performance of ChatGPT-3.5 for Pooled Cohort Equation estimation of ASCVD risk",m:"medRxiv 2023.08",u:"https://www.medrxiv.org/content/10.1101/2023.08.11.23293957.full.pdf",
+ w:"测 ChatGPT-3.5 能否算出 PCE 风险。",me:"重复查询",d:"合成输入",mo:"ChatGPT-3.5",r:"得分波动大，经常跨过阈值被重新分类",rel:"模型「认识」PCE 的早期证据；A 要检验它们是否在默认使用 PCE。"},
+{c:"CALC",rq:["B"],dom:"房颤",arch:"RAG",v:"检索",t:"RAG for Extracting CHA₂DS₂-VASc Risk Factors from Unstructured Clinical Notes",m:"medRxiv 2024 (Yale)",u:"https://www.medrxiv.org/content/10.1101/2024.09.19.24313992v1",
+ w:"Llama 3.1 + RAG 从真实病历抽取 CHA₂DS₂-VASc 风险因素。",me:"RAG 抽取；两位医生标注 200 份",d:"1,000 份病历（934 名房颤病人）",mo:"Llama 3.1",r:"RAG 可以准确抽取风险因素",rel:"真实病历抽取，但真值要人工标注；B 的真值由结构化表和区间运算给出。"},
+{c:"CALC",rq:["C"],dom:"多科",arch:"Agent / 工具",v:"检索",t:"MedMCP-Calc: Benchmarking LLMs for Realistic Medical Calculator Scenarios via MCP",m:"arXiv 2601.23049",u:"https://arxiv.org/abs/2601.23049",
+ w:"模糊的自然语言提问 + 多步决策 + 动态查询结构化 EHR + MCP 工具。",me:"MCP 工具协议",d:"结构化 EHR 库",mo:"未定位",r:"未定位",rel:"工具调用的工程参照。"},
+{c:"CALC",rq:["B","C"],dom:"儿科急腹症",arch:"抽取+确定性计算",v:"摘要",t:"Language Models as Interfaces, Not Oracles (ClaMPAPP)",m:"arXiv 2606.19183",u:"https://arxiv.org/abs/2606.19183",
+ w:"LLM 只负责把病历解析成结构化特征，经确定性合理性检查后交给 XGBoost。",me:"schema 约束抽取 + 合理性检查 + 机器学习",d:"儿科阑尾炎队列（内部和外部验证）",mo:"LLM + XGBoost；对照为单独 LLM",r:"混合系统最稳；单独 LLM 在叙述顺序被打乱时明显变差",rel:"神经-符号思路的清晰实例，B-NS 条件可以引用。"},
+{c:"CALC",rq:["B"],dom:"多科",arch:"基准构建",v:"摘要",t:"Measuring the sensitivity of LLM-based structured extraction in clinical discharge summaries",m:"arXiv 2606.05970",u:"https://arxiv.org/abs/2606.05970",
+ w:"在 MIMIC-IV 出院小结上一次只变一个选择（提示、模型、schema），不用人工真值来衡量抽取的敏感性。",me:"一致性（κ）而非准确性",d:"MIMIC-IV v3.1 出院小结",mo:"两个不同规模的模型",r:"三值标记跨提示的 κ 中位数约 0.69；分歧主要来自「没有」和「没写」难以区分",rel:"「没写」和「没有」的混淆，正是 B 里缺失识别的难点。"},
+{c:"CALC",rq:["B"],dom:"多科",arch:"基准构建",v:"摘要",t:"How Robust Are LLMs for Clinical Numeracy? (ClinicNumRobBench)",m:"Findings ACL 2026 · arXiv 2604.11133",u:"https://arxiv.org/abs/2604.11133",
+ w:"用 MIMIC-IV 生命体征的三种等价表示测数值检索、计算、比较和聚合。",me:"42 个问题模板",d:"MIMIC-IV 生命体征 + Open Patients 病历",mo:"17 个 LLM",r:"检索 > 85%；比较和聚合有模型 < 15%；医学微调使数值能力下降超过 30%",rel:"「医学微调损害数值能力」对 C 是重要的警示。"},
+{c:"CALC",rq:["C","P2"],dom:"通用",arch:"抽取+确定性计算",v:"摘要",t:"PAL: Program-aided Language Models",m:"ICML 2023 · arXiv 2211.10435",u:"https://arxiv.org/abs/2211.10435",
+ w:"LLM 生成程序作为推理步骤，交给 Python 解释器执行。",me:"程序辅助推理",d:"GSM8K 等",mo:"Codex 等",r:"用 Codex 的 PAL 在 GSM8K 上超过用思维链的 PaLM-540B，绝对高 15%",rel:"「计算外包给程序」的经典出处；干预阶梯第 5 层。先导中给出风险值后 8B、14B、sol 的错误全部消失，与此一致。"},
+{c:"CALC",rq:["C","P2"],dom:"通用",arch:"抽取+确定性计算",v:"摘要",t:"Program of Thoughts Prompting: Disentangling Computation from Reasoning",m:"TMLR 2023 · arXiv 2211.12588",u:"https://arxiv.org/abs/2211.12588",
+ w:"把数值计算从推理中分离出来，交给程序执行。",me:"PoT 提示",d:"数值推理数据集",mo:"Codex 等",r:"少样本和零样本下平均比思维链高约 12%；结合自一致性在数学数据集上达到当时最好水平",rel:"同上；也是干预阶梯第 5 层（工具 / 程序计算）的依据。"},
+// ---------- KC ----------
+{c:"KC",rq:["A"],dom:"通用",arch:"基准构建",v:"检索",t:"Adaptive Chameleon or Stubborn Sloth: LLM Behavior in Knowledge Conflicts",m:"ICLR 2024 Spotlight · arXiv 2305.13300",u:"https://arxiv.org/abs/2305.13300",
+ w:"先引出模型的参数记忆，再构造与之冲突的证据，做受控实验。",me:"受控的知识冲突构造",d:"事实问答",mo:"ChatGPT、GPT-4、开源 LLM",r:"证据连贯有说服力时模型会接受；若证据中夹着与记忆一致的信息，模型表现出强烈的确认偏误",rel:"A 的理论出发点：通用领域、事实型冲突；A 把它推广到程序性规则冲突。"},
+{c:"KC",rq:["A"],dom:"通用",arch:"基准构建",v:"检索",t:"Task Matters: Knowledge Requirements Shape LLM Responses to Context–Memory Conflict",m:"Findings ACL 2026 · arXiv 2506.06485",u:"https://aclanthology.org/2026.findings-acl.202/",
+ w:"说明冲突下的退化程度取决于任务对知识的依赖，而不只是冲突是否合理。",me:"多任务冲突实验",d:"多个任务",mo:"多个 LLM",r:"要求解释或重复规则会提高对上下文的依赖：对纯上下文任务有益，对需要参数知识的任务有害",rel:"A 里 C1（明确指令）和 C2（给原文）的对比可以放在这个框架下解释。"},
+{c:"KC",rq:["A"],dom:"通用",arch:"基准构建",v:"检索",t:"Three Regimes of Context-Parametric Conflict: A Predictive Framework",m:"arXiv 2605.11574",u:"https://arxiv.org/pdf/2605.11574",
+ w:"提出一个预测框架，区分上下文与参数知识冲突的三种情形，并做实证验证。",me:"理论框架 + 实验",d:"通用",mo:"多个",r:"冲突的处理方式可以预测",rel:"A 结果的理论解释框架。"},
+{c:"KC",rq:["A","P2"],dom:"通用",arch:"推理干预",v:"检索",t:"Parameters vs. Context: Fine-Grained Control of Knowledge Reliance in Language Models",m:"ICLR 2026",u:"https://en.papernotes.org/ICLR2026/llm_nlp/parameters_vs_context_fine-grained_control_of_knowledge_reliance_in_language_mod/",
+ w:"在解码阶段细粒度地控制模型依赖参数知识还是上下文。",me:"解码期干预",d:"通用",mo:"多个",r:"可以按需调节依赖程度",rel:"A 进阶部分除了 LoRA 之外的另一类候选方法。"},
+{c:"KC",rq:["A"],dom:"多科",arch:"基准构建",v:"摘要",t:"Large Language Models Lack Temporal Awareness of Medical Knowledge (TempoMed-Bench)",m:"arXiv 2605.13045",u:"https://arxiv.org/abs/2605.13045",
+ w:"从 20,000 多篇指南、3,411 条版本轨迹中构造 721 道选择题，迫使模型在新旧推荐之间选择。",me:"指南版本轨迹 → 选择题",d:"真实指南的版本史",mo:"多个 LLM",r:"对最新知识的掌握随时间线性下降；对历史推荐的准确率只有最新推荐的 25–54%；相邻年份之间预测不一致",rel:"A 最接近的前作：考的是知识回忆（选择题），A 考的是病人层面的规则执行，而且结论可以由程序算出。"},
+{c:"KC",rq:["A"],dom:"多科",arch:"基准构建",v:"检索",t:"Assessing and Mitigating Medical Knowledge Drift and Conflicts in LLMs (DriftMedQA)",m:"arXiv 2505.07968",u:"https://arxiv.org/pdf/2505.07968",
+ w:"把最新推荐与人工构造的「伪过时」版本配对，测知识冲突和概念漂移。",me:"配对构造 + 缓解方法",d:"临床推荐",mo:"多个 LLM",r:"模型受过时知识干扰明显",rel:"A 的相邻工作；它的旧版是人工构造的，A 用真实存在的 2017 版。"},
+{c:"KC",rq:["A","P2"],dom:"多科",arch:"微调",v:"检索",t:"Dense Clinical Contrasts Enhance Medical Knowledge Updating in LLMs",m:"arXiv 2608.30405",u:"https://arxiv.org/html/2608.30405",
+ w:"用密集的临床对比样本帮助模型更新医学知识。",me:"对比式知识更新训练",d:"医学知识",mo:"未定位",r:"对比样本能改善知识更新",rel:"A 进阶（LoRA 知识更新）的方法参照。"},
+{c:"KC",rq:["A"],dom:"多科",arch:"基准构建",v:"摘要",t:"Faithfulness vs. Safety: LLM Behavior Under Counterfactual Medical Evidence (MedCounterFact)",m:"Findings ACL 2026 · arXiv 2601.11886",u:"https://arxiv.org/abs/2601.11886",
+ w:"把问题和证据里的真实干预替换成反事实刺激（从陌生词到有毒物质），看模型是否照单全收。",me:"反事实证据构造",d:"治疗疗效比较问题",mo:"多个前沿 LLM",r:"模型压倒性地接受上下文里的证据，即使危险或不合理，并且给出自信、不加保留的回答",rel:"与 A 的预期方向相反（这里是「太听上下文」）。A 可以同时报告两个方向的失败。"},
+{c:"KC",rq:["A"],dom:"跨领域",arch:"基准构建",v:"摘要",t:"GuideBench: Benchmarking Domain-Oriented Guideline Following for LLM Agents",m:"ACL 2025 · arXiv 2505.11368",u:"https://arxiv.org/abs/2505.11368",
+ w:"评测 agent 遵从领域规则的能力，包括对规则更新的鲁棒性。",me:"外部规则注入",d:"多领域规则库",mo:"多个主流 LLM",r:"规则更新后的鲁棒性尤其弱",rel:"「规则会更新」的通用框架提法，可以直接用在 A 的引言。"},
+{c:"KC",rq:["A"],dom:"高血压",arch:"非 LLM",v:"检索",t:"Shifting Thresholds: Antihypertensive Eligibility Under the 2025 vs 2017 Hypertension Guidelines",m:"JACC: Advances 2025",u:"https://doi.org/10.1016/j.jacadv.2025.102546",
+ w:"用 NHANES 量化 2025 版与 2017 版指南下降压治疗资格人群的变化。",me:"加权流行病学分析",d:"NHANES",mo:"不适用",r:"量化了两版指南之间资格人群的移动",rel:"A 冲突集大小的外部参照：我们在 NHANES 上算出的冲突比例应当与它的量级相符。"},
+{c:"KC",rq:["A"],dom:"心血管",arch:"非 LLM",v:"检索",t:"PREVENT Risk Score vs the Pooled Cohort Equations in MESA",m:"JACC: Advances 2025",u:"https://www.jacc.org/doi/10.1016/j.jacadv.2025.101825",
+ w:"在 MESA 队列里比较 PREVENT 与 PCE 的预测和实际发生率。",me:"外部验证",d:"MESA 队列",mo:"不适用",r:"实际 ASCVD 发生率 6.0%；PREVENT 预测 5.7%，PCE 预测 10.8%",rel:"「PCE 约高估一倍」的出处，也是 A 里数值指纹能区分两个方程的依据。"},
+{c:"KC",rq:["A"],dom:"高血压",arch:"综述 / 立场",v:"检索",t:"Updates in the 2025 AHA/ACC Hypertension Guideline",m:"Current Hypertension Reports 2026 · PMC12995957",u:"https://pmc.ncbi.nlm.nih.gov/articles/PMC12995957/",
+ w:"总结 2025 版指南的主要变化。",me:"综述",d:"—",mo:"—",r:"用 PREVENT 取代 PCE；1 期高血压的用药阈值从 PCE ≥10% 改为 PREVENT ≥7.5%",rel:"A 规则对照的直接出处（写论文时引指南原文）。"},
+{c:"KC",rq:["A"],dom:"心血管",arch:"非 LLM",v:"检索",t:"National variation in ASCVD risk between Pooled Cohort Equations and PREVENT",m:"Annals of Family Medicine (Suppl) · PMC11627899",u:"https://pmc.ncbi.nlm.nih.gov/articles/PMC11627899/",
+ w:"比较全美范围内 PCE 与 PREVENT 的风险差异。",me:"人群分析",d:"美国人群数据",mo:"不适用",r:"两个方程之间存在系统性差异",rel:"冲突集的背景证据。"},
+// ---------- ABS ----------
+{c:"ABS",rq:["B"],dom:"多科",arch:"基准构建",v:"全文",t:"ClinDet-Bench: Beyond Abstention, Evaluating Judgment Determinability of LLMs",m:"arXiv 2602.22771",u:"https://arxiv.org/abs/2602.22771",
+ w:"按「可能的分数区间是否跨过决策阈值」，把信息不全的情境分成可判定和不可判定两类。",me:"完整 / 不全但可判定 / 不全且不可判定 三种条件",d:"16 个计点式评分（CHADS2、HAS-BLED、ORBIT、CURB-65 等），94 个合成病例，由一名医生编写",mo:"GPT-5.2、o3-pro、GPT-4o、Gemini 3 Pro、Claude Opus 4.5、Llama 4 Maverick、DeepSeek-V3.2 / R1",
+ r:"信息完整时表现好，但信息不全时既过早下结论又过度弃权",rel:"B 唯一的直接前作。B 的增量：连续方程、区间运算、按距离控制难度、真实数据中的缺失、规模大两个数量级。"},
+{c:"ABS",rq:["B"],dom:"多科",arch:"基准构建",v:"摘要",t:"Knowing When to Abstain: Medical LLMs Under Clinical Uncertainty (MedAbstain)",m:"EACL 2026 · arXiv 2601.12471",u:"https://arxiv.org/abs/2601.12471",
+ w:"把医学选择题改造成弃权题：移除正确答案、加「弃权」选项，配合保形预测和对抗扰动。",me:"选项改造 + 保形预测",d:"医学 MCQA",mo:"开源和闭源模型",r:"模型系统性地过度作答；是否有显式弃权选项，比输入扰动更能影响弃权率",rel:"B 的输出格式里怎样呈现「无法判定」是一个实验变量，必须冻结。"},
+{c:"ABS",rq:["B"],dom:"多科",arch:"基准构建",v:"检索",t:"When Confidence Fails: Overconfidence in LLMs under Uncertainty and Missing Clinical Information",m:"arXiv 2608.09080",u:"https://arxiv.org/abs/2608.09080",
+ w:"在 MedMCQA 上加入语言不确定性线索，或者移除正确答案。",me:"两种不确定性设置",d:"MedMCQA",mo:"多个 LLM",r:"准确率随不确定性下降，但置信度几乎不变，导致自信的错误大量增加",rel:"B-RQ3（哪种不确定性信号更可靠）的直接动机。"},
+{c:"ABS",rq:["B"],dom:"多科",arch:"综述 / 立场",v:"检索",t:"When silence is safer: decision-theoretic framework for LLM abstention in healthcare",m:"npj Digital Medicine 2026",u:"https://www.nature.com/articles/s41746-026-02882-1",
+ w:"把「回答还是不答」在不确定性和危害下的取舍做决策论形式化。",me:"综述 + 框架",d:"—",mo:"—",r:"—",rel:"B 的理论定位。"},
+{c:"ABS",rq:["B"],dom:"跨领域",arch:"提示工程",v:"检索",t:"LLM Abstention Can Be a Prompt Artifact, in Addition to Genuine Uncertainty",m:"arXiv 2507.16199",u:"https://arxiv.org/abs/2507.16199",
+ w:"证明弃权率会随提示措辞明显变化。",me:"措辞消融",d:"通用",mo:"多个",r:"弃权率对措辞高度敏感",rel:"B 必须冻结「无法判定」选项的写法。"},
+{c:"ABS",rq:["B"],dom:"多科",arch:"推理干预",v:"检索",t:"KnowGuard: Knowledge-Driven Abstention for Multi-Round Clinical Reasoning",m:"arXiv 2509.24816",u:"https://arxiv.org/abs/2509.24816",
+ w:"多轮临床推理中的知识驱动弃权方法。",me:"知识驱动的弃权触发",d:"未定位",mo:"未定位",r:"未定位",rel:"B 里「改进弃权」的候选对照方法。"},
+{c:"ABS",rq:["B"],dom:"通用",arch:"综述 / 立场",v:"检索",t:"Know Your Limits: A Survey of Abstention in Large Language Models",m:"TACL 2025 · arXiv 2407.18418",u:"https://aclanthology.org/2025.tacl-1.26/",
+ w:"从查询、模型、人类价值三个角度梳理 LLM 弃权的方法、基准和指标。",me:"综述",d:"—",mo:"—",r:"提出弃权能否成为跨任务的元能力等开放问题",rel:"B 的主要综述引用。"},
+{c:"ABS",rq:["B"],dom:"通用",arch:"推理干预",v:"检索",t:"Language Models (Mostly) Know What They Know",m:"Kadavath et al. 2022 · arXiv 2207.05221",u:"https://arxiv.org/abs/2207.05221",
+ w:"研究模型对自己答案正确与否的自我评估，提出 P(True)。",me:"自我评估 + 校准分析",d:"多种选择题 / 判断题",mo:"Anthropic 系列模型",r:"大模型在合适的格式下校准良好",rel:"B 里「模型自报置信度」这一信号的经典出处。"},
+{c:"ABS",rq:["B"],dom:"通用",arch:"推理干预",v:"检索",t:"Semantic Uncertainty: Linguistic Invariances for Uncertainty Estimation in NLG",m:"Kuhn et al. ICLR 2023",u:"https://arxiv.org/abs/2302.09664",
+ w:"对多次采样的回答按语义聚类，再计算熵（语义熵）。",me:"多次采样 + 语义聚类",d:"问答",mo:"OPT 等",r:"语义熵比 token 级不确定性更能预测正确性",rel:"B 里「多次采样一致性」信号的方法出处。"},
+{c:"ABS",rq:["B"],dom:"多科",arch:"基准构建",v:"检索",t:"Mind the Gap: Benchmarking LLM Uncertainty and Calibration in Specialty-Aware Clinical QA",m:"EACL 2026 · arXiv 2506.10769",u:"https://aclanthology.org/2026.eacl-long.106/",
+ w:"按医学专科和题型分析 LLM 的不确定性与校准。",me:"多种不确定性方法比较",d:"S-MedQA、MedExQA",mo:"多个 LLM",r:"多数单次推理的不确定性方法在临床问答上失效；语义熵表现较好，但需要多次生成",rel:"支持 B 的假设：多次采样的信号优于单次自报。"},
+{c:"ABS",rq:["B"],dom:"多科",arch:"直接提示",v:"检索",t:"Calibration of Self-Reported Confidence and Accuracy of LLMs in Medical QA",m:"J Med Syst 2026",u:"https://link.springer.com/article/10.1007/s10916-026-02430-0",
+ w:"测医学问答中模型自报置信度与准确率的校准。",me:"校准分析",d:"医学问答",mo:"多个 LLM",r:"整体高估自己的正确率",rel:"B 的背景证据。"},
+{c:"ABS",rq:["B"],dom:"通用",arch:"推理干预",v:"检索",t:"ConU: Conformal Uncertainty in LLMs with Correctness Coverage Guarantees",m:"arXiv 2407.00499",u:"https://arxiv.org/abs/2407.00499",
+ w:"为 LLM 生成提供带覆盖率保证的保形不确定性。",me:"保形预测",d:"通用问答",mo:"多个",r:"可以给出正确率覆盖保证",rel:"B 如果要给「选择性作答」加统计保证，可以用这类方法。"},
+{c:"ABS",rq:["B"],dom:"通用",arch:"推理干预",v:"检索",t:"Are LLM Decisions Faithful to Verbal Confidence?",m:"arXiv 2601.07767",u:"https://arxiv.org/pdf/2601.07767",
+ w:"检验模型的决策是否与它口头报出的置信度一致。",me:"决策与置信度对照",d:"通用",mo:"多个",r:"两者只部分对齐",rel:"B 里比较不同信号时的方法学注意事项。"},
+{c:"ABS",rq:["B"],dom:"通用",arch:"推理干预",v:"检索",t:"Uncertainty-Aware Abstention in LLMs with Provable Alignment Guarantees",m:"arXiv 2607.04430",u:"https://arxiv.org/pdf/2607.04430",
+ w:"带可证明保证的、基于不确定性的弃权方法。",me:"理论 + 方法",d:"通用",mo:"多个",r:"未定位",rel:"B 的方法候选。"},
+{c:"ABS",rq:["B"],dom:"多科",arch:"推理干预",v:"检索",t:"Aligning Probabilistic Beliefs under Informative Missingness: LLM Steerability in Clinical Reasoning",m:"arXiv 2512.00479",u:"https://arxiv.org/pdf/2512.00479",
+ w:"研究「数据缺失本身带有信息」时，LLM 的概率信念能否被引导。",me:"缺失机制实验",d:"临床推理",mo:"未定位",r:"未定位",rel:"与 B 高度相关：缺失并非随机，比如没测血脂本身就是一种信息。"},
+{c:"ABS",rq:["B"],dom:"通用",arch:"基准构建",v:"检索",t:"Agentic Abstention: Do Agents Know When to Stop Instead of Act?",m:"arXiv 2606.28733",u:"https://arxiv.org/pdf/2606.28733",
+ w:"研究 agent 何时应该停下，而不是继续行动。",me:"agent 弃权评测",d:"通用",mo:"多个",r:"未定位",rel:"B 里「给工具」条件下的弃权问题。"},
+// ---------- RL ----------
+{c:"RL",rq:["C"],dom:"通用",arch:"强化学习",v:"检索",t:"DeepSeekMath: Pushing the Limits of Mathematical Reasoning (GRPO)",m:"arXiv 2402.03300 · 2024",u:"https://arxiv.org/abs/2402.03300",
+ w:"提出 GRPO：不训练价值网络，而是对同一个问题采样一组回答，以组内平均分为基线。",me:"GRPO",d:"数学语料",mo:"DeepSeekMath 7B",r:"GRPO 显著提升数学推理，并节省显存",rel:"C 使用的训练算法出处。"},
+{c:"RL",rq:["C"],dom:"通用",arch:"强化学习",v:"检索",t:"DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning",m:"arXiv 2501.12948 · 2025",u:"https://arxiv.org/abs/2501.12948",
+ w:"主要依靠 GRPO 和可验证奖励训练出推理模型。",me:"多阶段 RL",d:"数学、代码等",mo:"DeepSeek-R1",r:"推理能力可与 o1 相比",rel:"C 的范式出处。"},
+{c:"RL",rq:["C"],dom:"通用",arch:"强化学习",v:"检索",t:"Does Reinforcement Learning Really Incentivize Reasoning Capacity in LLMs Beyond the Base Model?",m:"NeurIPS 2025 · arXiv 2504.13837",u:"https://arxiv.org/abs/2504.13837",
+ w:"用大 k 的 pass@k 比较 RLVR 模型和基础模型。",me:"pass@k 分析",d:"数学、代码",mo:"多个基础模型及其 RL 版本",r:"k 小时 RL 模型更好，k 大时基础模型相当甚至更好：RL 提高采样效率，但缩窄能力边界",rel:"C-RQ3（学到的是能力还是格式）必须回应这篇。评测里要报 pass@k。"},
+{c:"RL",rq:["C"],dom:"多科",arch:"强化学习",v:"检索",t:"HuatuoGPT-o1: Towards Medical Complex Reasoning with LLMs",m:"arXiv 2412.18925",u:"https://arxiv.org/abs/2412.18925",
+ w:"构造 4 万道可验证的医学问题，用医学验证器引导推理轨迹搜索，再用 PPO 做强化学习。",me:"验证器引导 SFT + PPO",d:"4 万道可验证医学问题",mo:"HuatuoGPT-o1 7B / 8B / 70B / 72B",r:"优于通用和医学专用基线",rel:"C 最接近的医学 RL 前作；它的验证器是 LLM，C 的是程序。"},
+{c:"RL",rq:["C"],dom:"多科",arch:"强化学习",v:"摘要",t:"MedCalc-R1: Knowledge-Guided Reward Framework for Medical Mathematical Reasoning",m:"arXiv 2608.08623",u:"https://arxiv.org/abs/2608.08623",
+ w:"用 GRPO 训练医学计算，奖励由格式、知识验证、软硬结合的答案奖励组成。",me:"GRPO + 混合奖励；外部验证器检查公式",d:"医学计算题",mo:"检索摘要显示 Qwen2.5-1.5B / 3B-Instruct",r:"检索摘要显示：1.5B 从 19.0% 提到 24.0%，3B 从 24.0% 提到 27.0%（需要读原文核实）",rel:"C 最直接的竞争者；据检索摘要，它的奖励里用到了冻结的 LLM 评委，C 完全用程序。"},
+{c:"RL",rq:["C"],dom:"精神科",arch:"强化学习",v:"检索",t:"Evidence-guided RL for aligning light-parameter LLMs with psychiatric clinical reasoning",m:"arXiv 2602.06449",u:"https://arxiv.org/pdf/2602.06449",
+ w:"用 LoRA 和 GRPO 训练 Qwen3 0.6B 到 8B 做精神科临床推理。",me:"SFT 冷启动 + GRPO",d:"公开问答数据集",mo:"Qwen3 0.6B / 1.7B / 4B / 8B",r:"小模型上的 RL 可行",rel:"C 在模型规模和训练配置上的直接参照。"},
+{c:"RL",rq:["C"],dom:"多科",arch:"强化学习",v:"检索",t:"MedCEG: Reinforcing Verifiable Medical Reasoning with Critical Evidence Graph",m:"arXiv 2512.13510",u:"https://arxiv.org/pdf/2512.13510",
+ w:"用关键证据图为医学推理提供可验证的奖励。",me:"证据图奖励",d:"医学推理",mo:"未定位",r:"未定位",rel:"C 奖励设计的参照。"},
+{c:"RL",rq:["C"],dom:"多科",arch:"强化学习",v:"检索",t:"Med-PRM: Medical Reasoning Models with Stepwise, Guideline-verified Process Rewards",m:"arXiv 2506.11474",u:"https://arxiv.org/html/2506.11474v2",
+ w:"训练过程奖励模型，并借助检索到的医学证据做步骤级验证。",me:"过程奖励模型 + 检索",d:"医学问答",mo:"未定位",r:"逐步奖励改善推理",rel:"C 若加步骤级奖励，可以参照；C 的步骤真值可以直接由方程中间量给出。"},
+{c:"RL",rq:["C"],dom:"多科",arch:"强化学习",v:"检索",t:"MedS3: Towards Medical Slow Thinking with Self-Evolved Soft Dual-sided Process Supervision",m:"arXiv 2501.12051",u:"https://arxiv.org/abs/2501.12051",
+ w:"自我进化地同时训练策略模型和过程奖励模型。",me:"自进化 + 过程监督",d:"医学推理",mo:"未定位",r:"未定位",rel:"C 的相关工作。"},
+{c:"RL",rq:["C"],dom:"多科",arch:"强化学习",v:"检索",t:"FaithMed: Training LLMs For Faithful Evidence-Based Medical Reasoning",m:"arXiv 2607.01440",u:"https://arxiv.org/abs/2607.01440",
+ w:"用临床医生设计的评分标准和步骤级过程奖励做强化学习。",me:"过程奖励 + RL",d:"七个医学基准",mo:"Qwen3 系列",r:"平均提升 9%，比只看结果的 RL 高 5.8%",rel:"C 的对照：它的奖励依赖人写的评分标准，C 完全依赖程序。"},
+{c:"RL",rq:["C"],dom:"多科",arch:"微调",v:"摘要",t:"MedGuideX: Internalizing Decision Logic from Executable Guidelines into LLMs",m:"arXiv 2605.26567",u:"https://arxiv.org/abs/2605.26567",
+ w:"从指南中抽取可执行逻辑，生成带反事实的训练数据，再做监督微调。",me:"指南 → 可执行逻辑 → 反事实增广 → SFT",d:"四个临床推理基准",mo:"未列出",r:"平均准确率相对提升 10.28%",rel:"「用可执行逻辑生成训练数据」与 C 同源，但它是 SFT，没有可验证奖励和分布外分析。"},
+{c:"RL",rq:["C"],dom:"视觉",arch:"强化学习",v:"检索",t:"Med-R1: RL for Generalizable Medical Reasoning in Vision-Language Models",m:"PubMed 41632678",u:"https://pubmed.ncbi.nlm.nih.gov/41632678/",
+ w:"把 RL 用在医学视觉语言模型上，关注泛化。",me:"GRPO",d:"医学影像问答",mo:"VLM",r:"RL 改善跨模态泛化",rel:"C 里「RL 带来的泛化」的旁证。"},
+// ---------- ROB ----------
+{c:"ROB",rq:["A","B","C"],dom:"多科",arch:"基准构建",v:"摘要",t:"Same Patient, Different Words, Different Diagnosis? Semantic Stability in Clinical LLMs",m:"arXiv 2605.30646",u:"https://arxiv.org/abs/2605.30646",
+ w:"用 NLI、LLM 评委、医生三层过滤出不改变意思的改写，测 16 个开源模型的稳定性。",me:"MVS、ΔC、WCI 三个指标",d:"DiagnosisQA、MedQA",mo:"16 个开源通用和医学模型",r:"医学专用模型的鲁棒性并不稳定地更好",rel:"「换说法」这一大方向已被占。本项目只把它作为泛化测试维度，靠「程序保证等价」区分。"},
+{c:"ROB",rq:["B"],dom:"多科",arch:"基准构建",v:"摘要",t:"The MedPerturb Dataset: Non-Content Perturbations in Human and Clinical LLM Decision Making",m:"arXiv 2506.17163",u:"https://arxiv.org/abs/2506.17163",
+ w:"800 个情境，扰动性别、文风和格式，并与人类标注对照。",me:"LLM 生成的格式变体",d:"临床 vignette，三位专家标注",mo:"4 个 LLM",r:"LLM 对性别和文风更敏感；人类对格式更敏感",rel:"治疗规划任务上的扰动研究。"},
+{c:"ROB",rq:["bg"],dom:"多科",arch:"基准构建",v:"检索",t:"The Medium is the Message: How Non-Clinical Information Shapes Clinical Decisions in LLMs",m:"FAccT 2025 · Gourabathina, Ghassemi 等",u:"https://dl.acm.org/doi/10.1145/3715275.3732121",
+ w:"扰动病人留言中的非临床信息（不确定语气、夸张语气、性别），看治疗建议是否改变。",me:"扰动实验",d:"病人留言数据",mo:"多个 LLM",r:"治疗建议明显不一致，存在性别差异",rel:"背景。"},
+{c:"ROB",rq:["A","B"],dom:"多科",arch:"基准构建",v:"摘要",t:"When Demographic Sensitivity Isn't What It Seems: Baseline-Aware Counterfactual Audits",m:"BioNLP 2026",u:"https://aclanthology.org/2026.bionlp-1.14/",
+ w:"人口学扰动的效应要和改写噪声对比才有意义。",me:"改写作为对照扰动",d:"EHR 分诊 / 预测",mo:"三个临床 LLM",r:"噪声底（Jaccard 不稳定度）为 0.46–0.71，人口学效应常常不比它大",rel:"A 和 B 都必须报告重复噪声基线，否则翻转率无法解读。"},
+{c:"ROB",rq:["bg"],dom:"ICU",arch:"非 LLM",v:"摘要",t:"Metamorphic Testing for Clinical ML Models: Framework Proposal and Pilot",m:"arXiv 2607.22984",u:"https://arxiv.org/abs/2607.22984",
+ w:"为三个 ICU 预测任务设计 12 条以指南为依据的蜕变关系。",me:"蜕变测试",d:"MIMIC-III / IV；UCI Heart Disease",mo:"传统机器学习",r:"AUROC 0.849–0.900，但蜕变关系违反率 27–87%",rel:"「不需要真值的测试」在临床的先例。"},
+{c:"ROB",rq:["bg"],dom:"肿瘤",arch:"基准构建",v:"摘要",t:"Counterfactual Evaluation Reveals Hidden Capability Profiles in Clinical LLMs (CSS)",m:"arXiv 2605.30590",u:"https://arxiv.org/abs/2605.30590",
+ w:"224 个肿瘤病例，在 5 个维度上做「应当改变」的干预，看模型是否往预设的正确方向更新。",me:"预注册的方向",d:"肿瘤 MTB 病例",mo:"6 个前沿模型",r:"按敏感性排名与按覆盖率排名几乎相反；手术状态维度最高只有 17.2%",rel:"方向性测试的先例；它的方向由人规定，本项目的方向由方程给出。"},
+{c:"ROB",rq:["C"],dom:"合成表格",arch:"基准构建",v:"全文",t:"Robustness is important: Limitations of LLMs for predictions on tabular data",m:"PNAS Nexus 2026",u:"https://pmc.ncbi.nlm.nih.gov/articles/PMC13253566/",
+ w:"变量名、变量顺序、小数位、自然语言 vs JSON、行顺序这些与任务无关的变化，是否改变预测。",me:"构造上保证等价的变化",d:"合成回归 / 分类数据",mo:"GPT-4o-mini、Claude-4.5-Sonnet、Grok-4.1、Llama-3-8B、Qwen-3-4B、TabPFN",r:"变化幅度 0.45–17.34%；开源模型对开头和结尾位置的注意力呈 U 形",rel:"C 的分布外测试（换格式、换顺序）可以直接借用这套变化类型。"},
+{c:"ROB",rq:["bg"],dom:"多科",arch:"基准构建",v:"检索",t:"Artificial Intolerance: Stigmatizing Language in Clinical Documentation Skews LLM Decision-Making",m:"arXiv 2605.17228",u:"https://arxiv.org/abs/2605.17228",
+ w:"在 vignette 中插入不同强度的污名化语言。",me:"剂量-反应设计",d:"临床 vignette",mo:"9 个 LLM",r:"一句话就足以改变决策，而且有剂量-反应关系",rel:"背景。"},
+{c:"ROB",rq:["bg"],dom:"多科",arch:"基准构建",v:"检索",t:"MedFuzz: Exploring the Robustness of LLMs in Medical Question Answering",m:"arXiv 2406.06573",u:"https://arxiv.org/abs/2406.06573",
+ w:"让攻击方 LLM 改写 MedQA 题目，打破基准的隐含假设。",me:"对抗式改写",d:"MedQA",mo:"GPT-4 等",r:"高基准分不等于鲁棒",rel:"背景。"},
+{c:"ROB",rq:["bg"],dom:"多科",arch:"综述 / 立场",v:"全文",t:"Clinical Plausibility in LLM Robustness Testing for Medicine: A Scoping Review",m:"J Med Syst 2026 · PMC13161009",u:"https://pmc.ncbi.nlm.nih.gov/articles/PMC13161009/",
+ w:"33 篇医学 LLM 鲁棒性研究的范围综述。",me:"PRISMA-ScR",d:"5,331 篇筛选后纳入 33 篇",mo:"—",r:"73% 是混合领域；只有 33% 的测试贴近真实临床场景",rel:"专科化、贴近临床的鲁棒性研究仍然少。"},
+{c:"ROB",rq:["A"],dom:"多科",arch:"基准构建",v:"检索",t:"Perspectives on Cross-Lingual Consistency in LLMs for Medical Questions",m:"arXiv 2609.07687",u:"https://arxiv.org/html/2609.07687",
+ w:"同一医学问题换语言后答案是否一致。",me:"跨语言比较",d:"医学问题",mo:"多个 LLM",r:"模型默认倾向一致，英语提示下最明显",rel:"A 可以加一个中文条件，看中文语境下是否更容易退回旧版指南。"},
+{c:"ROB",rq:["bg"],dom:"多科",arch:"基准构建",v:"检索",t:"Cognitive bias in clinical LLMs (BiasMedQA)",m:"npj Digital Medicine 2024",u:"https://www.nature.com/articles/s41746-024-01283-6",
+ w:"在 1,273 道 USMLE 题中嵌入 7 种临床认知偏差。",me:"偏差注入",d:"USMLE",mo:"多个 LLM",r:"推理能力并不能稳定地防止偏差",rel:"背景。"},
+// ---------- PROBE ----------
+{c:"PROBE",rq:["A","C"],dom:"急诊分诊",arch:"探针 / 可解释",v:"摘要",t:"Internal Representation, Not Clinical Knowledge: Where Apparent LLM Triage Failures Originate",m:"arXiv 2605.29889",u:"https://arxiv.org/abs/2605.29889",
+ w:"同一段叙述，分别要求选择题和自由文本输出，用稀疏自编码器看医学特征在哪里失活。",me:"SAE + logit 归因",d:"分诊基准",mo:"Gemma 3 4B / 12B IT、Qwen3-8B",r:"医学特征在叙述部分激活，但到选择题的决策 token 处全部失活",rel:"医学领域最近的机制研究；A 的探针分析（模型内部用的是哪个方程）可以借鉴。"},
+{c:"PROBE",rq:["A","C"],dom:"通用",arch:"探针 / 可解释",v:"摘要",t:"LLMs Know More About Numbers than They Can Say",m:"arXiv 2602.07812",u:"https://arxiv.org/abs/2602.07812",
+ w:"用线性探针读取隐藏状态中数字的对数量级和大小关系。",me:"线性探针",d:"合成文本",mo:"较小的开源 LLM",r:"探针判断大小关系超过 90%，直接问模型只有 50–70%",rel:"「内部能读出数值」的前作；A 用探针读 PCE 和 PREVENT 值有了方法依据。"},
+{c:"PROBE",rq:["C"],dom:"通用",arch:"探针 / 可解释",v:"摘要",t:"Probing for Arithmetic Errors in Language Models",m:"arXiv 2507.12379",u:"https://arxiv.org/abs/2507.12379",
+ w:"从隐藏状态同时解码模型的答案和正确答案。",me:"轻量探针",d:"三位数加法 → GSM8K",mo:"未列出",r:"判断对错准确率 > 90%，并能推广到 GSM8K",rel:"C 里「训练前后内部计算是否变准」的方法参照。"},
+{c:"PROBE",rq:["B"],dom:"多科",arch:"探针 / 可解释",v:"摘要",t:"The strength of clinical evidence is recoverable from representations but not from stated grades",m:"arXiv 2606.29034",u:"https://arxiv.org/abs/2606.29034",
+ w:"22 个开源模型（0.6–70B），45,134 条论断，比较探针读出的证据等级和模型自己报出的等级。",me:"线性估计器",d:"45,134 条临床论断",mo:"22 个开源 LLM",r:"探针 AUROC 中位数 71.8，模型自报接近随机；但信号主要来自词汇特征，不跨主题迁移",rel:"B 里「隐藏状态探针」这一信号的直接前作，也提醒我们必须做对照实验。"},
+{c:"PROBE",rq:["B"],dom:"多科",arch:"探针 / 可解释",v:"摘要",t:"Decodable but Not Corrected by Fixed Residual-Stream Linear Steering",m:"arXiv 2605.05715",u:"https://arxiv.org/abs/2605.05715",
+ w:"医学问答中的「想太多」失败模式可以线性解码，但沿这个方向做干预修正不了。",me:"探针 + 29 种干预配置",d:"医学问答、MMLU-STEM",mo:"Qwen2.5-7B",r:"可解码（平衡准确率 71.6%），但干预全部无效；探针用于选择性弃权时 AUROC 0.610",rel:"B：探针可以当弃权信号，但不要承诺能修复错误。"},
+{c:"PROBE",rq:["B"],dom:"多科",arch:"探针 / 可解释",v:"检索",t:"PING: Probing Hidden States for Calibrated, Alignment-Resistant Predictions",m:"medRxiv 2025.09",u:"https://www.medrxiv.org/content/10.1101/2025.09.17.25336018v3",
+ w:"在冻结模型上训练轻量探针，输出校准好的预测。",me:"探针；开源工具包 pingkit",d:"MMLU、MedMCQA",mo:"多个开源模型",r:"校准误差最多降低 96%；安全微调后拒答的模型，探针仍能恢复 87% 的 MedMCQA 表现",rel:"B 里探针信号可以直接用这个工具包。"},
+{c:"PROBE",rq:["bg"],dom:"通用",arch:"探针 / 可解释",v:"检索",t:"Language Models Represent Space and Time",m:"Gurnee & Tegmark, ICLR 2024 · arXiv 2310.02207",u:"https://arxiv.org/abs/2310.02207",
+ w:"用线性回归探针从 Llama-2 的激活中读出地理坐标和时间。",me:"回归探针",d:"地点、历史人物、新闻等",mo:"Llama-2 系列",r:"模型学到了线性的空间和时间表示",rel:"「连续量回归探针」的方法出处。"},
+{c:"PROBE",rq:["bg"],dom:"多科",arch:"综述 / 立场",v:"全文",t:"Application of Sparse Autoencoders to Enhance Mechanistic Interpretability of LLMs in Medicine",m:"JMIR AI 2026 · PMC13215048",u:"https://pmc.ncbi.nlm.nih.gov/articles/PMC13215048/",
+ w:"关于在医学 LLM 上使用稀疏自编码器的综述。",me:"综述",d:"—",mo:"—",r:"医学领域几乎没有 SAE 实证研究，心血管等专科为零；训练一个 SAE 约 1,000–4,000 美元",rel:"说明机制研究在心血管领域是空白，也说明本项目应选线性探针而不是 SAE。"},
+{c:"PROBE",rq:["bg"],dom:"多科",arch:"探针 / 可解释",v:"检索",t:"Investigating Linear Probe Robustness to Register, Specialty, and Corpus Shifts in Medical QA",m:"arXiv 2609.01361",u:"https://arxiv.org/abs/2609.01361",
+ w:"线性探针在语体、专科和语料变化下是否稳健。",me:"探针迁移实验",d:"医学问答",mo:"未定位",r:"未定位",rel:"做探针时的方法学注意事项。"},
+// ---------- TTC ----------
+{c:"TTC",rq:["A","B","C"],dom:"通用",arch:"推理算力",v:"检索",t:"When More Thinking Hurts: Overthinking in LLM Test-Time Compute Scaling",m:"arXiv 2604.10739",u:"https://arxiv.org/abs/2604.10739",
+ w:"研究增加推理算力时的收益递减和「想太多」。",me:"算力预算扫描",d:"推理基准",mo:"多个推理模型",r:"算力高时收益递减；较长的推理会把原本正确的答案改错",rel:"A、B 里「推理强度」条件的依据。"},
+{c:"TTC",rq:["C"],dom:"多科",arch:"推理算力",v:"检索",t:"m1: Unleash the Potential of Test-Time Scaling for Medical Reasoning",m:"arXiv 2504.00869",u:"https://arxiv.org/abs/2504.00869",
+ w:"用少量数据微调，让小模型在推理时扩展算力。",me:"轻量微调 + 推理算力扩展",d:"医学问答",mo:"10B 以下和 32B 模型",r:"最优推理预算约 4K token，超过后因「想太多」而下降",rel:"C 训练时设置输出长度上限的参照。"},
+{c:"TTC",rq:["A","B"],dom:"多科",arch:"推理算力",v:"检索",t:"Rethinking Test-Time Scaling for Medical AI: Model and Task-Aware Strategies",m:"JMIR · arXiv 2506.13102",u:"https://doi.org/10.2196/90693",
+ w:"在医学任务上比较不同推理算力扩展策略。",me:"多策略比较",d:"医学 LLM 和 VLM 基准",mo:"多个",r:"非推理模型很快饱和；推理模型在复杂任务上随预算提升",rel:"A、B 选择推理模式的依据。"},
+{c:"TTC",rq:["bg"],dom:"通用",arch:"推理算力",v:"检索",t:"OptimalThinkingBench: Evaluating Over and Underthinking in LLMs",m:"arXiv 2508.13141",u:"https://arxiv.org/abs/2508.13141",
+ w:"同时评测「想太多」和「想太少」。",me:"基准",d:"通用",mo:"多个",r:"未定位",rel:"背景。"},
+{c:"TTC",rq:["bg"],dom:"通用",arch:"推理算力",v:"检索",t:"s1: Simple test-time scaling",m:"arXiv 2501.19393",u:"https://arxiv.org/abs/2501.19393",
+ w:"用少量数据加「预算强制」实现推理算力扩展。",me:"预算强制",d:"数学",mo:"Qwen2.5-32B",r:"简单方法即可获得推理算力扩展",rel:"背景。"},
+// ---------- EXEC ----------
+{c:"EXEC",rq:["A"],dom:"多科",arch:"基准构建",v:"全文",t:"Benchmarking Clinical Decision Pathway Adherence in LLMs (MEGA-CDP)",m:"arXiv 2608.26592",u:"https://arxiv.org/abs/2608.26592",
+ w:"2,274 份中英文指南 → 42,353 个病例，每例带参考决策路径。",me:"GPT-5.2 抽决策树生成参考路径；GPT-5.4 Mini 作评委",d:"2,274 份 CPG",mo:"16 个模型（Gemini-3.1-Pro、GPT-5.4、Claude-Sonnet-4.6、Qwen3 系列等）",r:"16 个模型都没有达到可靠水平",rel:"规模最大的指南遵从基准，但真值和评分都来自 LLM；本项目的真值完全由程序算出。"},
+{c:"EXEC",rq:["A"],dom:"肿瘤",arch:"基准构建",v:"全文",t:"A collective capability boundary in frontier LLMs on guideline-conformant oncology decisions (ODBB)",m:"arXiv 2608.28592",u:"https://arxiv.org/abs/2608.28592",
+ w:"2,005 个肿瘤决策点，来自 NCCN 和已发表病例报告；完全确定性的评分器。",me:"确定性评分 + 两位医师核验",d:"NCCN 工作区 + 结直肠癌病例报告",mo:"9 个前沿模型",r:"42.1% 的题九个模型全错；3–9% 的题模型在推理中说对了，最终答案却没给出",rel:"确定性评分的方法学榜样；「推理中对、最终答案错」可以用 A 的数值指纹检验。"},
+{c:"EXEC",rq:["A"],dom:"肿瘤",arch:"基准构建",v:"检索",t:"MedGUIDE: Benchmarking Clinical Decision-Making in LLMs",m:"NeurIPS 2025 · arXiv 2505.11613",u:"https://arxiv.org/abs/2505.11613",
+ w:"从 55 棵 NCCN 决策树生成 7,747 道选择题。",me:"决策树 → LLM 生成场景 → 质控",d:"NCCN",mo:"25 个模型",r:"医学专用模型在结构化指南遵从上并不占优",rel:"背景。"},
+{c:"EXEC",rq:["A"],dom:"多科",arch:"基准构建",v:"摘要",t:"CPGBench: CPG Detection and Adherence in Multi-turn Conversations",m:"arXiv 2603.25196",u:"https://arxiv.org/abs/2603.25196",
+ w:"3,418 份指南、32,155 条推荐，每条生成一段多轮对话。",me:"自动对话生成 + 56 名医生验证",d:"3,418 份 CPG",mo:"8 个 LLM",r:"识别出推荐的比例 71.1–89.6%，但正确引用指南标题只有 3.6–29.7%",rel:"「知道不等于会用」；A 可以要求模型报出所用方程，以检验这一点。"},
+{c:"EXEC",rq:["A"],dom:"多科",arch:"Agent / 工具",v:"摘要",t:"CPGPrompt: Translating Clinical Guidelines into LLM-Executable Decision Support",m:"arXiv 2601.03475",u:"https://arxiv.org/abs/2601.03475",
+ w:"把叙述性指南转成决策树，让 LLM 沿树逐节点执行。",me:"提示编排",d:"合成 vignette",mo:"未列出",r:"二分转诊 F1 0.85–1.00；多类路径 0.47–0.77",rel:"「把规则给模型」的一种形式，可以作为 A 的额外条件。"},
+{c:"EXEC",rq:["C"],dom:"多科",arch:"Agent / 工具",v:"摘要",t:"GuideSkill: Evolving Executable LLM Agent Skills for Guideline-Grounded Clinical Reasoning",m:"arXiv 2607.26160",u:"https://arxiv.org/abs/2607.26160",
+ w:"把指南变成可执行的技能函数，并用病例迭代进化。",me:"技能库 + 进化",d:"四个基准",mo:"Qwen3.5-9B 等",r:"作者自陈缺乏医师验证",rel:"背景。"},
+{c:"EXEC",rq:["A"],dom:"肿瘤",arch:"抽取+确定性计算",v:"摘要",t:"Automatic Conversion of NICE Guidelines to an Executable Computational Model Using LLMs",m:"Learning Health Systems 2026",u:"https://arxiv.org/abs/2608.30022",
+ w:"用 LLM 分步把 NICE 指南转成可执行模型，并产出人可以检查的中间产物。",me:"分步 LLM 转换",d:"NICE 胰腺癌 / 肺癌指南；20 个 vignette",mo:"LLM 作转换器",r:"可以自动得到可解释、可执行的模型",rel:"背景。"},
+{c:"EXEC",rq:["A"],dom:"肾病",arch:"RAG",v:"检索",t:"RAG and GraphRAG for complex clinical cases (NICE CKD)",m:"medRxiv 2025.11",u:"https://www.medrxiv.org/content/10.1101/2025.11.25.25341010v1",
+ w:"用 NICE 慢性肾病指南构建知识图，比较不检索、平铺 RAG 和 GraphRAG。",me:"三条件对照",d:"NICE CKD 指南",mo:"未定位",r:"GraphRAG 在阈值和算法性决策上最强，但表述清晰度更差",rel:"A 里 RAG 条件可以参考；阈值型决策正是 A 的任务类型。"},
+{c:"EXEC",rq:["bg"],dom:"多科",arch:"基准构建",v:"检索",t:"AMEGA: Autonomous Medical Evaluation for Guideline Adherence of LLMs",m:"npj Digital Medicine 2024",u:"https://www.nature.com/articles/s41746-024-01356-6",
+ w:"20 个诊断场景、13 个专科、1,337 个加权评分点。",me:"GPT-4 作评分员",d:"自撰场景",mo:"17 个 LLM",r:"GPT-4 41.9 / 50；新手医生对照 25.8 / 50",rel:"「指南遵从」最早的基准之一。"},
+{c:"EXEC",rq:["bg"],dom:"糖尿病",arch:"基准构建",v:"检索",t:"T2D-Bench: Evidence-Gated Evaluation of LLM Outputs for Type 2 Diabetes",m:"arXiv 2606.24145",u:"https://arxiv.org/abs/2606.24145",
+ w:"知识图 + ADA 2026 可计算规则 + 100 个结构化 vignette + 证据门控。",me:"输出校验器",d:"UMLS、DrugBank、SIDER、ADA 2026",mo:"未定位",r:"未定位",rel:"慢病可计算规则的相邻领域。"},
+// ---------- EVAL ----------
+{c:"EVAL",rq:["bg"],dom:"跨领域",arch:"综述 / 立场",v:"检索",t:"The TRIPOD-LLM reporting guideline",m:"Nature Medicine 2025",u:"https://www.nature.com/articles/s41591-024-03425-5",
+ w:"TRIPOD 的 LLM 扩展：19 个主条目、50 个子条目。",me:"报告规范",d:"—",mo:"—",r:"—",rel:"论文的报告框架。"},
+{c:"EVAL",rq:["bg"],dom:"跨领域",arch:"综述 / 立场",v:"检索",t:"The evaluation illusion of large language models in medicine",m:"npj Digital Medicine 2025",u:"https://www.nature.com/articles/s41746-025-01963-x",
+ w:"论证现有基准因数据、任务和指标的选择而不能反映真实效用。",me:"立场文",d:"—",mo:"—",r:"只有约 5% 的医学 LLM 评测用了真实 EHR",rel:"引言用：为什么需要可计算真值和真实病历分支。"},
+{c:"EVAL",rq:["bg"],dom:"跨领域",arch:"综述 / 立场",v:"检索",t:"Position: Medical LLM Benchmarks Should Prioritize Construct Validity",m:"ICML 2025 · arXiv 2503.10694",u:"https://arxiv.org/abs/2503.10694",
+ w:"用心理测量学的构念效度审视医学基准。",me:"立场文",d:"—",mo:"—",r:"—",rel:"本项目的局限应当按构念效度的框架表述：测的是「执行已发表规则」，不是「临床正确」。"},
+{c:"EVAL",rq:["bg"],dom:"跨领域",arch:"综述 / 立场",v:"检索",t:"LLM-as-a-Judge in Healthcare: A Scoping Analysis",m:"arXiv 2605.25273",u:"https://arxiv.org/abs/2605.25273",
+ w:"梳理医疗领域用 LLM 当评委的做法及其与人类的一致性。",me:"范围综述",d:"—",mo:"—",r:"LLM 评委的一致性有明确的边界",rel:"说明本项目为什么不用 LLM 评委。"},
+{c:"EVAL",rq:["bg"],dom:"跨领域",arch:"综述 / 立场",v:"摘要",t:"Scalable Stewardship of an LLM-Assisted Clinical Benchmark with Physician Oversight",m:"arXiv 2512.19691",u:"https://arxiv.org/abs/2512.19691",
+ w:"如何规模化地组织医师对 LLM 辅助构建的基准的监督。",me:"治理流程",d:"—",mo:"—",r:"—",rel:"本项目不依赖医生裁定；如果以后加医生抽检，可以参照。"},
+{c:"EVAL",rq:["bg"],dom:"跨领域",arch:"基准构建",v:"检索",t:"Clinical knowledge in LLMs does not translate to human interactions",m:"arXiv 2504.18919",u:"https://arxiv.org/abs/2504.18919",
+ w:"LLM 在基准上的临床知识，不能推广到与真人的交互。",me:"真人用户研究",d:"真人实验",mo:"多个",r:"基准分数与真人交互效果脱节",rel:"讨论部分：本项目是上游的机制研究，不宣称部署价值。"},
+{c:"EVAL",rq:["bg"],dom:"跨领域",arch:"基准构建",v:"检索",t:"Medmarks: Open-Source LLM Benchmark Suite for Medical Tasks",m:"arXiv 2605.01417",u:"https://arxiv.org/abs/2605.01417",
+ w:"开源的医学任务基准套件。",me:"统一评测框架",d:"多个医学数据集",mo:"多个",r:"—",rel:"测试台开源发布时的打包参照；C 的「能力是否受损」可以用它评测。"},
+// ---------- EQ ----------
+{c:"EQ",rq:["A","B","C"],dom:"心血管",arch:"非 LLM",v:"摘要",t:"Development and Validation of the American Heart Association's PREVENT Equations",m:"Khan et al., Circulation 2024",u:"https://www.ahajournals.org/doi/10.1161/CIRCULATIONAHA.123.067626",
+ w:"用当代多队列数据开发 PREVENT 方程，估计 10 年和 30 年总心血管病风险。",me:"方程开发 + 外部验证",d:"25 个数据集，约 328 万成人",mo:"不适用",r:"纳入 eGFR、他汀使用等变量；适用于 30–79 岁",rel:"「新版」方程；本地实现已用原文算例逐位验证。"},
+{c:"EQ",rq:["A"],dom:"心血管",arch:"非 LLM",v:"检索",t:"2013 ACC/AHA Guideline on the Assessment of Cardiovascular Risk (Pooled Cohort Equations)",m:"Goff et al., Circulation 2014;129(25 Suppl 2):S49–S73",u:"https://www.ahajournals.org/doi/10.1161/01.cir.0000437741.48606.98",
+ w:"提出 PCE，估计 10 年 ASCVD 风险。",me:"多队列汇总建模",d:"社区队列（白人和非裔）",mo:"不适用",r:"2017 版高血压指南以 PCE ≥10% 作为 1 期高血压的用药阈值",rel:"「旧版」方程；A 的第一步就是按原文实现并用原文算例验证。"},
+{c:"EQ",rq:["A"],dom:"心血管",arch:"非 LLM",v:"检索",t:"Calibration of the Pooled Cohort Equations for ASCVD: An Update",m:"Annals of Internal Medicine 2016",u:"https://www.acpjournals.org/doi/10.7326/M16-1739",
+ w:"评估 PCE 在当代人群中的校准。",me:"校准分析",d:"美国队列",mo:"不适用",r:"PCE 在当代人群中高估风险",rel:"PCE 高估的出处之一。"},
+// ---------- LADDER（干预阶梯，2026-09-25 补充） ----------
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "提示工程", "v": "摘要", "t": "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models", "m": "NeurIPS 2022 · arXiv 2201.11903", "u": "https://arxiv.org/abs/2201.11903", "w": "阶梯第 1 层。在少样本例题里写出中间推理步骤，让模型先推理再作答。", "me": "少样本思维链提示", "d": "算术、常识、符号推理基准", "mo": "三个大模型（含 PaLM 540B）", "r": "思维链在算术、常识和符号推理任务上都提高了表现，这种能力在足够大的模型上才出现。", "rel": "「先写出公式再作答」和带完整计算过程的例题都属于这一类。先导中 8B 开思考模式后反而更差，正式实验要比较有无推理步骤。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "多科", "arch": "RAG", "v": "摘要", "t": "Benchmarking Retrieval-Augmented Generation for Medicine (MIRAGE / MedRAG)", "m": "Findings ACL 2024 · arXiv 2402.13178", "u": "https://arxiv.org/abs/2402.13178", "w": "阶梯第 2 层。第一个系统评测医学 RAG 的基准，比较不同语料、检索器和模型的组合。", "me": "基准构建 + 大规模组合实验", "d": "MIRAGE：来自 5 个医学问答数据集的 7,663 题", "mo": "41 种语料 × 检索器 × 模型组合", "r": "摘要指出医学大模型仍受幻觉和过时知识困扰，RAG 是应对手段之一；给出了医学 RAG 的系统比较。", "rel": "v1 的「贴指南原文」和「RAG」条件移到 P2。本项目要测的是：检索到的 2025 版原文能否压住模型记忆里的 2017 版。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "基准构建", "v": "摘要", "t": "Lost in the Middle: How Language Models Use Long Contexts", "m": "TACL 2024 · arXiv 2307.03172", "u": "https://arxiv.org/abs/2307.03172", "w": "阶梯第 2 层的风险。关键信息放在长上下文中间时，模型更难用上。", "me": "改变关键信息在上下文中的位置", "d": "多文档问答、键值检索", "mo": "多个开源和商用模型", "r": "相关信息的位置改变时，表现可能明显下降；模型不能稳健地利用长输入中的信息。", "rel": "支持 P2 的假设 H2.3：贴长篇指南原文或 RAG，新规则可能被长文本稀释，效果反而不如一句明确指令。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "提示工程", "v": "摘要", "t": "Large Language Models Are Human-Level Prompt Engineers (APE)", "m": "ICLR 2023 · arXiv 2211.01910", "u": "https://arxiv.org/abs/2211.01910", "w": "阶梯第 3 层的早期工作。让大模型生成候选指令，再按任务得分挑选。", "me": "指令生成 + 按评分搜索", "d": "24 个 NLP 任务", "mo": "未在摘要中列出", "r": "自动生成的指令在 19/24 个任务上达到或超过人工写的指令。", "rel": "本项目的评分由程序给出，可以直接作为自动提示优化的目标，不需要大模型评委。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "提示工程", "v": "摘要", "t": "Large Language Models as Optimizers (OPRO)", "m": "ICLR 2024 · arXiv 2309.03409", "u": "https://arxiv.org/abs/2309.03409", "w": "阶梯第 3 层。把「优化」写成自然语言任务，让大模型根据历史得分不断提出更好的提示。", "me": "以大模型为优化器的迭代搜索", "d": "GSM8K、Big-Bench Hard", "mo": "多个大模型", "r": "优化出的最佳提示比人工提示在 GSM8K 上高出最多 8%，在 Big-Bench Hard 上最多 50%。", "rel": "可直接用程序算出的正确率作为 OPRO 的目标函数。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "提示工程", "v": "摘要", "t": "DSPy: Compiling Declarative Language Model Calls into Self-Improving Pipelines", "m": "ICLR 2024 · arXiv 2310.03714", "u": "https://arxiv.org/abs/2310.03714", "w": "阶梯第 3 层的工程框架。把提示写成可编译、可自动优化的程序模块。", "me": "声明式模块 + 编译器自动生成例题和指令", "d": "数学应用题、多跳检索、问答、agent", "mo": "GPT-3.5、Llama2-13b-chat", "r": "几分钟编译后，GPT-3.5 和 llama2-13b-chat 自举出的管线比标准少样本提示分别高出 25% 和 65% 以上。", "rel": "P2 自动提示优化的首选实现框架；本项目的「抽取 → 程序计算」流程也可以写成 DSPy 管线。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "提示工程", "v": "摘要", "t": "Optimizing Instructions and Demonstrations for Multi-Stage LM Programs (MIPRO)", "m": "EMNLP 2024 · arXiv 2406.11695", "u": "https://arxiv.org/abs/2406.11695", "w": "阶梯第 3 层。DSPy 中同时优化指令和例题的优化器。", "me": "分解为各模块的指令与例题优化", "d": "7 个多阶段语言模型程序", "mo": "Llama-3-8B 等", "r": "在 7 个程序中的 5 个上超过基线优化器，准确率最多高 13%。", "rel": "可直接用于本机 Qwen 的提示优化，成本低。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "提示工程", "v": "摘要", "t": "TextGrad: Automatic \"Differentiation\" via Text", "m": "Nature 2025 · arXiv 2406.07496", "u": "https://arxiv.org/abs/2406.07496", "w": "阶梯第 3 层的另一路线。用大模型给出的文字反馈，像梯度一样反向传播来改进系统各部分。", "me": "文字反馈的反向传播", "d": "问答、分子优化、放疗计划等", "mo": "多种大模型", "r": "在从问答到放疗计划的多种任务上展示了有效性和通用性。", "rel": "可作为 OPRO、DSPy 之外的对照；反馈可以由程序的判分结果生成。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "临床", "arch": "提示工程", "v": "摘要", "t": "Neural at ArchEHR-QA 2025: Agentic Prompt Optimization for Evidence-Grounded Clinical QA", "m": "BioNLP 2025 Workshop · arXiv 2506.10751", "u": "https://arxiv.org/abs/2506.10751", "w": "阶梯第 3 层的临床应用。用 DSPy 的 MIPROv2 自动优化临床问答两个阶段的提示。", "me": "两阶段管线 + MIPROv2 + 自一致性投票", "d": "ArchEHR-QA 共享任务（电子病历问答）", "mo": "未在摘要中列出", "r": "隐藏测试集得分 51.5，排名第二；比零样本和少样本提示分别高 20 和 10 分以上。作者认为数据驱动的提示优化是微调的低成本替代。", "rel": "说明自动提示优化在临床任务上可行；本项目的区别是按错误类型报告效果，而不只报总分。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "临床", "arch": "提示工程", "v": "摘要", "t": "Stability-Aware Prompt Optimization for Clinical Data Abstraction", "m": "arXiv 2601.22373 · 2026", "u": "https://arxiv.org/abs/2601.22373", "w": "阶梯第 3 层的风险。临床抽取任务对提示写法很敏感，准确率高不等于稳定。", "me": "测量改写后的翻转率，并与校准、选择性预测对照；提出同时优化准确率和稳定性的循环", "d": "MedAlign、多发性硬化分型抽取", "mo": "多个开源和商用模型", "r": "准确率更高不保证对提示改写稳定；把稳定性加入优化目标可以降低翻转率，有时略损准确率。", "rel": "支持 P2 的评测设计：修法必须在换一种写法后仍然有效；正式实验每例至少两种写法。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "推理算力", "v": "摘要", "t": "Self-Consistency Improves Chain of Thought Reasoning in Language Models", "m": "ICLR 2023 · arXiv 2203.11171", "u": "https://arxiv.org/abs/2203.11171", "w": "阶梯第 4 层。多次采样不同推理路径，取出现最多的答案。", "me": "多路径采样 + 多数投票", "d": "GSM8K、SVAMP、AQuA、StrategyQA、ARC-challenge", "mo": "未在摘要中列出", "r": "在 GSM8K 上提高 17.9%，SVAMP 11.0%，AQuA 12.2%。", "rel": "预计能修随机算错，但修不了系统性的错误（如以旧公式为参照）；正是 P2 要区分的。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "Agent / 工具", "v": "摘要", "t": "Toolformer: Language Models Can Teach Themselves to Use Tools", "m": "NeurIPS 2023 · arXiv 2302.04761", "u": "https://arxiv.org/abs/2302.04761", "w": "阶梯第 5 层。模型自监督地学会在什么时候、怎样调用外部 API（包括计算器）。", "me": "自监督生成 API 调用训练数据并微调", "d": "多个下游任务", "mo": "未在摘要中列出", "r": "零样本表现显著提升，常可与大得多的模型相比，而且不损害语言建模能力。", "rel": "对照组：给 Qwen 小模型接计算工具，和 P3 的强化学习比较哪个更划算。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "推理干预", "v": "摘要", "t": "Trusting Your Evidence: Hallucinate Less with Context-aware Decoding", "m": "NAACL 2024 · arXiv 2305.14739", "u": "https://arxiv.org/abs/2305.14739", "w": "阶梯第 6 层。对比有无上下文时的输出概率，放大上下文的作用。", "me": "对比解码，不需要训练", "d": "摘要生成与知识冲突任务", "mo": "OPT、GPT、LLaMA、FLAN-T5", "r": "LLaMA 的事实性指标提高 14.3%；在上下文与模型先验知识冲突时，尤其能压住先验知识。", "rel": "最直接针对「退回旧版」：放大上下文里的 2025 规则，看模型是否还会换回 2017 版。需要开源模型。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "推理干预", "v": "摘要", "t": "Inference-Time Intervention: Eliciting Truthful Answers from a Language Model", "m": "NeurIPS 2023 · arXiv 2306.03341", "u": "https://arxiv.org/abs/2306.03341", "w": "阶梯第 6 层。在推理时沿特定注意力头的方向移动激活。", "me": "找出与真实性相关的注意力头并平移激活", "d": "TruthfulQA", "mo": "LLaMA、Alpaca 等", "r": "Alpaca 在 TruthfulQA 上的真实性从 32.5% 提到 65.1%；真实性和有用性之间有取舍。", "rel": "可尝试找出「新规则 vs 旧规则」方向；可与 P1 的探针分析结合。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "推理干预", "v": "摘要", "t": "Steering Llama 2 via Contrastive Activation Addition", "m": "ACL 2024 · arXiv 2312.06681", "u": "https://arxiv.org/abs/2312.06681", "w": "阶梯第 6 层。用正反两组例子的激活差作为引导向量，推理时加到残差流上。", "me": "对比激活相加", "d": "多选行为问题和开放式生成", "mo": "Llama 2 Chat", "r": "显著改变模型行为，在微调和系统提示之上仍然有效，能力损失很小。", "rel": "可构造「按 2025 版 vs 按 2017 版」的对比对，测能否压住退回旧版。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "推理干预", "v": "摘要", "t": "Representation Engineering: A Top-Down Approach to AI Transparency", "m": "arXiv 2310.01405 · 2023", "u": "https://arxiv.org/abs/2310.01405", "w": "阶梯第 6 层的方法框架。从群体表征出发读取并控制模型的高层概念。", "me": "表征读取与表征控制", "d": "诚实、无害等安全相关问题", "mo": "未在摘要中列出", "r": "给出基线和初步分析，显示这些方法能简单有效地理解和控制大模型。", "rel": "为 P1 的探针和 P2 的激活引导提供统一框架。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "微调", "v": "摘要", "t": "The Power of Scale for Parameter-Efficient Prompt Tuning", "m": "EMNLP 2021 · arXiv 2104.08691", "u": "https://arxiv.org/abs/2104.08691", "w": "阶梯第 7 层。冻结模型，只用反向传播训练一小段连续的「软提示」。", "me": "软提示调优", "d": "未在摘要中列出", "mo": "T5 各规模", "r": "明显优于 GPT-3 的少样本学习；模型超过数十亿参数后，效果追平全模型微调。", "rel": "最便宜的「改模型」手段：只训练一小段向量就可能让 Qwen 固定用新规则。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "微调", "v": "摘要", "t": "Prefix-Tuning: Optimizing Continuous Prompts for Generation", "m": "ACL 2021 · arXiv 2101.00190", "u": "https://arxiv.org/abs/2101.00190", "w": "阶梯第 7 层。在每层前面加可训练的连续前缀。", "me": "前缀调优", "d": "表格转文本、摘要", "mo": "GPT-2、BART", "r": "只学习 0.1% 的参数，全量数据下与微调相当，少量数据时优于微调，对训练中没见过的主题外推更好。", "rel": "同上；可比较 prompt tuning 与 prefix tuning 在规则选择上的差别。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "微调", "v": "摘要", "t": "P-Tuning v2: Prompt Tuning Can Be Comparable to Fine-tuning Universally Across Scales and Tasks", "m": "ACL 2022 · arXiv 2110.07602", "u": "https://arxiv.org/abs/2110.07602", "w": "阶梯第 7 层。在各层加入可训练提示，让提示调优在小模型上也有效。", "me": "深层提示调优", "d": "NLU 任务，含序列标注", "mo": "多种规模的模型", "r": "经过恰当优化的提示调优在多种规模和任务上都普遍有效。", "rel": "本项目主要用 1.7–14B 的小模型，这一点很关键：原始 prompt tuning 在小模型上效果差。"},
+{"c": "LADDER", "rq": ["P2", "C"], "dom": "通用", "arch": "微调", "v": "摘要", "t": "LoRA: Low-Rank Adaptation of Large Language Models", "m": "ICLR 2022 · arXiv 2106.09685", "u": "https://arxiv.org/abs/2106.09685", "w": "阶梯第 8 层。冻结原模型，只训练注入各层的低秩矩阵。", "me": "低秩适配", "d": "GLUE 等", "mo": "GPT-3 175B、RoBERTa 等", "r": "与全量微调 GPT-3 175B 相比，可训练参数减少 1 万倍，显存需求减少 3 倍。", "rel": "P2 的 LoRA 修法和 P3 的 GRPO 都用 LoRA；可在本机 M4 Max 上做。"},
+{"c": "LADDER", "rq": ["P2", "C"], "dom": "通用", "arch": "微调", "v": "摘要", "t": "QLoRA: Efficient Finetuning of Quantized LLMs", "m": "NeurIPS 2023 · arXiv 2305.14314", "u": "https://arxiv.org/abs/2305.14314", "w": "阶梯第 8 层的省显存版本。在 4-bit 量化模型上做 LoRA。", "me": "4-bit 量化 + LoRA", "d": "Vicuna 基准等", "mo": "Guanaco 模型家族（最大 65B）", "r": "单张 48 GB GPU 即可微调 65B 模型，同时保持 16-bit 微调的表现。", "rel": "让 14B 级别的 Qwen 也能在本机或单卡上微调。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "微调", "v": "摘要", "t": "Does Fine-Tuning LLMs on New Knowledge Encourage Hallucinations?", "m": "EMNLP 2024 · arXiv 2405.05904", "u": "https://arxiv.org/abs/2405.05904", "w": "阶梯第 8 层的风险。用微调注入新知识的代价。", "me": "控制微调数据中「新知识」的比例", "d": "未在摘要中列出", "mo": "未在摘要中列出", "r": "模型通过微调学新知识很慢；一旦学会，编造答案的倾向随之线性增加。", "rel": "用 LoRA 教 2025 新规则时，要同时测是否引入新的错误（如编造数值），并测对其他能力的损害。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "知识编辑", "v": "摘要", "t": "Locating and Editing Factual Associations in GPT (ROME)", "m": "NeurIPS 2022 · arXiv 2202.05262", "u": "https://arxiv.org/abs/2202.05262", "w": "阶梯第 9 层的奠基工作。定位存储某个事实的中间层前馈模块，直接改写它。", "me": "因果追踪 + 秩一模型编辑", "d": "zsRE（摘要中提到）", "mo": "未在摘要中列出", "r": "事实关联对应局部、可直接编辑的计算；ROME 在 zsRE 编辑任务上与已有方法相当。", "rel": "能否把「阈值是 10%」「用 PCE」这类记忆改成新版？这是事实编辑还是规则编辑，正是 P2 要回答的问题之一。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "知识编辑", "v": "摘要", "t": "Mass-Editing Memory in a Transformer (MEMIT)", "m": "ICLR 2023 · arXiv 2210.07229", "u": "https://arxiv.org/abs/2210.07229", "w": "阶梯第 9 层。一次编辑成千上万条记忆。", "me": "多层批量编辑", "d": "zsRE、CounterFact", "mo": "GPT-J 6B、GPT-NeoX 20B", "r": "可扩展到数千条关联，比以往方法多出几个数量级。", "rel": "若新旧规则涉及多条相关记忆（公式名、阈值、适用人群），需要批量编辑。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "知识编辑", "v": "摘要", "t": "Fast Model Editing at Scale (MEND)", "m": "ICLR 2022 · arXiv 2110.11309", "u": "https://arxiv.org/abs/2110.11309", "w": "阶梯第 9 层。训练一个小网络把微调梯度变换成局部编辑。", "me": "基于梯度分解的元学习编辑器", "d": "zsRE 等", "mo": "T5、GPT、BERT、BART", "r": "是唯一能有效编辑 100 亿参数以上模型行为的方法；单卡一天内可训练好。", "rel": "作为 ROME / MEMIT 之外的对照方法。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "知识编辑", "v": "摘要", "t": "Can We Edit Factual Knowledge by In-Context Learning? (IKE)", "m": "EMNLP 2023 · arXiv 2305.12740", "u": "https://arxiv.org/abs/2305.12740", "w": "阶梯第 9 层的不改参数版本：用上下文示例完成知识编辑。", "me": "上下文知识编辑", "d": "未在摘要中列出", "mo": "GPT-J 6B 等", "r": "不更新参数就达到与梯度方法相当的成功率，而且过度编辑和遗忘更少。", "rel": "说明「写进提示」和「改权重」之间有连续谱；P2 要比较两者对退回旧版的效果。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "知识编辑", "v": "摘要", "t": "Editing Large Language Models: Problems, Methods, and Opportunities", "m": "EMNLP 2023 · arXiv 2305.13172", "u": "https://arxiv.org/abs/2305.13172", "w": "阶梯第 9 层的综述与统一评测。", "me": "综述 + 统一基准实验", "d": "多个编辑数据集", "mo": "多种模型", "r": "系统梳理知识编辑的任务定义、方法和问题，并给出统一的实验比较。", "rel": "选择编辑方法和评测指标（可靠性、泛化、局部性）的参考。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "知识编辑", "v": "摘要", "t": "Evaluating the Ripple Effects of Knowledge Editing in Language Models (RippleEdits)", "m": "TACL 2024 · arXiv 2307.12976", "u": "https://arxiv.org/abs/2307.12976", "w": "阶梯第 9 层的评测。改一个事实后，相关的推论是否一起改变。", "me": "涟漪效应评测", "d": "RippleEdits：5,000 条事实编辑", "mo": "多种编辑方法", "r": "现有编辑方法不能让模型知识一致地改变；简单的上下文编辑基线反而得分最高。", "rel": "改了「阈值」之后，风险计算、公式名、适用人群是否随之改变？需要按 P1 的各环节检查。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "知识编辑", "v": "摘要", "t": "MQuAKE: Assessing Knowledge Editing in Language Models via Multi-Hop Questions", "m": "EMNLP 2023 · arXiv 2305.14795", "u": "https://arxiv.org/abs/2305.14795", "w": "阶梯第 9 层的评测。用多跳问题检验编辑后的知识能否被正确使用。", "me": "多跳问题评测 + MeLLo 方法", "d": "MQuAKE", "mo": "GPT-3.5-turbo 等", "r": "现有方法能准确回忆被编辑的事实，但在多跳问题上灾难性地失败。", "rel": "「要不要开药」本身就是多步推理：记住新阈值不等于会在整条规则中正确使用。"},
+{"c": "LADDER", "rq": ["P2"], "dom": "通用", "arch": "知识编辑", "v": "摘要", "t": "Model Editing at Scale leads to Gradual and Catastrophic Forgetting", "m": "Findings ACL 2024 · arXiv 2401.07453", "u": "https://arxiv.org/abs/2401.07453", "w": "阶梯第 9 层的风险。连续多次编辑的代价。", "me": "顺序编辑多条事实", "d": "编辑基准与下游任务", "mo": "多种模型", "r": "随着连续编辑，模型不断遗忘之前编辑的事实和完成下游任务的能力。", "rel": "编辑后必须测能力损失（MedQA 子集和通用基准），这写在 P2 方法里。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "多科", "arch": "知识编辑", "v": "摘要", "t": "Editing Factual Knowledge and Explanatory Ability of Medical Large Language Models (MedLaSA)", "m": "CIKM 2024 · arXiv 2402.18099", "u": "https://arxiv.org/abs/2402.18099", "w": "阶梯第 9 层的医学应用。", "me": "逐层可扩展适配器的医学知识编辑", "d": "两个医学编辑研究（事实知识、解释能力）", "mo": "医学大模型", "r": "在医学大模型上展示了编辑效率，而不影响无关知识。", "rel": "医学领域的知识编辑先例；但编辑对象是事实，不是本项目的计算规则。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "多科", "arch": "知识编辑", "v": "摘要", "t": "Beyond Memorization: A Rigorous Evaluation Framework for Medical Knowledge Editing (MedEditBench)", "m": "EACL 2026 · arXiv 2506.03490", "u": "https://arxiv.org/abs/2506.03490", "w": "阶梯第 9 层在医学上的严格评测。", "me": "新的医学编辑基准 + 三种编辑范式；提出 SGR-Edit", "d": "MedEditBench", "mo": "多种大模型与编辑方法", "r": "现有编辑方法只让模型表面记住注入的信息，无法推广到新的临床场景。", "rel": "强烈提示：编辑「阈值是 7.5%」可能只在原句上有效，换成具体病人就失效；P2 要在病人层面测。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "知识编辑", "v": "摘要", "t": "Distributed Multi-Layer Editing for Rule-Level Knowledge in Large Language Models", "m": "arXiv 2604.08284 · 2026（审稿中）", "u": "https://arxiv.org/abs/2604.08284", "w": "阶梯第 9 层中和本项目最接近的一篇：编辑「规则」而不是单个事实。", "me": "规则层面知识编辑的机制研究；因果追踪", "d": "RuleEdit 扩展到 200 条人工核验的数学和物理规则", "mo": "未在摘要中列出", "r": "规则知识不是集中在一处：公式和描述在较早的层，具体实例在中间层，所以单层编辑不可靠；提出分布式多层编辑。", "rel": "直接对应 RQ2.4（知识编辑能不能改程序性规则）。本项目可以作为临床公式规则上的检验。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "通用", "arch": "知识编辑", "v": "摘要", "t": "Benchmarking Knowledge Editing using Logical Rules", "m": "ISWC 2025 · arXiv 2606.10554", "u": "https://arxiv.org/abs/2606.10554", "w": "阶梯第 9 层的评测：编辑一个事实后，其逻辑推论是否一起更新。", "me": "从知识图谱抽取逻辑规则，生成多跳问题", "d": "知识图谱派生的规则与问题", "mo": "ROME、微调等方法", "r": "现有方法能准确插入直接断言，但常常无法注入由此推出的知识。", "rel": "与 RippleEdits、MQuAKE 一致：规则改了，下游判断未必跟着改。"},
+{"c": "LADDER", "rq": ["P2", "A"], "dom": "多科", "arch": "基准构建", "v": "摘要", "t": "Facts Fade Fast: Evaluating Memorization of Outdated Medical Knowledge in LLMs", "m": "Findings EMNLP 2025 · arXiv 2509.04304", "u": "https://arxiv.org/abs/2509.04304", "w": "背景：大模型会记住过时的医学知识。", "me": "从系统综述构建问答数据集", "d": "MedRevQA（16,501 题）、MedChangeQA（512 题，医学共识已改变）", "mo": "8 个主流大模型", "r": "所有模型都一致地依赖过时知识；作者分析了过时预训练数据和训练策略的影响。", "rel": "与本项目 A 部分同属「知识过时」问题，但它是问答形式；本项目在病人层面、按规则计算，并比较修法。"}
+];
+
+const $=s=>document.querySelector(s);
+const rowsEl=$("#rows"),countEl=$("#count"),qEl=$("#q");
+const F={cat:new Set(),rq:new Set(),arch:new Set(),v:new Set()};let fq="";
+function chips(host,key,items,label,cls){
+  items.forEach(k=>{
+    const n=P.filter(p=>key==="rq"?p.rq.includes(k):p[key==="cat"?"c":key]===k).length;
+    if(!n)return;
+    const b=document.createElement("button");b.type="button";b.className="chip"+(cls?(" "+cls(k)):"");
+    b.setAttribute("aria-pressed","false");b.innerHTML=label(k)+'<span class="n">'+n+"</span>";
+    b.addEventListener("click",()=>{F[key].has(k)?F[key].delete(k):F[key].add(k);b.setAttribute("aria-pressed",String(F[key].has(k)));render();});
+    $(host).appendChild(b);
+  });
+}
+chips("#f-cat","cat",Object.keys(CATS),k=>CATS[k]);
+chips("#f-rq","rq",["A","B","C","P2","bg"],k=>RQN[k],k=>k==="bg"?"":"r"+k);
+const ARCH=[...new Set(P.map(p=>p.arch))].sort((a,b)=>P.filter(p=>p.arch===b).length-P.filter(p=>p.arch===a).length);
+chips("#f-arch","arch",ARCH,k=>k);
+chips("#f-v","v",["全文","摘要","检索"],k=>k);
+$("#stats").innerHTML=[["",P.length,"篇文献"],["a",P.filter(p=>p.rq.includes("A")).length,"关系到 A"],["b",P.filter(p=>p.rq.includes("B")).length,"关系到 B"],["c",P.filter(p=>p.rq.includes("C")).length,"关系到 C"],["p",P.filter(p=>p.rq.includes("P2")).length,"关系到 P2"]]
+  .map(([c,n,l])=>'<div class="stat '+c+'"><b>'+n+'</b><span>'+l+"</span></div>").join("");
+qEl.addEventListener("input",e=>{fq=e.target.value.trim().toLowerCase();render();});
+$("#reset").addEventListener("click",()=>{Object.values(F).forEach(s=>s.clear());fq="";qEl.value="";document.querySelectorAll("button.chip[aria-pressed]").forEach(b=>b.setAttribute("aria-pressed","false"));render();});
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function render(){
+  const L=P.filter(p=>{
+    if(F.cat.size&&!F.cat.has(p.c))return false;
+    if(F.rq.size&&!p.rq.some(r=>F.rq.has(r)))return false;
+    if(F.arch.size&&!F.arch.has(p.arch))return false;
+    if(F.v.size&&!F.v.has(p.v))return false;
+    if(fq){const h=[p.t,p.m,p.w,p.me,p.d,p.mo,p.r,p.rel,p.dom,p.arch,CATS[p.c]].join(" ").toLowerCase();if(!h.includes(fq))return false;}
+    return true;});
+  countEl.textContent="显示 "+L.length+" / "+P.length;
+  if(!L.length){rowsEl.innerHTML='<p class="empty">没有匹配的文献，试试清空筛选。</p>';return;}
+  rowsEl.innerHTML=L.map(p=>`<article class="item">
+    <div class="ca"><h3 class="it"><a href="${esc(p.u)}" target="_blank" rel="noopener">${esc(p.t)}</a></h3>
+      <p class="im">${esc(p.m)}</p>
+      <div class="tags">${p.rq.filter(r=>r!=="bg").map(r=>'<span class="tag '+r+'">'+(r==="P2"?"P2":"RQ-"+r)+"</span>").join("")}
+        <span class="tag">${esc(CATS[p.c])}</span><span class="tag arch">${esc(p.arch)}</span>
+        <span class="tag">${esc(p.dom)}</span><span class="tag v">核验 ${esc(p.v)}</span></div></div>
+    <div class="cb"><p class="what">${esc(p.w)}</p>
+      <dl><dt>方法</dt><dd>${esc(p.me)}</dd><dt>数据 / 数据库</dt><dd>${esc(p.d)}</dd><dt>模型</dt><dd>${esc(p.mo)}</dd>
+      <dt>结论</dt><dd class="res">${esc(p.r)}</dd><dt>与本项目</dt><dd class="rel">${esc(p.rel)}</dd></dl></div></article>`).join("");
+}
+render();
+</script>

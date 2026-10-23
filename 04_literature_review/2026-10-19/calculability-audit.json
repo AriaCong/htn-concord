@@ -1,0 +1,258 @@
+{
+  "NHANES_J": {
+    "rows": 4806,
+    "complete_age_30_79": 3404,
+    "stored_risk_nonmissing": 3404,
+    "missing_inputs": {
+      "age": 0,
+      "sex": 0,
+      "total_chol": 251,
+      "hdl": 251,
+      "sbp": 0,
+      "on_bp_meds": 12,
+      "diabetes": 164,
+      "current_smoker": 0,
+      "egfr": 267,
+      "statin_use": 0
+    },
+    "max_abs_recompute_difference_pp": 2.842170943040401e-14,
+    "complete_with_numeric_bounds": 3134,
+    "complete_bounds_and_recorded_no_cvd": 2771,
+    "numeric_bounds_used": {
+      "age": [
+        30,
+        79
+      ],
+      "total_chol": [
+        130,
+        320
+      ],
+      "hdl": [
+        20,
+        100
+      ],
+      "sbp": [
+        90,
+        200
+      ],
+      "egfr": [
+        15,
+        140
+      ]
+    },
+    "note": "Bounds are conservative calculator-style audit filters; not a full clinical eligibility determination",
+    "lipid_box_determinability": {
+      "complete_pool": {
+        "n": 3404,
+        "labels": {
+          "above": 839,
+          "below": 1523,
+          "undetermined": 1042
+        },
+        "observed_lipids_outside_box": 136
+      },
+      "bounds_no_cvd_pool": {
+        "n": 2771,
+        "labels": {
+          "above": 548,
+          "below": 1396,
+          "undetermined": 827
+        },
+        "observed_lipids_outside_box": 46
+      }
+    },
+    "explicit_lipid_domain_labels": {
+      "total_chol": [
+        130,
+        320
+      ],
+      "hdl": [
+        20,
+        100
+      ],
+      "threshold": 7.5,
+      "n": 2771,
+      "labels": {
+        "above": 544,
+        "below": 1243,
+        "undetermined": 984
+      }
+    }
+  },
+  "MIMIC_prior_only": {
+    "rows": 8919,
+    "complete_age_30_79": 581,
+    "stored_risk_nonmissing": 581,
+    "missing_inputs": {
+      "age": 0,
+      "sex": 0,
+      "total_chol": 4420,
+      "hdl": 4493,
+      "sbp": 0,
+      "on_bp_meds": 0,
+      "diabetes": 6872,
+      "current_smoker": 6688,
+      "egfr": 148,
+      "statin_use": 0
+    },
+    "max_abs_recompute_difference_pp": 1.0658141036401503e-14,
+    "complete_with_numeric_bounds": 480,
+    "complete_bounds_and_recorded_no_cvd": 376,
+    "numeric_bounds_used": {
+      "age": [
+        30,
+        79
+      ],
+      "total_chol": [
+        130,
+        320
+      ],
+      "hdl": [
+        20,
+        100
+      ],
+      "sbp": [
+        90,
+        200
+      ],
+      "egfr": [
+        15,
+        140
+      ]
+    },
+    "note": "Bounds are conservative calculator-style audit filters; not a full clinical eligibility determination",
+    "lipid_box_determinability": {
+      "complete_pool": {
+        "n": 581,
+        "labels": {
+          "above": 253,
+          "below": 91,
+          "undetermined": 237
+        },
+        "observed_lipids_outside_box": 65
+      },
+      "bounds_no_cvd_pool": {
+        "n": 376,
+        "labels": {
+          "above": 137,
+          "below": 76,
+          "undetermined": 163
+        },
+        "observed_lipids_outside_box": 11
+      }
+    },
+    "explicit_lipid_domain_labels": {
+      "total_chol": [
+        130,
+        320
+      ],
+      "hdl": [
+        20,
+        100
+      ],
+      "threshold": 7.5,
+      "n": 376,
+      "labels": {
+        "above": 137,
+        "below": 56,
+        "undetermined": 183
+      }
+    }
+  },
+  "MIMIC_prior_plus_index": {
+    "rows": 8919,
+    "complete_age_30_79": 2376,
+    "stored_risk_nonmissing": 2376,
+    "missing_inputs": {
+      "age": 0,
+      "sex": 0,
+      "total_chol": 4420,
+      "hdl": 4493,
+      "sbp": 0,
+      "on_bp_meds": 0,
+      "diabetes": 4322,
+      "current_smoker": 0,
+      "egfr": 148,
+      "statin_use": 0
+    },
+    "max_abs_recompute_difference_pp": 1.4210854715202004e-14,
+    "complete_with_numeric_bounds": 2024,
+    "complete_bounds_and_recorded_no_cvd": 1469,
+    "numeric_bounds_used": {
+      "age": [
+        30,
+        79
+      ],
+      "total_chol": [
+        130,
+        320
+      ],
+      "hdl": [
+        20,
+        100
+      ],
+      "sbp": [
+        90,
+        200
+      ],
+      "egfr": [
+        15,
+        140
+      ]
+    },
+    "note": "Bounds are conservative calculator-style audit filters; not a full clinical eligibility determination",
+    "lipid_box_determinability": {
+      "complete_pool": {
+        "n": 2376,
+        "labels": {
+          "above": 1285,
+          "below": 183,
+          "undetermined": 908
+        },
+        "observed_lipids_outside_box": 210
+      },
+      "bounds_no_cvd_pool": {
+        "n": 1469,
+        "labels": {
+          "above": 687,
+          "below": 146,
+          "undetermined": 636
+        },
+        "observed_lipids_outside_box": 37
+      }
+    },
+    "explicit_lipid_domain_labels": {
+      "total_chol": [
+        130,
+        320
+      ],
+      "hdl": [
+        20,
+        100
+      ],
+      "threshold": 7.5,
+      "n": 1469,
+      "labels": {
+        "above": 693,
+        "below": 100,
+        "undetermined": 676
+      }
+    }
+  },
+  "published_example_checks": {
+    "female": 14.683939095644824,
+    "male": 16.317056158151633
+  },
+  "lipid_domain": {
+    "total_chol": [
+      107.0,
+      300.0
+    ],
+    "hdl": [
+      28.0,
+      97.0
+    ],
+    "extrema_method": "Exact four-corner evaluation for fixed other inputs and the implemented affine lipid predictor; ordinary floating-point tolerance applies",
+    "restriction": "Empirical domain, not guaranteed coverage of all clinically possible missing values"
+  }
+}

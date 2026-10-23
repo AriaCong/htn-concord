@@ -1,0 +1,34 @@
+{
+  "model": "PREVENT base 10-year total CVD (Khan 2024, Table S12A)",
+  "unit": "percent",
+  "implementation": "02_htn-concord/htn-concord/pipelines/common/prevent.py",
+  "implementation_sha256": "bc18dffd593fe34a0c3d15a427f0652132029e8d61875e345fa35374c0dcb789",
+  "supplement_sha256": "64c0853148769fae8bd20179bd497ec9415bc4146dd95314ca346475d3938872",
+  "coefficients_exactly_matching_s12a": 20,
+  "worked_example": {
+    "women": 14.683939095644824,
+    "men": 16.317056158151633,
+    "s12a_women": 14.683939095644824,
+    "s12a_men": 16.317056158151637,
+    "reference_source": "supplement xlsx"
+  },
+  "rows": 5816,
+  "distribution": {
+    "count": 5816.0,
+    "mean": 6.599,
+    "std": 7.13,
+    "min": 0.109,
+    "10%": 0.579,
+    "25%": 1.295,
+    "50%": 3.785,
+    "75%": 9.678,
+    "90%": 17.277,
+    "max": 62.731
+  },
+  "median_by_cycle": {
+    "I": 3.498,
+    "J": 4.072
+  },
+  "n_ge_7_5": 1859,
+  "note": "Unweighted individual risks; survey weights are in the model-input table"
+}

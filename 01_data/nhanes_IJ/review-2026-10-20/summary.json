@@ -1,0 +1,48 @@
+{
+  "rows": 19225,
+  "pool": 7107,
+  "complete": 5816,
+  "incomplete": 1291,
+  "unknown_predictors": {
+    "age_years": 0,
+    "sex": 0,
+    "total_chol_mgdl": 724,
+    "hdl_mgdl": 724,
+    "sbp_mean": 580,
+    "egfr": 745,
+    "diabetes": 214,
+    "on_bp_meds": 11,
+    "current_smoker": 6,
+    "statin": 145
+  },
+  "source_hashes": 65,
+  "checks": 2354,
+  "failed": 0,
+  "risk_max_absolute_error_pct_points": 2.1316282072803006e-14,
+  "example": {
+    "women": 14.683939095644824,
+    "men": 16.317056158151633,
+    "s12a_women": 14.683939095644824,
+    "s12a_men": 16.317056158151637
+  },
+  "prebounds_nonpregnant_no_cvd": 7543,
+  "complete_without_bounds": 6217,
+  "dm_self_no_hba1c_high_all": 284,
+  "dm_self_no_hba1c_high_complete": 200,
+  "dm_self_no_diabetes_meds_complete": 48,
+  "dm_hba1c_sensitivity_crosses_7_5": 63,
+  "borderline_in_pool": 212,
+  "borderline_only_missing": 184,
+  "dbp_zero_participants_complete": 34,
+  "cvd_unknown_age_eligible": 45,
+  "risk_distribution": {
+    "count": 5816.0,
+    "mean": 6.598560402317422,
+    "std": 7.130203825288163,
+    "min": 0.1085536244192224,
+    "25%": 1.2952644984540405,
+    "50%": 3.785091122589613,
+    "75%": 9.677760016786358,
+    "max": 62.7306755807003
+  }
+}

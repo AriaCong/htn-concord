@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-20",
+  "python": "3.12.13",
+  "pandas": "2.2.3",
+  "participants": {
+    "I": 9971,
+    "J": 9254
+  },
+  "analysis_pool": {
+    "I": 3592,
+    "J": 3515
+  },
+  "complete": {
+    "I": 3018,
+    "J": 2798
+  },
+  "incomplete": {
+    "I": 574,
+    "J": 717
+  },
+  "complete_answer_source": {
+    "on_bp_meds": {
+      "skip_logic": 3977,
+      "direct": 1839
+    },
+    "current_smoker": {
+      "skip_logic": 3416,
+      "direct": 2400
+    }
+  },
+  "xport_zero_cells_restored": 96905,
+  "checks_passed": 116,
+  "source_values_changed": 0,
+  "missing_values_imputed": 0,
+  "rows_deleted": 0
+}

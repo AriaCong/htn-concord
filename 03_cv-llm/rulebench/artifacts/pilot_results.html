@@ -1,0 +1,299 @@
+<title>RuleBench 先导实验</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,650&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --surface-2:#E9EDF1;
+  --ink:#16202A; --ink-2:#3E4D5B; --muted:#6C7B88;
+  --line:#D8DFE6; --line-2:#C3CDD6;
+  --accent:#9B2335; --accent-ink:#7A1A29; --accent-wash:#F6E3E6;
+  --ok:#1E6B4F; --ok-wash:#DDF0E7;
+  --warn:#8A4B0F; --warn-wash:#F7E8D8;
+  --before:#B7791F; --after:#1A6FA8;
+  --sans:"Instrument Sans","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --serif:"Newsreader","Songti SC","Source Han Serif SC",Georgia,serif;
+  --mono:"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1419; --surface:#161D24; --surface-2:#1E2731;
+    --ink:#E5EBF0; --ink-2:#B2C0CC; --muted:#7E8D99;
+    --line:#26313C; --line-2:#34414E;
+    --accent:#E0707F; --accent-ink:#F0A0AB; --accent-wash:#3A1D23;
+    --ok:#6FCBA5; --ok-wash:#123027;
+    --warn:#E3A566; --warn-wash:#3A2716;
+    --before:#B07A28; --after:#3E8FD0;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1419; --surface:#161D24; --surface-2:#1E2731;
+  --ink:#E5EBF0; --ink-2:#B2C0CC; --muted:#7E8D99;
+  --line:#26313C; --line-2:#34414E;
+  --accent:#E0707F; --accent-ink:#F0A0AB; --accent-wash:#3A1D23;
+  --ok:#6FCBA5; --ok-wash:#123027;
+  --warn:#E3A566; --warn-wash:#3A2716;
+  --before:#B07A28; --after:#3E8FD0;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding-inline:20px;padding-block:0 72px}
+header{padding-block:44px 26px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:650;font-size:clamp(30px,5vw,44px);line-height:1.12;margin:0;text-wrap:balance}
+.meta{margin:12px 0 0;color:var(--muted);font-size:13.5px}
+h2{font-family:var(--serif);font-weight:650;font-size:26px;line-height:1.25;margin:52px 0 6px;text-wrap:balance}
+h3{font-size:16px;font-weight:600;margin:26px 0 4px}
+p{margin:10px 0}
+.lead{font-size:17px;color:var(--ink-2)}
+b,strong{color:var(--ink);font-weight:600}
+.answer{margin:26px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px 22px}
+.answer .q{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.answer p.big{font-family:var(--serif);font-size:22px;line-height:1.4;margin:0}
+.answer ul{margin:12px 0 0;padding-left:1.2em}
+.answer li{margin:4px 0}
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:16px 0 0}
+.gloss div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:14px;line-height:1.6}
+.gloss dt{font-weight:600;margin:0 0 2px}
+.gloss dd{margin:0;color:var(--ink-2)}
+.tbl{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:12.5px;color:var(--muted);background:var(--surface-2)}
+tr:last-child td{border-bottom:none}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:13px;white-space:nowrap}
+.hl{background:var(--accent-wash)}
+.callout{border-left:3px solid var(--accent);background:var(--surface);padding:12px 16px;margin:16px 0;border-radius:0 8px 8px 0}
+.callout.ok{border-left-color:var(--ok)}
+.callout .t{font-weight:600;margin:0 0 4px}
+blockquote{margin:12px 0;padding:10px 16px;background:var(--surface-2);border-radius:6px;font-family:var(--serif);font-size:16.5px;line-height:1.55}
+blockquote small{display:block;font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:4px}
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 18px 10px;margin:16px 0}
+.fig-title{font-weight:600;margin:0}
+.fig-sub{color:var(--muted);font-size:13.5px;margin:2px 0 10px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--ink-2);margin:0 0 6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:11px;height:11px;border-radius:50%;display:inline-block}
+#dumb{width:100%;display:block;overflow:visible}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12.5px;line-height:1.5;padding:6px 9px;border-radius:6px;max-width:260px}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:99px;white-space:nowrap}
+.pill.ok{background:var(--ok-wash);color:var(--ok)}
+.pill.warn{background:var(--warn-wash);color:var(--warn)}
+.pill.bad{background:var(--accent-wash);color:var(--accent-ink)}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.plan.pick{border:2px solid var(--ok)}
+.plan h3{margin:0 0 6px}
+.plan ol{margin:6px 0 0;padding-left:1.3em}
+.plan li{margin:4px 0}
+.plan .verdict{margin:12px 0 0;font-size:14px}
+ul.plain{padding-left:1.2em}
+ul.plain li{margin:5px 0}
+footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+code{font-family:var(--mono);font-size:.86em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+@media (max-width:640px){.plans{grid-template-columns:1fr}h2{font-size:23px}}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">cv-llm-rulebench · 先导实验 · 2026-09-23 至 09-24</p>
+  <h1>大模型能不能照着新版指南算风险、下结论？</h1>
+  <p class="meta">5 个模型配置，共 1,620 次调用。本地 Qwen 不花钱，OpenAI 花了 $1.71。所有标准答案都由程序算出，没有人工评分。</p>
+
+  <div class="answer">
+    <p class="q">一句话结论</p>
+    <p class="big">模型最大的问题是<b>算不准风险</b>，而不是固执地用旧指南。把算好的风险值直接告诉模型，错误几乎全部消失。</p>
+    <ul>
+      <li>「照旧指南办事」这个现象存在，但只在中小模型上明显；最强的模型 gpt-6-sol 没有这样做。</li>
+      <li>不同模型卡在不同的地方，需要不同的修法。</li>
+      <li><b>建议选「诊断 → 修复 → 训练」这条路线</b>（下面叫「建议方案」），而不是 A、B、C 三篇各做各的。</li>
+    </ul>
+  </div>
+</header>
+
+<h2>我们在测什么</h2>
+<p class="lead">美国高血压指南在 2025 年换了一套规则。我们看大模型能不能照新规则办事。</p>
+
+<dl class="gloss">
+  <div><dt>旧规则（2017 年版）</dt><dd>用 <b>PCE</b> 公式算 10 年心血管风险，≥ 10% 就开降压药。</dd></div>
+  <div><dt>新规则（2025 年版）</dt><dd>改用 <b>PREVENT</b> 公式，≥ 7.5% 就开药。</dd></div>
+  <div><dt>冲突病人</dt><dd>按新旧两套规则算，结论<b>相反</b>的病人。只有在这些人身上，才看得出模型用的是哪一套。</dd></div>
+  <div><dt>一致病人</dt><dd>两套规则结论相同的病人，用来检查模型的基本功。</dd></div>
+  <div><dt>信息不全（研究 B）</dt><dd>藏起胆固醇数值。有的病人无论胆固醇多少，结论都一样，应该直接回答；有的病人则应该回答「无法判断」。</dd></div>
+  <div><dt>思考模式</dt><dd>让模型先在内部写一段推理，再给答案。</dd></div>
+</dl>
+
+<p>病人来自美国公开的健康调查 NHANES。测了 5 个模型配置：本地的 Qwen3 1.7B、8B、8B 思考模式、14B（数字是模型大小，越大越强），以及 OpenAI 的 gpt-6-sol（推理型前沿模型）。</p>
+
+<h2>发现 1：真实人群里，新旧规则冲突的人很少</h2>
+<div class="tbl"><table>
+  <tr><th>项目</th><th>结果</th></tr>
+  <tr><td>符合条件的人（40–79 岁、1 期高血压、没有心脏病 / 糖尿病 / 肾病、没吃降压药）</td><td class="n">244 人</td></tr>
+  <tr class="hl"><td>新旧规则结论相反</td><td class="n">14 人（5.7%）</td></tr>
+  <tr><td>两个公式算出的风险之比（中位数）</td><td class="n">1.11 倍</td></tr>
+</table></div>
+<p>原方案假设旧公式大约比新公式高一倍、冲突的人至少占 15%。<b>实际两条都不成立</b>。为了能测模型，我们在真人数据上做了小幅改动，补了 36 个冲突病例。人群占比仍按真实的 5.7% 报告。</p>
+
+<h2>发现 2：模型不会算风险，给它数值就对了</h2>
+<p>下图只看冲突病人。<span style="color:var(--before);font-weight:600">橙点</span>是「只告诉模型新规则」时的正确率，<span style="color:var(--after);font-weight:600">蓝点</span>是「再把算好的风险值告诉它」时的正确率。</p>
+
+<figure class="fig" aria-labelledby="fig1t">
+  <p class="fig-title" id="fig1t">冲突病人上的正确率：只给规则 vs 再给风险值</p>
+  <p class="fig-sub">每个模型 50 个冲突病人。8B 思考模式没有跑「给风险值」这个条件，所以只有一个点。</p>
+  <div class="legend"><span><i class="sw" style="background:var(--before)"></i>只给新规则</span><span><i class="sw" style="background:var(--after)"></i>再给算好的风险值</span></div>
+  <svg id="dumb" role="img" aria-label="各模型在冲突病人上的正确率对比"></svg>
+</figure>
+
+<div class="tbl"><table>
+  <tr><th>模型</th><th>只给规则</th><th>再给风险值</th><th>模型报的风险和真实值有多接近<br>（相关系数，1 = 完全一致，0 = 毫无关系）</th></tr>
+  <tr><td>Qwen3 1.7B</td><td class="n">62%</td><td class="n">76%</td><td class="n">−0.07　基本在乱猜</td></tr>
+  <tr><td>Qwen3 8B</td><td class="n">26%</td><td class="n">100%</td><td class="n">−0.05　基本在乱猜</td></tr>
+  <tr><td>Qwen3 8B 思考</td><td class="n">38%</td><td class="n">—</td><td class="n">0.30</td></tr>
+  <tr><td>Qwen3 14B</td><td class="n">32%</td><td class="n">100%</td><td class="n">−0.02　基本在乱猜</td></tr>
+  <tr class="hl"><td>gpt-6-sol</td><td class="n">42%</td><td class="n">100%</td><td class="n">0.84　接近，但平均差约 0.9 个百分点</td></tr>
+</table></div>
+
+<div class="callout">
+  <p class="t">怎么理解</p>
+  <p>冲突病人大多贴近 7.5% 这条线（50 人里有 37 人离线不到 1.5 个百分点），差一点就判反。所以只要算不准，冲突病人就会大量答错。一旦把数值给它，8B、14B 和 gpt-6-sol 都是 100% 正确，说明它们<b>规则理解得没问题，问题出在算</b>。</p>
+</div>
+<p>1.7B 是例外：给了数值仍有错。比如数值是 7.2%、阈值是 7.5%，它却答「开药」，<b>结论和自己写的数字对不上</b>。</p>
+
+<h2>发现 3：中小模型嘴上接受新规则，却说自己用的是旧公式</h2>
+<p>我们明确要求模型用 PREVENT、阈值 7.5%，并让它写出自己用了哪个公式。</p>
+<div class="tbl"><table>
+  <tr><th>模型</th><th>报的阈值</th><th>说自己用的公式</th><th>判断</th></tr>
+  <tr><td>Qwen3 1.7B</td><td>7.5%</td><td>PREVENT（80/80）</td><td><span class="pill warn">照抄名字，其实没算</span></td></tr>
+  <tr><td>Qwen3 8B</td><td>7.5%</td><td>Framingham（80/80），比 PCE 还老的公式</td><td><span class="pill bad">新阈值 + 旧公式</span></td></tr>
+  <tr><td>Qwen3 8B 思考</td><td>7.5%</td><td>PCE（57/80）</td><td><span class="pill bad">新阈值 + 旧公式</span></td></tr>
+  <tr><td>Qwen3 14B</td><td>7.5%</td><td>ASCVD 风险计算器（80/80），基于 PCE</td><td><span class="pill bad">新阈值 + 旧公式</span></td></tr>
+  <tr class="hl"><td>gpt-6-sol</td><td>7.5%</td><td>PREVENT（80/80）</td><td><span class="pill ok">真的按新规则做</span></td></tr>
+</table></div>
+
+<p>8B 在思考模式下，甚至把我们给的新规则当成笔误：</p>
+<blockquote>"Maybe the user meant PREVENT as a placeholder, but in reality, the PCE is the standard."<small>大意：用户说的 PREVENT 可能只是个占位符，实际上 PCE 才是标准。</small></blockquote>
+<blockquote>"…maybe that's a typo for 'Framingham' or 'Pooled Cohort Equations'."<small>大意：这可能是 Framingham 或 PCE 的笔误。</small></blockquote>
+
+<ul class="plain">
+  <li><b>思考反而更糟：</b>8B 开了思考模式后，一致病人的正确率从 73% 降到 37%。</li>
+  <li><b>不给规则时默认用旧版：</b>只说「按现行指南」，14B 有 78/80 次用旧阈值 10%。</li>
+  <li><b>gpt-6-sol 没有把新规则当笔误。</b>但有 26% 的推理摘要会先估旧公式，再说「新公式通常低一些」往下调。也就是说，它<b>拿旧公式当参照</b>，不是换成旧公式。这个偏差比较弱，现在的数据还没法和随机误差分开。</li>
+</ul>
+
+<h2>发现 4：信息不全时，大模型太爱说「无法判断」</h2>
+<p>藏起胆固醇后，60 个病人里有 20 个无论胆固醇多少都该开药，20 个都不该开，20 个确实无法判断。</p>
+<div class="tbl"><table>
+  <tr><th>模型</th><th>直接回答的正确率</th><th>主要毛病</th><th>告诉它风险范围后的正确率</th></tr>
+  <tr><td>Qwen3 1.7B</td><td class="n">25%</td><td>从不说「无法判断」，全答开药</td><td class="n">33%</td></tr>
+  <tr><td>Qwen3 8B</td><td class="n">50%</td><td>不该说「无法判断」时说了 23 次</td><td class="n">97%</td></tr>
+  <tr><td>Qwen3 8B 思考</td><td class="n">47%</td><td>不该说「无法判断」时说了 15 次</td><td class="n">—</td></tr>
+  <tr><td>Qwen3 14B</td><td class="n">35%</td><td>60 个里 59 个都说「无法判断」</td><td class="n">82%</td></tr>
+</table></div>
+<p>模型越大越保守。它们看不出「这个病人风险已经高到胆固醇多少都无所谓」。告诉 8B 风险范围后，它几乎全对，说明卡在算上。14B 知道范围后仍有 11 次多余的「无法判断」，说明它<b>在判断这一步也有问题</b>。（gpt-6-sol 还没测这一部分。）</p>
+
+<h2>把失败归类</h2>
+<div class="tbl"><table>
+  <tr><th>失败类型</th><th>出现在</th><th>什么能修好</th></tr>
+  <tr><td>算不准风险</td><td>所有模型</td><td>把数值 / 计算工具给它 <span class="pill ok">已验证</span></td></tr>
+  <tr><td>结论和自己写的数字对不上</td><td>1.7B</td><td>给数值也修不好 <span class="pill warn">待研究</span></td></tr>
+  <tr><td>接受新阈值，却用旧公式</td><td>8B、8B 思考、14B</td><td>待测：更明确的提示、微调等</td></tr>
+  <tr><td>把新规则当笔误</td><td>8B 思考</td><td>在 gpt-6-sol 上消失了</td></tr>
+  <tr><td>拿旧公式当参照</td><td>gpt-6-sol（较弱）</td><td>待测：需要更好的对照设计</td></tr>
+  <tr><td>不该说「无法判断」却说了</td><td>8B、14B</td><td>给范围后大部分修好；14B 仍有残留</td></tr>
+</table></div>
+<p>要点：<b>不同模型卡在不同环节，需要不同的修法。</b>这正是选择方案的关键。</p>
+
+<h2>两个方案怎么选</h2>
+<div class="plans">
+  <div class="plan">
+    <h3>原方案：三篇各自独立</h3>
+    <ol>
+      <li>A：新旧规则冲突时，模型听谁的</li>
+      <li>B：信息不全时，模型知不知道该说「无法判断」</li>
+      <li>C：用强化学习训练小模型</li>
+    </ol>
+    <p class="verdict"><span class="pill bad">前提没成立</span> A 要单独成篇，需要「会算但仍坚持旧规则」。gpt-6-sol 会用新规则，只是算不准；真实人群里冲突也只有 5.7%。</p>
+  </div>
+  <div class="plan pick">
+    <h3>建议方案：诊断 → 修复 → 训练</h3>
+    <ol>
+      <li>诊断：把 A 和 B 合并，逐个环节找出模型在哪里出错</li>
+      <li>修复：从便宜到昂贵试各种办法（改提示、给工具、小规模微调），看哪种办法修好哪类错</li>
+      <li>训练：用强化学习训练小模型，和最好的修法比</li>
+    </ol>
+    <p class="verdict"><span class="pill ok">前提得到支持</span> 已经看到至少五类不同的失败，修法也各不相同。第 2 篇大部分能在本机完成，很省钱。</p>
+  </div>
+</div>
+
+<div class="callout ok">
+  <p class="t">建议</p>
+  <p>选<b>建议方案</b>。「新旧规则冲突」不丢掉，作为诊断里的一个维度，包括「新阈值 + 旧公式」和「拿旧公式当参照」。这个转向最好也和导师确认。</p>
+</div>
+
+<h2>还不确定的地方</h2>
+<ul class="plain">
+  <li>每个病人只问了一次，只用了一种问法。结果可能随问法变化。</li>
+  <li>50 个冲突病人里，36 个是在真人数据上改出来的。</li>
+  <li>前沿模型只测了 gpt-6-sol 一个，只测了研究 A 的两个条件。它看不到原始推理过程，只能看摘要。</li>
+  <li>病人有没有心脏病，来自问卷自报。旧公式 PCE 的系数还需要另一个人对照原文再核一遍。</li>
+</ul>
+
+<h2>下一步</h2>
+<ul class="plain">
+  <li><b>加两个对照</b>（约 $1–2）：同时把新旧两个公式的数值都给模型；再补一些同样贴近 7.5% 的一致病人。这样才能分清「拿旧公式当参照」和「随机算错」。</li>
+  <li><b>gpt-6-sol 测研究 B</b>：看前沿模型在信息不全时是否也过于保守。</li>
+  <li><b>方案定下后：</b>改写方案文档和方案网页，并把「修复手段」的相关论文补进文献地图。</li>
+</ul>
+
+<footer>
+  标准答案由程序算出：PREVENT 公式（已核对原文算例），PCE 公式（已核对原文算例）。「无法判断」的判定方法是：让胆固醇在常见范围内变动，看风险会不会跨过 7.5%。<br>
+  详细报告：<code>cv-llm-rulebench/docs/pilot_2026-09-23.md</code> · 代码与原始输出：<code>cv-llm-rulebench/pilot/</code>
+</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+(function(){
+  var data=[
+    {m:"Qwen3 1.7B",a:62,b:76},
+    {m:"Qwen3 8B",a:26,b:100},
+    {m:"Qwen3 8B 思考",a:38,b:null},
+    {m:"Qwen3 14B",a:32,b:100},
+    {m:"gpt-6-sol",a:42,b:100}
+  ];
+  var svg=document.getElementById("dumb"), tip=document.getElementById("tip");
+  var NS="http://www.w3.org/2000/svg";
+  function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
+  function draw(){
+    while(svg.firstChild)svg.removeChild(svg.firstChild);
+    var W=svg.clientWidth||700, narrow=W<520;
+    var L=narrow?96:124, R=24, T=8, row=40, H=T+row*data.length+30;
+    svg.setAttribute("viewBox","0 0 "+W+" "+H); svg.setAttribute("height",H);
+    var x=function(v){return L+(W-L-R)*v/100};
+    [0,25,50,75,100].forEach(function(v){
+      el("line",{x1:x(v),x2:x(v),y1:T,y2:T+row*data.length,stroke:"var(--line)","stroke-width":1});
+      var t=el("text",{x:x(v),y:T+row*data.length+18,"text-anchor":"middle","font-size":11.5,fill:"var(--muted)","font-family":"var(--mono)"});t.textContent=v+"%";
+    });
+    data.forEach(function(d,i){
+      var y=T+row*i+row/2;
+      var lab=el("text",{x:L-12,y:y+4,"text-anchor":"end","font-size":narrow?12:13,fill:"var(--ink)"});lab.textContent=d.m;
+      if(d.b!==null) el("line",{x1:x(d.a),x2:x(d.b),y1:y,y2:y,stroke:"var(--line-2)","stroke-width":2});
+      var pts=[{v:d.a,c:"var(--before)",k:"只给新规则"}]; if(d.b!==null)pts.push({v:d.b,c:"var(--after)",k:"再给风险值"});
+      pts.forEach(function(p){
+        el("circle",{cx:x(p.v),cy:y,r:6,fill:p.c,stroke:"var(--surface)","stroke-width":2});
+        var hit=el("circle",{cx:x(p.v),cy:y,r:14,fill:"transparent",tabindex:0,"aria-label":d.m+"，"+p.k+"："+p.v+"%"});
+        function show(ev){tip.textContent=d.m+" · "+p.k+"："+p.v+"%";tip.hidden=false;var r=hit.getBoundingClientRect();tip.style.left=Math.min(r.left+18,window.innerWidth-200)+"px";tip.style.top=(r.top-34)+"px"}
+        function hide(){tip.hidden=true}
+        hit.addEventListener("mouseenter",show);hit.addEventListener("focus",show);
+        hit.addEventListener("mouseleave",hide);hit.addEventListener("blur",hide);
+      });
+      var mid=d.b!==null?(d.a+d.b)/2:d.a;
+      var v=el("text",{x:x(mid),y:y-11,"text-anchor":"middle","font-size":11.5,fill:"var(--ink-2)","font-family":"var(--mono)"});
+      v.textContent=d.b!==null?d.a+"% → "+d.b+"%":d.a+"%";
+    });
+  }
+  draw(); var to; window.addEventListener("resize",function(){clearTimeout(to);to=setTimeout(draw,120)});
+})();
+</script>

@@ -1,0 +1,229 @@
+{
+  "model": "Existing local PREVENT base 10-year total-CVD implementation",
+  "examples": [
+    {
+      "name": "A",
+      "synthetic": true,
+      "inputs": {
+        "age": 40,
+        "sex": "female",
+        "total_chol_mgdl": 200,
+        "hdl_mgdl": 50,
+        "sbp": 120,
+        "on_bp_meds": false,
+        "diabetes": false,
+        "current_smoker": false,
+        "egfr": 100,
+        "statin": false
+      },
+      "complete_risk_percent": 0.8875301480594628,
+      "when_lipids_hidden": {
+        "domain": {
+          "total_chol_mgdl": [
+            130,
+            320
+          ],
+          "hdl_mgdl": [
+            20,
+            100
+          ]
+        },
+        "corners": [
+          {
+            "total_chol_mgdl": 130,
+            "hdl_mgdl": 20,
+            "risk_percent": 1.2871304576801756
+          },
+          {
+            "total_chol_mgdl": 130,
+            "hdl_mgdl": 100,
+            "risk_percent": 0.22767378758124718
+          },
+          {
+            "total_chol_mgdl": 320,
+            "hdl_mgdl": 20,
+            "risk_percent": 2.697010550084611
+          },
+          {
+            "total_chol_mgdl": 320,
+            "hdl_mgdl": 100,
+            "risk_percent": 0.4827352767546768
+          }
+        ],
+        "minimum_percent": 0.22767378758124718,
+        "maximum_percent": 2.697010550084611,
+        "threshold_percent": 7.5,
+        "label": "BELOW"
+      }
+    },
+    {
+      "name": "B",
+      "synthetic": true,
+      "inputs": {
+        "age": 55,
+        "sex": "male",
+        "total_chol_mgdl": 200,
+        "hdl_mgdl": 50,
+        "sbp": 135,
+        "on_bp_meds": false,
+        "diabetes": false,
+        "current_smoker": false,
+        "egfr": 85,
+        "statin": false
+      },
+      "complete_risk_percent": 5.158900806025206,
+      "when_lipids_hidden": {
+        "domain": {
+          "total_chol_mgdl": [
+            130,
+            320
+          ],
+          "hdl_mgdl": [
+            20,
+            100
+          ]
+        },
+        "corners": [
+          {
+            "total_chol_mgdl": 130,
+            "hdl_mgdl": 20,
+            "risk_percent": 6.060758218962411
+          },
+          {
+            "total_chol_mgdl": 130,
+            "hdl_mgdl": 100,
+            "risk_percent": 2.7887618894694017
+          },
+          {
+            "total_chol_mgdl": 320,
+            "hdl_mgdl": 20,
+            "risk_percent": 8.47802515864871
+          },
+          {
+            "total_chol_mgdl": 320,
+            "hdl_mgdl": 100,
+            "risk_percent": 3.9559853571991024
+          }
+        ],
+        "minimum_percent": 2.7887618894694017,
+        "maximum_percent": 8.47802515864871,
+        "threshold_percent": 7.5,
+        "label": "UNDETERMINED"
+      }
+    },
+    {
+      "name": "C",
+      "synthetic": true,
+      "inputs": {
+        "age": 70,
+        "sex": "male",
+        "total_chol_mgdl": 200,
+        "hdl_mgdl": 50,
+        "sbp": 135,
+        "on_bp_meds": false,
+        "diabetes": false,
+        "current_smoker": true,
+        "egfr": 65,
+        "statin": false
+      },
+      "complete_risk_percent": 18.223741382506233,
+      "when_lipids_hidden": {
+        "domain": {
+          "total_chol_mgdl": [
+            130,
+            320
+          ],
+          "hdl_mgdl": [
+            20,
+            100
+          ]
+        },
+        "corners": [
+          {
+            "total_chol_mgdl": 130,
+            "hdl_mgdl": 20,
+            "risk_percent": 21.00877013055831
+          },
+          {
+            "total_chol_mgdl": 130,
+            "hdl_mgdl": 100,
+            "risk_percent": 14.474572034765464
+          },
+          {
+            "total_chol_mgdl": 320,
+            "hdl_mgdl": 20,
+            "risk_percent": 20.67934082571276
+          },
+          {
+            "total_chol_mgdl": 320,
+            "hdl_mgdl": 100,
+            "risk_percent": 14.229145931184366
+          }
+        ],
+        "minimum_percent": 14.229145931184366,
+        "maximum_percent": 21.00877013055831,
+        "threshold_percent": 7.5,
+        "label": "ABOVE"
+      }
+    }
+  ],
+  "worked_example": {
+    "inputs": {
+      "age": 50,
+      "sex": "female",
+      "total_chol_mgdl": 200,
+      "hdl_mgdl": 45,
+      "sbp": 160,
+      "on_bp_meds": true,
+      "diabetes": true,
+      "current_smoker": false,
+      "egfr": 90,
+      "statin": false
+    },
+    "transformed_features": {
+      "cage": -0.5,
+      "non_hdl": 0.5083000000000002,
+      "hdl": -0.45433333333333364,
+      "sbp_lt110": 0.0,
+      "sbp_ge110": 1.5,
+      "diabetes": 1.0,
+      "smoker": 0.0,
+      "egfr_lt60": -0.0,
+      "egfr_ge60": -0.0,
+      "on_bp_meds": 1.0,
+      "statin": 0.0,
+      "sbp_ge110_x_bpmed": 1.5,
+      "non_hdl_x_statin": 0.0,
+      "cage_x_non_hdl": -0.2541500000000001,
+      "cage_x_hdl": 0.22716666666666682,
+      "cage_x_sbp_ge110": -0.75,
+      "cage_x_diabetes": -0.5,
+      "cage_x_smoker": -0.0,
+      "cage_x_egfr_lt60": 0.0
+    },
+    "weighted_terms": {
+      "cage": -0.39696645,
+      "non_hdl": 0.015515298370000007,
+      "hdl": 0.07300486970000004,
+      "sbp_lt110": -0.0,
+      "sbp_ge110": 0.54011715,
+      "diabetes": 0.8667604,
+      "smoker": 0.0,
+      "egfr_lt60": -0.0,
+      "egfr_ge60": -0.0,
+      "on_bp_meds": 0.3151672,
+      "statin": -0.0,
+      "sbp_ge110_x_bpmed": -0.09954179999999999,
+      "non_hdl_x_statin": 0.0,
+      "cage_x_non_hdl": 0.020833056725000007,
+      "cage_x_hdl": 0.006968769116666672,
+      "cage_x_sbp_ge110": 0.0709761,
+      "cage_x_diabetes": 0.135285,
+      "cage_x_smoker": 0.0,
+      "cage_x_egfr_lt60": -0.0
+    },
+    "intercept": -3.307728,
+    "linear_predictor": -1.7596084060883332,
+    "risk_percent": 14.683939095644824
+  }
+}

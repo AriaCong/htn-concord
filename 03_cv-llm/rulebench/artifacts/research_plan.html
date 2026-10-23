@@ -1,0 +1,485 @@
+<title>CV-RuleBench 研究方案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,650&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --surface-2:#E9EDF1;
+  --ink:#16202A; --ink-2:#3E4D5B; --muted:#6C7B88;
+  --line:#D8DFE6; --line-2:#C3CDD6;
+  --accent:#9B2335; --accent-ink:#7A1A29; --accent-wash:#F6E3E6;
+  --rqA:#1F6F8B; --rqA-wash:#DDEFF5;
+  --rqB:#7A5A12; --rqB-wash:#F4ECD6;
+  --rqC:#4B3F9E; --rqC-wash:#E6E3F6;
+  --ok:#1E6B4F; --ok-wash:#DDF0E7;
+  --warn:#8A4B0F; --warn-wash:#F7E8D8;
+  --sans:"Instrument Sans","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --serif:"Newsreader","Songti SC","Source Han Serif SC",Georgia,serif;
+  --mono:"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1419; --surface:#161D24; --surface-2:#1E2731;
+    --ink:#E5EBF0; --ink-2:#B2C0CC; --muted:#7E8D99;
+    --line:#26313C; --line-2:#34414E;
+    --accent:#E0707F; --accent-ink:#F0A0AB; --accent-wash:#3A1D23;
+    --rqA:#6FC0DA; --rqA-wash:#12303A;
+    --rqB:#D9B560; --rqB-wash:#332A12;
+    --rqC:#A99CF0; --rqC-wash:#241F42;
+    --ok:#6FCBA5; --ok-wash:#123027;
+    --warn:#E3A566; --warn-wash:#3A2716;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1419; --surface:#161D24; --surface-2:#1E2731;
+  --ink:#E5EBF0; --ink-2:#B2C0CC; --muted:#7E8D99;
+  --line:#26313C; --line-2:#34414E;
+  --accent:#E0707F; --accent-ink:#F0A0AB; --accent-wash:#3A1D23;
+  --rqA:#6FC0DA; --rqA-wash:#12303A;
+  --rqB:#D9B560; --rqB-wash:#332A12;
+  --rqC:#A99CF0; --rqC-wash:#241F42;
+  --ok:#6FCBA5; --ok-wash:#123027;
+  --warn:#E3A566; --warn-wash:#3A2716;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid var(--line-2)}
+a:hover{border-bottom-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+code{font-family:var(--mono);font-size:.86em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+.page{max-width:1180px;margin:0 auto;padding-inline:24px;display:grid;grid-template-columns:210px minmax(0,1fr);gap:48px}
+header.hero{grid-column:1/-1;padding-block:44px 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:650;font-size:clamp(30px,4.4vw,46px);line-height:1.08;margin:0;max-width:22ch;text-wrap:balance}
+.thesis{margin:18px 0 0;font-size:17.5px;color:var(--ink-2);max-width:64ch}
+.thesis b{color:var(--ink)}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;padding-block:28px 0;font-size:13.5px}
+nav.toc p{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+nav.toc a{border:0;color:var(--ink-2);display:block;padding:3px 0 3px 10px;border-left:2px solid var(--line)}
+nav.toc a:hover{color:var(--ink);border-left-color:var(--accent)}
+main{min-width:0;padding-block:12px 64px}
+section{padding-block:30px 6px;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+h2{font-family:var(--serif);font-weight:650;font-size:27px;line-height:1.2;margin:0 0 6px;text-wrap:balance}
+h3{font-size:16.5px;margin:22px 0 8px;text-wrap:balance}
+p{margin:0 0 12px;max-width:72ch}
+.lead{color:var(--ink-2);font-size:15px;margin-bottom:18px}
+ul,ol.b{margin:0 0 12px;padding-left:20px;max-width:72ch}
+li{margin:3px 0}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;padding:1px 7px;border-radius:3px;vertical-align:2px}
+.tag.A{background:var(--rqA-wash);color:var(--rqA)} .tag.B{background:var(--rqB-wash);color:var(--rqB)} .tag.C{background:var(--rqC-wash);color:var(--rqC)}
+.rqhead{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.rqhead .k{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em}
+.rq-A .k{color:var(--rqA)} .rq-B .k{color:var(--rqB)} .rq-C .k{color:var(--rqC)}
+.qbox{border-left:3px solid var(--line-2);padding:10px 16px;background:var(--surface);margin:10px 0 16px}
+.rq-A .qbox{border-left-color:var(--rqA)} .rq-B .qbox{border-left-color:var(--rqB)} .rq-C .qbox{border-left-color:var(--rqC)}
+.qbox ol{margin:0;padding-left:20px}
+.tw{overflow-x:auto;margin:8px 0 16px;border:1px solid var(--line);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 12px;border-top:1px solid var(--line);vertical-align:top}
+thead th{border-top:0;font-family:var(--mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--surface-2)}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.h{font-weight:600;white-space:nowrap}
+.note{font-size:13px;color:var(--muted)}
+.callout{background:var(--warn-wash);color:var(--ink);padding:12px 16px;border-radius:3px;font-size:14px;margin:10px 0 16px;max-width:76ch}
+.callout b{color:var(--warn)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:8px 0 16px}
+.card{background:var(--surface);border:1px solid var(--line);padding:14px 16px}
+.card h4{margin:0 0 6px;font-size:14px}
+.card p{font-size:13.5px;color:var(--ink-2);margin:0}
+/* architecture */
+.arch{background:var(--surface);border:1px solid var(--line);padding:18px;margin:10px 0 18px}
+.layer{display:grid;grid-template-columns:130px minmax(0,1fr);gap:14px;align-items:stretch}
+.layer+.layer{margin-top:0}
+.ll{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-top:12px}
+.boxes{display:flex;flex-wrap:wrap;gap:8px}
+.bx{flex:1 1 150px;border:1px solid var(--line-2);border-radius:3px;padding:8px 10px;background:var(--bg);font-size:13px;line-height:1.45}
+.bx b{display:block;font-family:var(--mono);font-size:12px;margin-bottom:2px;color:var(--ink)}
+.bx span{color:var(--ink-2)}
+.bx.reuse{border-style:dashed}
+.bx.new{border-color:var(--accent);background:var(--accent-wash)}
+.bx.lock{border-color:var(--warn);background:var(--warn-wash)}
+.flow{grid-column:2;text-align:left;color:var(--muted);font-family:var(--mono);font-size:13px;padding:4px 0 4px 14px;line-height:1}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:10px;border:1px solid var(--line-2);vertical-align:-1px;margin-right:5px;background:var(--bg)}
+.legend i.n{border-color:var(--accent);background:var(--accent-wash)} .legend i.r{border-style:dashed} .legend i.l{border-color:var(--warn);background:var(--warn-wash)}
+pre.tree{font-family:var(--mono);font-size:12.5px;line-height:1.55;background:var(--surface);border:1px solid var(--line);padding:14px 16px;overflow-x:auto;margin:8px 0 16px;color:var(--ink-2)}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+footer{grid-column:1/-1;border-top:1px solid var(--line);padding-block:20px 56px;color:var(--muted);font-size:12.5px}
+
+/* diagrams */
+figure.dgf{margin:10px 0 22px;background:var(--surface);border:1px solid var(--line);padding:14px 14px 10px}
+.dgwrap{overflow-x:auto}
+svg.dg{display:block;width:100%;min-width:760px;height:auto;color:var(--ink);font-family:var(--sans)}
+.dg .b{fill:var(--surface);stroke:var(--line-2);stroke-width:1.2}
+.dg .ext{fill:var(--surface-2);stroke:var(--ink-2);stroke-width:1.2;stroke-dasharray:5 3}
+.dg .lk{fill:var(--warn-wash);stroke:var(--warn);stroke-width:1.2}
+.dg .th{fill:var(--accent-wash);stroke:var(--accent);stroke-width:1.2}
+.dg .zone{fill:none;stroke:var(--line-2);stroke-width:1.2;stroke-dasharray:7 5}
+.dg .zone.zl{stroke:var(--warn)} .dg .zone.zc{stroke:var(--rqC)}
+.dg .t{fill:currentColor;font-size:13px;font-weight:600}
+.dg .tt{fill:currentColor;font-size:15px;font-weight:600}
+.dg .m{fill:currentColor;font-size:12px;font-weight:600;font-family:var(--mono)}
+.dg .s{fill:var(--ink-2);font-size:11px}
+.dg .zt{fill:var(--muted);font-size:11px;font-family:var(--mono)}
+.dg .zt.l{fill:var(--warn)} .dg .zt.c{fill:var(--rqC)}
+.dg .ln{stroke:currentColor;stroke-width:1.3;fill:none}
+.dg .al{fill:var(--muted);font-size:11px}
+.dg .no{stroke:var(--accent);stroke-width:1.5;stroke-dasharray:4 3;fill:none}
+.dg .nox{fill:var(--accent);font-size:15px;font-weight:700}
+.dg .not{fill:var(--accent);font-size:11px;font-weight:600}
+.dg .cA{fill:var(--rqA-wash)} .dg .cB{fill:var(--rqB-wash)} .dg .cC{fill:var(--rqC-wash)}
+.dg .kA{fill:var(--rqA);font-size:10px;font-weight:700;font-family:var(--mono)}
+.dg .kB{fill:var(--rqB);font-size:10px;font-weight:700;font-family:var(--mono)}
+.dg .kC{fill:var(--rqC);font-size:10px;font-weight:700;font-family:var(--mono)}
+figcaption{font-size:13px;color:var(--ink-2);margin-top:8px;max-width:80ch}
+@media (max-width:900px){
+  .page{grid-template-columns:1fr;gap:0}
+  nav.toc{position:static;padding-block:16px 0}
+  nav.toc ol{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid2{grid-template-columns:1fr}
+  .layer{grid-template-columns:1fr;gap:6px}
+  .ll{padding-top:6px}
+  .flow{grid-column:1}
+}
+.tag.P1{background:var(--rqA-wash);color:var(--rqA)} .tag.P2{background:var(--rqB-wash);color:var(--rqB)} .tag.P3{background:var(--rqC-wash);color:var(--rqC)}
+.rq-P1 .k{color:var(--rqA)} .rq-P2 .k{color:var(--rqB)} .rq-P3 .k{color:var(--rqC)}
+.rq-P1 .qbox{border-left-color:var(--rqA)} .rq-P2 .qbox{border-left-color:var(--rqB)} .rq-P3 .qbox{border-left-color:var(--rqC)}
+.ok{color:var(--ok);font-weight:600} .bad{color:var(--accent-ink);font-weight:600}
+</style>
+
+<div class="page">
+<header class="hero">
+  <p class="eyebrow">CV-RuleBench · 研究方案 v2 与架构 · 2026-09-25</p>
+  <h1>大模型执行临床规则时，错在哪一环、用什么修</h1>
+  <p class="thesis">研究对象是<b>大模型本身</b>，心血管风险规则只是试验台。三篇论文前后衔接：先<b>诊断</b>模型在哪个环节出错（P1），再比较各种<b>修法</b>各修好哪类错误（P2），最后看<b>强化学习</b>能否修得更彻底（P3）。所有标准答案都由公式、阈值和区间运算算出，<b>不需要医生裁定</b>。</p>
+</header>
+
+<nav class="toc" aria-label="目录">
+  <p>目录</p>
+  <ol>
+    <li><a href="#change">v2 改了什么、为什么</a></li>
+    <li><a href="#why">为什么是这个题目</a></li>
+    <li><a href="#project">项目架构</a></li>
+    <li><a href="#arch">测试台流水线</a></li>
+    <li><a href="#dataflow">数据流与合规</a></li>
+    <li><a href="#p1">P1 诊断</a></li>
+    <li><a href="#p2">P2 干预阶梯</a></li>
+    <li><a href="#p3">P3 强化学习</a></li>
+    <li><a href="#plan">时间线与止损</a></li>
+    <li><a href="#cost">成本</a></li>
+    <li><a href="#risk">约束与风险</a></li>
+    <li><a href="#files">文件与链接</a></li>
+  </ol>
+</nav>
+
+<main>
+<section id="change">
+  <h2>v2 改了什么、为什么</h2>
+  <p class="lead">v1 按现象分成 A（规则更新）、B（信息不全）、C（强化学习）三篇各自独立的论文。先导实验跑完后改为 v2：按研究流程分成诊断、修复、训练三篇，前后衔接。</p>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>v1</th><th>v2</th></tr></thead>
+    <tbody>
+      <tr><td class="h">论文 1</td><td>A 规则更新：模型听新规则还是退回旧规则</td><td><span class="tag P1">P1</span> 诊断：A、B 合并，逐环节计错</td></tr>
+      <tr><td class="h">论文 2</td><td>B 信息不全：模型知不知道能否下结论</td><td><span class="tag P2">P2</span> 干预阶梯：十层修法，各修好哪类错误</td></tr>
+      <tr><td class="h">论文 3</td><td>C 强化学习</td><td><span class="tag P3">P3</span> 强化学习，与 P2 最好的修法正面比较</td></tr>
+      <tr><td class="h">修复手段</td><td>只在 A 的进阶部分和 C 里出现</td><td>单独成篇</td></tr>
+    </tbody></table></div>
+  <h3>先导实验给出的理由</h3>
+  <div class="tw"><table>
+    <thead><tr><th>v1 让 A 单独成篇需要的前提</th><th>先导实际看到的</th></tr></thead>
+    <tbody>
+      <tr><td>真实人群中新旧冲突至少占 15%</td><td class="bad">只有 5.7%（14/244）</td></tr>
+      <tr><td>PCE 约为 PREVENT 的 2 倍，靠数值能分辨模型用了哪个公式</td><td class="bad">中位 1.11 倍；中小模型算不准，分辨不出</td></tr>
+      <tr><td>模型会算但仍然选旧规则</td><td class="bad">最强的 gpt-6-astra 冲突病例 97% 正确；把新规则当笔误的只有 Qwen 8B 思考模式</td></tr>
+      <tr><td><b>v2 的前提：</b>失败能分类，不同修法修不同的类</td><td class="ok">成立：给出风险值后，8B、14B、gpt-6-sol 的错误全部消失，1.7B 的却修不好；「声称缺了不需要的输入」在 A、B 两类任务都出现</td></tr>
+    </tbody></table></div>
+  <p class="note">保留的退路：如果正式实验中前沿模型的推理模式出现很强的「会算但仍选旧规则」，A 仍可单独成篇。完整文本见 <code>docs/proposal_v2_2026-09-25.md</code>；v1 保留在 <code>docs/proposal_A_B_C_2026-09-23.md</code>。</p>
+</section>
+
+<section id="why">
+  <h2>为什么是这个题目</h2>
+  <p class="lead">已发表的心血管 / 高血压大模型研究，大多停在「这个模型在这个任务上得多少分」，而且靠医生或另一个大模型打分。总分说不清错在哪一步，也就不知道该怎么修。</p>
+  <p>心血管风险决策的核心逻辑是<b>已发表的公式加阈值</b>。例如 2025 版指南规定，1 期高血压且 PREVENT 10 年风险 ≥7.5% 就开药。所以每一个环节都有程序算出的唯一答案，可以把错误精确定位：</p>
+  <div class="grid2">
+    <div class="card"><h4>选规则</h4><p>2017 版（PCE ≥10%）与 2025 版（PREVENT ≥7.5%）同时存在于模型的记忆和上下文里。</p></div>
+    <div class="card"><h4>算风险</h4><p>PCE 和 PREVENT 都已照原文实现，并与原文算例逐位核对。</p></div>
+    <div class="card"><h4>下结论与说到做到</h4><p>决定是否与自己报的数值一致；自称的公式是否就是实际用的公式。</p></div>
+    <div class="card"><h4>能否下结论</h4><p>缺胆固醇时，风险区间是否跨过阈值，由区间运算精确算出。</p></div>
+  </div>
+</section>
+
+<section id="project">
+  <h2>项目架构</h2>
+  <figure class="dgf"><div class="dgwrap"><svg class="dg" viewBox="0 0 1000 540" role="img" aria-label="项目架构：一个核心问题分成三篇前后衔接的论文。P1 诊断把错误分类，交给 P2 干预阶梯比较各种修法；P2 最好的修法作为 P3 强化学习的对照。三篇共用一个测试台的九个模块，模块读取两类数据、复用 HTN-Concord 代码，并调用 API、本机和 GPU 三种算力。"><defs><marker id="ah1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs><rect class="th" x="200" y="16" width="600" height="48" rx="3"/><text class="tt" x="500.0" y="41.0" text-anchor="middle">模型执行临床规则时错在哪一环、用什么修</text><polyline class="ln" points="500,64 170,118" marker-end="url(#ah1)"/><rect class="b" x="40" y="120" width="260" height="74" rx="3"/><text class="t" x="170.0" y="145.0" text-anchor="middle">P1 · 诊断</text><text class="s" x="170.0" y="161.0" text-anchor="middle">A 规则更新 + B 信息不全</text><text class="s" x="170.0" y="177.0" text-anchor="middle">逐环节计错（本机 + API）</text><polyline class="ln" points="500,64 500,118" marker-end="url(#ah1)"/><rect class="b" x="370" y="120" width="260" height="74" rx="3"/><text class="t" x="500.0" y="145.0" text-anchor="middle">P2 · 干预阶梯</text><text class="s" x="500.0" y="161.0" text-anchor="middle">提示 → 工具 → 微调 → 知识编辑</text><text class="s" x="500.0" y="177.0" text-anchor="middle">大部分在本机</text><polyline class="ln" points="500,64 830,118" marker-end="url(#ah1)"/><rect class="b" x="700" y="120" width="260" height="74" rx="3"/><text class="t" x="830.0" y="145.0" text-anchor="middle">P3 · 强化学习</text><text class="s" x="830.0" y="161.0" text-anchor="middle">程序给分训练小模型</text><text class="s" x="830.0" y="177.0" text-anchor="middle">GPU 训练 · 本机测 MIMIC</text><polyline class="ln" points="300,157 368,157" marker-end="url(#ah1)"/><text class="al" x="334" y="148" text-anchor="middle">错误分类</text><polyline class="ln" points="630,157 698,157" marker-end="url(#ah1)"/><text class="al" x="664" y="148" text-anchor="middle">最佳修法</text><text class="al" x="664" y="176" text-anchor="middle">作对照</text><polyline class="ln" points="500,194 500,266" marker-end="url(#ah1)"/><text class="al" x="508" y="236" text-anchor="start">三篇共用</text><rect class="zone" x="16" y="268" width="968" height="152" rx="4"/><text class="zt" x="30" y="286">共用测试台 · bench/（由先导代码扩展）</text><rect class="b" x="36" y="298" width="96" height="108" rx="3"/><text class="m" x="84" y="322" text-anchor="middle">cohort/</text><text class="s" x="84" y="344" text-anchor="middle">NHANES 多周期</text><text class="s" x="84" y="360" text-anchor="middle">MIMIC（本机）</text><rect class="cA" x="56" y="378" width="16" height="16" rx="2"/><text class="kA" x="64" y="390" text-anchor="middle">1</text><rect class="cB" x="76" y="378" width="16" height="16" rx="2"/><text class="kB" x="84" y="390" text-anchor="middle">2</text><rect class="cC" x="96" y="378" width="16" height="16" rx="2"/><text class="kC" x="104" y="390" text-anchor="middle">3</text><rect class="b" x="140" y="298" width="96" height="108" rx="3"/><text class="m" x="188" y="322" text-anchor="middle">equations/</text><text class="s" x="188" y="344" text-anchor="middle">PCE · PREVENT</text><text class="s" x="188" y="360" text-anchor="middle">eGFR</text><rect class="cA" x="160" y="378" width="16" height="16" rx="2"/><text class="kA" x="168" y="390" text-anchor="middle">1</text><rect class="cB" x="180" y="378" width="16" height="16" rx="2"/><text class="kB" x="188" y="390" text-anchor="middle">2</text><rect class="cC" x="200" y="378" width="16" height="16" rx="2"/><text class="kC" x="208" y="390" text-anchor="middle">3</text><rect class="b" x="244" y="298" width="96" height="108" rx="3"/><text class="m" x="292" y="322" text-anchor="middle">labels/</text><text class="s" x="292" y="344" text-anchor="middle">各环节标签</text><text class="s" x="292" y="360" text-anchor="middle">区间运算</text><rect class="cA" x="264" y="378" width="16" height="16" rx="2"/><text class="kA" x="272" y="390" text-anchor="middle">1</text><rect class="cB" x="284" y="378" width="16" height="16" rx="2"/><text class="kB" x="292" y="390" text-anchor="middle">2</text><rect class="cC" x="304" y="378" width="16" height="16" rx="2"/><text class="kC" x="312" y="390" text-anchor="middle">3</text><rect class="b" x="348" y="298" width="96" height="108" rx="3"/><text class="m" x="396" y="322" text-anchor="middle">render/</text><text class="s" x="396" y="344" text-anchor="middle">病例描述</text><text class="s" x="396" y="360" text-anchor="middle">多种写法</text><rect class="cA" x="368" y="378" width="16" height="16" rx="2"/><text class="kA" x="376" y="390" text-anchor="middle">1</text><rect class="cB" x="388" y="378" width="16" height="16" rx="2"/><text class="kB" x="396" y="390" text-anchor="middle">2</text><rect class="cC" x="408" y="378" width="16" height="16" rx="2"/><text class="kC" x="416" y="390" text-anchor="middle">3</text><rect class="b" x="452" y="298" width="96" height="108" rx="3"/><text class="m" x="500" y="322" text-anchor="middle">prompts/</text><text class="s" x="500" y="344" text-anchor="middle">按条件分版</text><text class="s" x="500" y="360" text-anchor="middle">冻结 + 哈希</text><rect class="cA" x="482" y="378" width="16" height="16" rx="2"/><text class="kA" x="490" y="390" text-anchor="middle">1</text><rect class="cB" x="502" y="378" width="16" height="16" rx="2"/><text class="kB" x="510" y="390" text-anchor="middle">2</text><rect class="b" x="556" y="298" width="96" height="108" rx="3"/><text class="m" x="604" y="322" text-anchor="middle">runners/</text><text class="s" x="604" y="344" text-anchor="middle">本机 · API</text><text class="s" x="604" y="360" text-anchor="middle">Batch · 缓存</text><rect class="cA" x="576" y="378" width="16" height="16" rx="2"/><text class="kA" x="584" y="390" text-anchor="middle">1</text><rect class="cB" x="596" y="378" width="16" height="16" rx="2"/><text class="kB" x="604" y="390" text-anchor="middle">2</text><rect class="cC" x="616" y="378" width="16" height="16" rx="2"/><text class="kC" x="624" y="390" text-anchor="middle">3</text><rect class="b" x="660" y="298" width="96" height="108" rx="3"/><text class="m" x="708" y="322" text-anchor="middle">score/</text><text class="s" x="708" y="344" text-anchor="middle">各环节指标</text><text class="s" x="708" y="360" text-anchor="middle">失败类型</text><rect class="cA" x="680" y="378" width="16" height="16" rx="2"/><text class="kA" x="688" y="390" text-anchor="middle">1</text><rect class="cB" x="700" y="378" width="16" height="16" rx="2"/><text class="kB" x="708" y="390" text-anchor="middle">2</text><rect class="cC" x="720" y="378" width="16" height="16" rx="2"/><text class="kC" x="728" y="390" text-anchor="middle">3</text><rect class="b" x="764" y="298" width="96" height="108" rx="3"/><text class="m" x="812" y="322" text-anchor="middle">ladder/</text><text class="s" x="812" y="344" text-anchor="middle">十层修法</text><text class="s" x="812" y="360" text-anchor="middle">P2</text><rect class="cB" x="804" y="378" width="16" height="16" rx="2"/><text class="kB" x="812" y="390" text-anchor="middle">2</text><rect class="b" x="868" y="298" width="96" height="108" rx="3"/><text class="m" x="916" y="322" text-anchor="middle">train/</text><text class="s" x="916" y="344" text-anchor="middle">SFT · GRPO</text><text class="s" x="916" y="360" text-anchor="middle">程序奖励</text><rect class="cC" x="908" y="378" width="16" height="16" rx="2"/><text class="kC" x="916" y="390" text-anchor="middle">3</text><polyline class="ln" points="500,420 500,456" marker-end="url(#ah1)"/><text class="al" x="508" y="442" text-anchor="start">读取 / 调用</text><rect class="b" x="20" y="458" width="150" height="56" rx="3"/><text class="t" x="95.0" y="482.0" text-anchor="middle">NHANES</text><text class="s" x="95.0" y="499.0" text-anchor="middle">公开 · 可发 API</text><rect class="lk" x="182" y="458" width="150" height="56" rx="3"/><text class="t" x="257.0" y="482.0" text-anchor="middle">MIMIC-IV + Note</text><text class="s" x="257.0" y="499.0" text-anchor="middle">受控 · 只在本机</text><rect class="b" x="344" y="458" width="150" height="56" rx="3"/><text class="t" x="419.0" y="482.0" text-anchor="middle">HTN-Concord 代码</text><text class="s" x="419.0" y="499.0" text-anchor="middle">只读复用</text><rect class="ext" x="506" y="458" width="150" height="56" rx="3"/><text class="t" x="581.0" y="482.0" text-anchor="middle">OpenAI / Anthropic</text><text class="s" x="581.0" y="499.0" text-anchor="middle">Batch · 只处理 NHANES</text><rect class="lk" x="668" y="458" width="150" height="56" rx="3"/><text class="t" x="743.0" y="482.0" text-anchor="middle">M4 Max · 36 GB</text><text class="s" x="743.0" y="499.0" text-anchor="middle">推理 · P2 · MIMIC</text><rect class="ext" x="830" y="458" width="150" height="56" rx="3"/><text class="t" x="905.0" y="482.0" text-anchor="middle">Colab / 学校集群</text><text class="s" x="905.0" y="499.0" text-anchor="middle">P3 训练</text><text class="al" x="500" y="532" text-anchor="middle">小方块表示模块被哪篇论文用到：1 = P1，2 = P2，3 = P3</text></svg></div>
+  <figcaption><b>项目架构。</b>P1 把错误分成几类，P2 在同一套指标上比较各种修法，P2 最好的修法又是 P3 的对照。三篇共用一个测试台；数据、代码和算力分别在最下面一行。</figcaption></figure>
+</section>
+
+<section id="arch">
+  <h2>测试台流水线</h2>
+  <p class="lead">三篇共用同一条流水线：病人档案 × 公式 → 各环节的标准答案 → 题面 → 模型 → 按环节打分。P2 在模型前后插入修法，P3 再加一个训练环。</p>
+  <div class="arch" role="img" aria-label="测试台流水线：数据、公式、标签、题面、模型、打分，以及 P2 的修法和 P3 的训练环">
+    <div class="layer"><div class="ll">数据</div><div class="boxes">
+      <div class="bx reuse"><b>NHANES</b><span>2017–18 已用于先导；正式实验合并多个周期；MCQ 心血管病史</span></div>
+      <div class="bx lock"><b>MIMIC-IV + Note</b><span>受控数据，只在本机</span></div>
+    </div></div>
+    <div class="flow">↓</div>
+    <div class="layer"><div class="ll">公式</div><div class="boxes">
+      <div class="bx reuse"><b>prevent.py</b><span>2025 版；系数与原文附表逐个核对</span></div>
+      <div class="bx new"><b>pce.py</b><span>2017 版；原文算例一致；待第二人核对系数</span></div>
+      <div class="bx reuse"><b>eGFR</b><span>CKD-EPI 2021，不分种族</span></div>
+    </div></div>
+    <div class="flow">↓</div>
+    <div class="layer"><div class="ll">标签</div><div class="boxes">
+      <div class="bx new"><b>steps.py</b><span>每个环节的标准答案：规则、阈值、两个公式的风险、决定</span></div>
+      <div class="bx new"><b>determinability.py</b><span>缺失变量取值范围 → 风险区间 → 一定开 / 一定不开 / 无法判断</span></div>
+      <div class="bx new"><b>对照病例</b><span>贴近阈值的一致病例（新增，必需）</span></div>
+    </div></div>
+    <div class="flow">↓</div>
+    <div class="layer"><div class="ll">题面</div><div class="boxes">
+      <div class="bx new"><b>render/</b><span>病例描述，至少两种写法</span></div>
+      <div class="bx new"><b>prompts/</b><span>9 个诊断条件，每个一个版本；冻结后记录 SHA-256</span></div>
+    </div></div>
+    <div class="flow">↓ &nbsp;<span class="tag P2">P2</span> 修法 1–7 作用在这里（提示、例题、原文 / RAG、自动优化、投票、工具、解码干预）</div>
+    <div class="layer"><div class="ll">模型</div><div class="boxes">
+      <div class="bx reuse"><b>本机</b><span>Qwen3 0.6–14B，思考 / 非思考（先导 runner 已有）</span></div>
+      <div class="bx new"><b>API</b><span>OpenAI Batch（半价）；Anthropic（如获额度）；只处理 NHANES</span></div>
+      <div class="bx lock"><b>MIMIC 分支</b><span>只用本机模型</span></div>
+    </div></div>
+    <div class="flow">↓ &nbsp;全部调用缓存为 JSONL（病例、条件、写法、模型、采样序号、原始输出、token、费用）</div>
+    <div class="layer"><div class="ll">打分</div><div class="boxes">
+      <div class="bx new"><b>score/</b><span>各环节指标与失败类型；自助法置信区间；混合效应模型</span></div>
+      <div class="bx new"><b>probe/</b><span>可选：从 Qwen 隐藏层读出风险值和弃权信号</span></div>
+    </div></div>
+    <div class="flow">↻</div>
+    <div class="layer"><div class="ll">改模型 <span class="tag P2">P2</span> <span class="tag P3">P3</span></div><div class="boxes">
+      <div class="bx new"><b>ladder/</b><span>Soft prompt、LoRA、知识编辑（本机）</span></div>
+      <div class="bx new"><b>train/</b><span>SFT + GRPO，奖励全部由程序给出（GPU）</span></div>
+    </div></div>
+    <div class="legend"><span><i class="r"></i>复用已有代码</span><span><i class="n"></i>新写或由先导扩展</span><span><i class="l"></i>受控数据，只在本机</span></div>
+  </div>
+  <h3>设计原则</h3>
+  <ul>
+    <li><b>标准答案只由程序产生。</b>不用大模型当评委，也不做人工标注。</li>
+    <li><b>先导与正式分开。</b>先导用过的病人已记录并排除；提示冻结后正式数据只跑一次。</li>
+    <li><b>每例至少 3 次采样、至少 2 种写法</b>，报告重复噪声基线。先导大多只问一次、一种写法，这是先导结论最主要的局限。</li>
+    <li><b>缺数据绝不当低风险。</b>必需输入缺失或超出公式范围时返回「无法计算」。</li>
+  </ul>
+</section>
+
+<section id="dataflow">
+  <h2>数据流与合规边界</h2>
+  <p class="lead">两类数据走不同的路径：公开数据可以去任何地方；受控数据只在本机处理。2026-09-23 已按 PhysioNet 原文核对。</p>
+  <figure class="dgf"><div class="dgwrap"><svg class="dg" viewBox="0 0 1000 492" role="img" aria-label="数据流：NHANES 在公开区经管线生成标签和题面，送往 OpenAI API 或本机 Qwen，并在 Colab 上生成训练题做 GRPO；MIMIC 只在本机经管线和结构化表标签送入本机 Qwen，训练好的 LoRA 权重从 Colab 下载进本机，病历从不发往 API 或 Colab；所有输出进入缓存、确定性评估，最后只导出汇总数字。"><defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs><rect class="zone" x="10" y="30" width="790" height="132" rx="4"/><text class="zt" x="22" y="48">公开数据区 · 可以发给 API</text><rect class="zone zc" x="380" y="182" width="420" height="108" rx="4"/><text class="zt c" x="392" y="200">Colab · 只处理 NHANES 派生数据</text><rect class="zone zl" x="10" y="312" width="790" height="168" rx="4"/><text class="zt l" x="22" y="330">本机 M4 Max · MIMIC 不出这台机器（PhysioNet 协议第 3 条）</text><rect class="b" x="25" y="62" width="150" height="50" rx="3"/><text class="t" x="100.0" y="83.0" text-anchor="middle">NHANES 2017–18</text><text class="s" x="100.0" y="99.0" text-anchor="middle">公开 · 4,806 人</text><rect class="b" x="205" y="62" width="160" height="50" rx="3"/><text class="t" x="285.0" y="83.0" text-anchor="middle">NHANES 管线</text><text class="s" x="285.0" y="99.0" text-anchor="middle">清洗 · PREVENT · PCE</text><rect class="b" x="395" y="62" width="170" height="50" rx="3"/><text class="t" x="480.0" y="83.0" text-anchor="middle">标签 + 题面</text><text class="s" x="480.0" y="99.0" text-anchor="middle">各环节标签 · 区间标签</text><rect class="ext" x="600" y="52" width="185" height="40" rx="3"/><text class="t" x="692.5" y="76.0" text-anchor="middle">OpenAI Batch API</text><rect class="b" x="600" y="102" width="185" height="40" rx="3"/><text class="t" x="692.5" y="126.0" text-anchor="middle">Qwen 0.6–14B · 本机</text><polyline class="ln" points="175,87 203,87" marker-end="url(#ah2)"/><polyline class="ln" points="365,87 393,87" marker-end="url(#ah2)"/><polyline class="ln" points="565,80 598,72" marker-end="url(#ah2)"/><polyline class="ln" points="565,95 598,120" marker-end="url(#ah2)"/><rect class="b" x="395" y="216" width="170" height="50" rx="3"/><text class="t" x="480.0" y="237.0" text-anchor="middle">训练题生成器</text><text class="s" x="480.0" y="253.0" text-anchor="middle">程序无限生成</text><rect class="b" x="600" y="216" width="185" height="50" rx="3"/><text class="t" x="692.5" y="237.0" text-anchor="middle">GRPO + LoRA</text><text class="s" x="692.5" y="253.0" text-anchor="middle">Colab A100</text><polyline class="ln" points="480,112 480,214" marker-end="url(#ah2)"/><text class="al" x="488" y="176" text-anchor="start">NHANES 标签</text><polyline class="ln" points="565,241 598,241" marker-end="url(#ah2)"/><text class="al" x="582" y="234" text-anchor="middle">奖励</text><rect class="lk" x="25" y="370" width="150" height="50" rx="3"/><text class="t" x="100.0" y="391.0" text-anchor="middle">MIMIC-IV + Note</text><text class="s" x="100.0" y="407.0" text-anchor="middle">受控数据</text><rect class="b" x="205" y="370" width="160" height="50" rx="3"/><text class="t" x="285.0" y="391.0" text-anchor="middle">MIMIC 管线</text><text class="s" x="285.0" y="407.0" text-anchor="middle">档案 + 出院小结</text><rect class="b" x="395" y="370" width="170" height="50" rx="3"/><text class="t" x="480.0" y="391.0" text-anchor="middle">结构化表标签</text><text class="s" x="480.0" y="407.0" text-anchor="middle">labevents · OMR · 区间</text><rect class="lk" x="600" y="370" width="185" height="50" rx="3"/><text class="t" x="692.5" y="391.0" text-anchor="middle">本机 Qwen</text><text class="s" x="692.5" y="407.0" text-anchor="middle">MLX · 可加载 LoRA</text><polyline class="ln" points="175,395 203,395" marker-end="url(#ah2)"/><polyline class="ln" points="365,395 393,395" marker-end="url(#ah2)"/><polyline class="ln" points="565,395 598,395" marker-end="url(#ah2)"/><text class="al" x="582" y="388" text-anchor="middle">题面</text><polyline class="ln" points="692,266 692,368" marker-end="url(#ah2)"/><text class="al" x="700" y="304" text-anchor="start">LoRA 权重下载</text><line class="no" x1="480" y1="368" x2="480" y2="318"/><text class="nox" x="480" y="317" text-anchor="middle">✕</text><text class="not" x="490" y="302" text-anchor="start">病历不发往 API / Colab</text><rect class="b" x="830" y="110" width="160" height="50" rx="3"/><text class="t" x="910.0" y="131.0" text-anchor="middle">JSONL 缓存</text><text class="s" x="910.0" y="147.0" text-anchor="middle">每次调用都可复现</text><rect class="b" x="830" y="226" width="160" height="50" rx="3"/><text class="t" x="910.0" y="247.0" text-anchor="middle">确定性评估</text><text class="s" x="910.0" y="263.0" text-anchor="middle">指标 · 统计</text><rect class="b" x="830" y="344" width="160" height="62" rx="3"/><text class="t" x="910.0" y="363.0" text-anchor="middle">汇总结果</text><text class="s" x="910.0" y="379.0" text-anchor="middle">只含聚合数字</text><text class="s" x="910.0" y="395.0" text-anchor="middle">→ 论文 / 网页</text><polyline class="ln" points="785,72 828,125" marker-end="url(#ah2)"/><polyline class="ln" points="785,122 828,135" marker-end="url(#ah2)"/><polyline class="ln" points="785,395 812,395 812,150 828,150" marker-end="url(#ah2)"/><text class="al" x="836" y="102" text-anchor="start">原始输出</text><polyline class="ln" points="910,160 910,224" marker-end="url(#ah2)"/><text class="al" x="918" y="196" text-anchor="start">解析</text><polyline class="ln" points="910,276 910,342" marker-end="url(#ah2)"/><text class="al" x="918" y="312" text-anchor="start">只导出汇总</text></svg></div>
+<figcaption><b>数据流与合规边界。</b>虚线框是三个处理区域。NHANES 是公开数据，可以发给 API，也可以用来在 Colab 上生成训练题。MIMIC 从进入到出结果都留在本机：<b>只有模型权重跨边界进入本机，病历数据从不出去</b>（红色 ✕）。三条路径的输出都汇入同一个缓存和评估模块，最后只导出聚合数字，所以论文和网页里不会出现任何病历原文。</figcaption></figure>
+  <div class="tw"><table>
+    <thead><tr><th>数据</th><th>在哪里处理</th><th>可用的模型</th><th>产出</th></tr></thead>
+    <tbody>
+      <tr><td class="h">NHANES</td><td>本机 / Colab</td><td>OpenAI API、本机 Qwen、Colab 上训练的 Qwen</td><td>P1、P2 的主实验；P3 的训练题</td></tr>
+      <tr><td class="h">MIMIC</td><td><b>只在本机</b></td><td>只有本机 Qwen（可加载从 Colab 下载的 LoRA 权重）</td><td>P1 的真实病历分支；P2、P3 的迁移测试</td></tr>
+      <tr><td class="h">模型输出</td><td>本机</td><td>—</td><td>JSONL 缓存 → 确定性评估 → 只导出汇总数字</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="p1" class="rq-P1">
+  <div class="rqhead"><span class="k">P1</span></div>
+  <h2>诊断：模型在哪个环节出错</h2>
+  <div class="qbox"><ol>
+    <li>各环节（选规则、算风险、下结论、判断能否下结论）的错误率是多少？</li>
+    <li>错误随模型大小、推理模式怎么变？不同大小的模型是不是卡在不同环节？</li>
+    <li>模型说的和做的一致吗？自称的公式、阈值和它报出的数值是否对得上？</li>
+    <li>指南更新时会不会退回旧版？以什么形式：明说旧规则、当笔误、新阈值配旧公式、以旧公式为参照、静默替换？</li>
+    <li>信息不全时能否分辨「一定开 / 一定不开 / 无法判断」？错误和「离阈值多远」有什么关系？</li>
+    <li>会不会声称缺了其实不需要的输入？A、B 两类任务里是不是同一种失败？</li>
+  </ol></div>
+  <h3>实验条件（每个只改一件事，读条件之间的差）</h3>
+  <div class="tw"><table>
+    <thead><tr><th>代号</th><th>给模型什么</th><th>拆出哪个环节</th></tr></thead>
+    <tbody>
+      <tr><td class="h">C0</td><td>只说「按现行美国指南」</td><td>默认用哪一版</td></tr>
+      <tr><td class="h">C1</td><td>明确写出 2025 规则</td><td>端到端</td></tr>
+      <tr><td class="h">C1+risk</td><td>再给算好的 PREVENT 值</td><td>去掉「算」：C1+risk − C1 = 算错造成的损失</td></tr>
+      <tr><td class="h">C1+both <span class="tag P1">新</span></td><td>同时给 PCE 和 PREVENT 两个数值</td><td>只剩「选规则」</td></tr>
+      <tr><td class="h">C1+inputs <span class="tag P1">新</span></td><td>写明公式需要哪些输入、BMI 不需要</td><td>「声称缺输入」是否消失</td></tr>
+      <tr><td class="h">C5</td><td>明确写出 2017 规则</td><td>反向对照</td></tr>
+      <tr><td class="h">B-direct</td><td>2025 规则 + 隐去血脂</td><td>端到端能否下结论</td></tr>
+      <tr><td class="h">B+range</td><td>再给风险可能落在的区间</td><td>只剩判断逻辑</td></tr>
+      <tr><td class="h">B-NS</td><td>模型只抽取、由程序判定</td><td>剩下的错误只来自抽取</td></tr>
+    </tbody></table></div>
+  <h3>病例</h3>
+  <ul>
+    <li><b>冲突病例</b>：40–79 岁、1 期、无心血管病 / 糖尿病 / CKD、未服药，两版决定相反。合并多个 NHANES 周期；合成病例单独报告。</li>
+    <li><b>贴近阈值的一致病例（新增，必需）</b>：PREVENT 离 7.5% 不到 1.5 个百分点但两版决定相同，用来区分「退回旧版」和「随机算错」。</li>
+    <li><b>信息不全病例</b>：隐去血脂（再扩展到糖尿病、eGFR），按三类答案和离阈值距离分层抽样。</li>
+    <li><b>真实病历分支（本机）</b>：MIMIC 出院小结 + 结构化字段，测编造率。</li>
+  </ul>
+  <h3>失败类型（先导中已见到的）</h3>
+  <div class="tw"><table>
+    <thead><tr><th>失败类型</th><th>先导中出现在</th></tr></thead>
+    <tbody>
+      <tr><td class="h">算不准风险</td><td>所有模型；给出数值后 8B、14B、sol 全部修好</td></tr>
+      <tr><td class="h">结论与自己的数字矛盾</td><td>1.7B</td></tr>
+      <tr><td class="h">新阈值配旧公式名</td><td>8B（Framingham）、14B（ASCVD 计算器）</td></tr>
+      <tr><td class="h">把新规则当笔误</td><td>8B 思考模式（57/80 自称 PCE）</td></tr>
+      <tr><td class="h">以旧公式为参照</td><td>gpt-6-sol（26% 的推理摘要，偏差较弱）</td></tr>
+      <tr><td class="h">静默替换</td><td>gpt-6-astra 约 1%，重复采样未复现</td></tr>
+      <tr><td class="h">声称缺不需要的输入</td><td>gpt-6-astra 4.7%（BMI）</td></tr>
+      <tr><td class="h">过早下结论 / 过度弃权</td><td>1.7B 从不弃权；14B 59/60 弃权</td></tr>
+    </tbody></table></div>
+  <h3>预期结果（假设）</h3>
+  <ul>
+    <li>中小模型的主要错误在「算风险」；最小的模型另有「结论与数字矛盾」。</li>
+    <li>「退回旧版」随模型变强而减弱，形式从当笔误变为以旧公式为参照；加入贴近阈值的对照后，中档模型的大部分「退回旧版」可以用随机误差解释。</li>
+    <li>小模型过早下结论，大模型过度弃权；「声称缺输入」在写明所需输入后减少。</li>
+  </ul>
+</section>
+
+<section id="p2" class="rq-P2">
+  <div class="rqhead"><span class="k">P2</span></div>
+  <h2>干预阶梯：哪种修法修好哪类错误</h2>
+  <div class="qbox"><ol>
+    <li>每种修法修好了 P1 中的哪几类错误？有没有引入新错误？</li>
+    <li>代价如何：token、调用次数、训练算力、对其他能力的损害？</li>
+    <li>效果能否迁移：换一批病人、换一种写法、换一个公式、换到真实病历？</li>
+    <li>提示能压住的，是不是就不必改权重？知识编辑能不能改「阈值是 10%」这类程序性规则？</li>
+  </ol></div>
+  <div class="tw"><table>
+    <thead><tr><th>层级</th><th>修法</th><th>改模型？</th><th>预计主要修好</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>手写提示：明确指令、对比新旧版、先写公式再作答</td><td>不改</td><td>新阈值配旧公式</td></tr>
+      <tr><td class="num">2</td><td>少样本例题</td><td>不改</td><td>计算、格式</td></tr>
+      <tr><td class="num">3</td><td>贴指南原文 / RAG（v1 的 C2、C3）</td><td>不改</td><td>规则选择；长文本是否稀释新规则</td></tr>
+      <tr><td class="num">4</td><td>自动提示优化，以程序算出的正确率为目标</td><td>不改</td><td>同 1，看能否自动找到</td></tr>
+      <tr><td class="num">5</td><td>多次采样投票</td><td>不改</td><td>随机算错</td></tr>
+      <tr><td class="num">6</td><td>计算工具 / 只抽取、程序判定</td><td>不改</td><td>算不准（先导已证实）</td></tr>
+      <tr><td class="num">7</td><td>解码时干预、激活引导</td><td>需访问模型内部</td><td>退回旧版</td></tr>
+      <tr><td class="num">8</td><td>Soft prompt 调优</td><td>训练一小段向量</td><td>规则选择</td></tr>
+      <tr><td class="num">9</td><td>LoRA 微调，数据由程序生成</td><td>训练附加参数</td><td>规则选择、计算</td></tr>
+      <tr><td class="num">10</td><td>知识编辑（ROME / MEMIT 一类）</td><td>定点改权重</td><td>退回旧版</td></tr>
+    </tbody></table></div>
+  <p class="note">1–6 可用于前沿模型；7–10 在本机的 Qwen 上做，基本不花 API 费用。各层对应的文献已补进文献地图（标 P2，核验到摘要）。评测一律用 P1 的指标，在开发集调、测试集报，并设新写法、另一个公式、真实病历三个迁移集。</p>
+  <h3>预期结果（假设）</h3>
+  <ul>
+    <li>计算工具修好「算不准」，但修不好「结论与数字矛盾」和「过度弃权」。</li>
+    <li>对比提示能压住中档模型的「新阈值配旧公式」；最小的模型需要改权重。</li>
+    <li>训练类修法在同分布上效果好，换写法和换公式后明显缩水。</li>
+  </ul>
+</section>
+
+<section id="p3" class="rq-P3">
+  <div class="rqhead"><span class="k">P3</span></div>
+  <h2>强化学习：训练能否修得更彻底</h2>
+  <div class="qbox"><ol>
+    <li>用程序给分的强化学习（GRPO）训练 1.5–4B 的 Qwen，能否超过 P2 最好的修法、接近前沿模型？</li>
+    <li>能否迁移到新写法、新缺失模式、另一个公式、真实 MIMIC 病历？</li>
+    <li>提升来自真正的能力，还是只是格式更规整、失误更少？</li>
+  </ol></div>
+  <ul>
+    <li><b>模型：</b>Qwen2.5-1.5B-Instruct、Qwen3-1.7B / 4B；约 2,000 条程序生成的解题过程做热启动；TRL GRPO + LoRA。</li>
+    <li><b>奖励（全部由程序给出）：</b>JSON 合法；决定正确；风险值误差 ±1 个百分点以内；能否判定正确；<b>声称缺不需要的输入扣分</b>（新增）；超长扣分。</li>
+    <li><b>对照：</b>未训练的基础模型；仅 SFT；SFT + GRPO；<b>P2 最好的修法</b>；前沿模型。</li>
+    <li><b>区分能力还是格式：</b>训练前后各类错误的分布；只换输出格式后提升是否保留；可选的隐藏层探针。</li>
+  </ul>
+  <h3>预期结果（假设）</h3>
+  <ul>
+    <li>同分布大幅提升，其中很大一部分来自格式和算术失误的减少；迁移集提升明显更小，真实病历上最小。</li>
+    <li>「小模型 + 计算工具」可能接近 GRPO；若成立，结论是「给工具比训练划算」。</li>
+  </ul>
+</section>
+
+<section id="plan">
+  <h2>时间线与止损</h2>
+  <div class="tw"><table>
+    <thead><tr><th>时间</th><th>内容</th><th>产出</th></tr></thead>
+    <tbody>
+      <tr><td class="h">已完成</td><td>先导实验（2 个实验、6 个模型配置）、MIMIC 可行性、两版指南整理</td><td>先导报告、实验记录、指南规则页</td></tr>
+      <tr><td class="h">第 1 个月</td><td>正式测试台：合并 NHANES 周期、对照病例、新条件、多写法、Batch runner；冻结提示；功效分析</td><td>测试台 + 预注册</td></tr>
+      <tr><td class="h">第 2–4 个月</td><td><span class="tag P1">P1</span> 正式运行与写作</td><td>论文 P1</td></tr>
+      <tr><td class="h">第 4–6 个月</td><td><span class="tag P2">P2</span> 大部分在本机</td><td>论文 P2</td></tr>
+      <tr><td class="h">第 6–11 个月</td><td><span class="tag P3">P3</span> 训练与迁移评测</td><td>论文 P3</td></tr>
+    </tbody></table></div>
+  <div class="tw"><table>
+    <thead><tr><th>论文</th><th>止损条件</th><th>否则</th></tr></thead>
+    <tbody>
+      <tr><td class="h"><span class="tag P1">P1</span></td><td>加入对照后，所有失败类型都只剩「算不准」一种</td><td>P1 收窄为「计算错误如何从答案表面隐藏」；P2 重点改为工具和训练</td></tr>
+      <tr><td class="h"><span class="tag P2">P2</span></td><td>训练类修法（8–10）在 300 个训练样本内对任何错误类型都没有改善</td><td>只报告不改模型的修法 1–6，训练部分并入 P3</td></tr>
+      <tr><td class="h"><span class="tag P3">P3</span></td><td>300 步先导内同分布没有提升或训练不稳定</td><td>改为只做 SFT 对比，并入 P2</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="cost">
+  <h2>成本</h2>
+  <p class="lead">按先导实测单价估算（标准价，未与账单核对）：gpt-6-astra 每次约 $0.062，gpt-6-sol 约 $0.02。正式实验一律用 Batch API（半价）；前沿模型的重复采样和推理模式只在子集上做。先导实验共花费约 $12。</p>
+  <div class="tw"><table>
+    <thead><tr><th>项目</th><th>估计</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td class="h">P1 API</td><td class="num">$150–400</td><td>取决于功效分析后的病例数、模型数量、子集大小</td></tr>
+      <tr><td class="h">P2 API</td><td class="num">$50–150</td><td>只有修法 1–6 用前沿模型</td></tr>
+      <tr><td class="h">P3 GPU</td><td class="num">$200–450</td><td>Colab 按量付费；有学校集群则接近 0</td></tr>
+      <tr><td class="h">本机推理、探针、LoRA、知识编辑</td><td class="num">$0</td><td>M4 Max，36 GB</td></tr>
+      <tr><td class="h">合计</td><td class="num"><b>$400–1,000</b></td><td>拿到研究额度后大部分可覆盖</td></tr>
+    </tbody></table></div>
+  <h3>研究额度</h3>
+  <div class="tw"><table>
+    <thead><tr><th>项目</th><th>额度</th><th>审核</th><th>入口</th></tr></thead>
+    <tbody>
+      <tr><td class="h">Anthropic AI for Science</td><td>最多 $20,000，有效期 6 个月</td><td>每月第一个周一</td><td><a href="https://docs.google.com/forms/d/e/1FAIpQLSfwDGfVg2lHJ0cc0oF_ilEnjvr_r4_paYi7VLlr5cLNXASdvA/viewform?usp=header" target="_blank" rel="noopener">申请表</a> · <a href="https://support.claude.com/en/articles/11199177-anthropic-s-ai-for-science-program" target="_blank" rel="noopener">说明</a></td></tr>
+      <tr><td class="h">OpenAI Researcher Access</td><td>最多 $1,000，有效期 12 个月</td><td>3 / 6 / 9 / 12 月，下一轮 12 月</td><td><a href="https://openai.smapply.org/prog/openai_researcher_access_program/" target="_blank" rel="noopener">申请入口</a> · <a href="https://help.openai.com/en/articles/10139500-researcher-access-program-faq" target="_blank" rel="noopener">FAQ</a></td></tr>
+      <tr><td class="h">学校 GPU 集群</td><td>通常免费</td><td>—</td><td>问导师或学校 IT</td></tr>
+    </tbody></table></div>
+  <p class="note">明细见 <code>docs/cost_estimate_2026-09-23.md</code>，功效分析后重算。</p>
+</section>
+
+<section id="risk">
+  <h2>约束与风险</h2>
+  <div class="callout"><b>数据合规（2026-09-23 已查 PhysioNet 原文）：</b>数据使用协议禁止把 MIMIC 发给第三方 API（明确点名 OpenAI 和 ChatGPT）。PhysioNet 2025 年的指引强烈建议使用本地部署的模型。因此 <b>MIMIC 只在本机（M4 Max）跑开源模型</b>；API 只用于 NHANES；P3 的训练数据来自 NHANES，可以在 Colab 上训练，训练好的模型拿回本机测 MIMIC。协议第 9 条：公开发表结果时，必须同时公开产生这些结果的代码。</div>
+  <div class="tw"><table>
+    <thead><tr><th>风险</th><th>应对</th></tr></thead>
+    <tbody>
+      <tr><td class="h">前沿模型已基本算对，效应太小</td><td>诊断重点放在中小模型和开源模型；前沿模型上研究剩下的新失败类型（如声称缺输入）</td></tr>
+      <tr><td class="h">冲突病例太少</td><td>合并多个 NHANES 周期；合成病例单独报告；占比按真实数据报告</td></tr>
+      <tr><td class="h">看不到前沿模型的原始推理</td><td>推理过程相关的结论以开源模型为主；前沿模型只看输出</td></tr>
+      <tr><td class="h">成本和算力</td><td>Batch API、子集重复采样、研究额度、学校集群；训练每步存检查点</td></tr>
+      <tr><td class="h">PCE 系数录入错误</td><td>原文算例已一致；正式实验前第二人对照 Goff 2013 表 A 核对</td></tr>
+      <tr><td class="h">规则转写涉及临床理解</td><td>只用已发表的公式和阈值；如需编入更多指南条文，请有临床背景的人复核</td></tr>
+    </tbody></table></div>
+  <h3>开始之前需要确认</h3>
+  <ol class="b">
+    <li>与导师确认转向：从 HTN-Concord 转到本方向，还是两者并行。</li>
+    <li>API 与 GPU 预算；学校有没有 GPU 集群。</li>
+    <li>申请 Anthropic、OpenAI 研究额度。</li>
+    <li>PCE 系数第二人核对。</li>
+  </ol>
+</section>
+
+<section id="files">
+  <h2>文件与链接</h2>
+  <pre class="tree">PhD GenAI/
+├─ cv-llm-rulebench/                     主项目
+│  ├─ docs/
+│  │  ├─ proposal_v2_2026-09-25.md               现行方案（本页的完整文本）
+│  │  ├─ proposal_A_B_C_2026-09-23.md            v1 方案，已被取代
+│  │  ├─ pilot_2026-09-23.md                     先导实验报告（定稿）
+│  │  ├─ candidate_research_questions_2026-09-23.md
+│  │  ├─ cost_estimate_2026-09-23.md
+│  │  └─ slides/                                 项目介绍幻灯片（中英）
+│  ├─ pilot/                                     先导代码与输出
+│  ├─ code_export_2026-09-25/                    带注释的代码快照
+│  └─ artifacts/                                 本页及其他网页
+├─ cv-llm-risk-extraction/               MIMIC 可行性检查（脚本 01–03）
+├─ cv-llm-invariance/                    鲁棒性方向的新颖性检索
+└─ cv-llm-probing/                       探针方向的新颖性检索</pre>
+  <div class="links">
+    <a href="https://claude.ai/artifact/F6f3Cm6AVoVvccsDqyoPtA" target="_blank" rel="noopener">全部实验记录 →</a>
+    <a href="https://claude.ai/artifact/3Ta9XJh4EGHaestEgYgwfA" target="_blank" rel="noopener">先导实验（通俗版）→</a>
+    <a href="https://claude.ai/artifact/GQ93JHhQsRth9vK2MyGS8o" target="_blank" rel="noopener">高血压指南规则全表 →</a>
+    <a href="https://claude.ai/artifact/5NzPdzDhY7yJARKbBgrgjx" target="_blank" rel="noopener">文献地图 →</a>
+  </div>
+</section>
+</main>
+
+<footer>本页的「预期结果」都是假设，需要实验验证。HTN-Concord 是平行项目，本项目只以只读方式复用它的代码（prevent.py、eGFR、渲染器、NHANES / MIMIC 管线）。</footer>
+</div>

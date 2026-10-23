@@ -1,119 +1,97 @@
-<!-- Repo is private: this badge renders for authenticated collaborators only.
-     Anonymous viewers see nothing until the repo goes public at HC-90. -->
-[![CI](https://github.com/AriaCong/htn-concord/actions/workflows/ci.yml/badge.svg)](https://github.com/AriaCong/htn-concord/actions/workflows/ci.yml)
+# PhD GenAI 项目总目录
 
-# HTN-Concord
+GitHub：https://github.com/AriaCong/phd-genai（原 `AriaCong/htn-concord`，旧链接会自动跳转到这里）。整个文件夹就是这个 git 仓库的工作目录。
 
-A clinician-free, reproducible framework that turns the 2025 AHA/ACC hypertension guideline into a
-**Deterministic Guideline Engine** producing citation-linked ground-truth labels — then uses those labels to
-locate *where and why* LLMs violate the guideline when reasoning over realistic clinical input.
-
-The claim is not "GraphRAG improves accuracy." It is a **failure mechanism**: hypertension management is
-multi-constraint satisfaction over `BP stage × comorbidity × contraindication × current meds`, realistic
-clinical language degrades an LLM's ability to extract those constraints, and the resulting failures are
-localizable to **extraction**, **reasoning**, or **unsupported citation**.
-
-## Documentation
-
-Docs are maintained as **English/Chinese pairs — edit both together.** On conflict, English wins.
-
-| Document | English | 中文 |
-|---|---|---|
-| Master execution plan | [`docs/HTN-Concord_Master_Plan.md`](docs/HTN-Concord_Master_Plan.md) | [`..._zh.md`](docs/HTN-Concord_Master_Plan_zh.md) |
-| Epics & tickets | [`docs/HTN-Concord_Backlog.md`](docs/HTN-Concord_Backlog.md) | [`..._zh.md`](docs/HTN-Concord_Backlog_zh.md) |
-| Data dictionary & cleaning | [`docs/HTN-Concord_DataDictionary_and_CleaningStrategy.md`](docs/HTN-Concord_DataDictionary_and_CleaningStrategy.md) | [`..._zh.md`](docs/HTN-Concord_DataDictionary_and_CleaningStrategy_zh.md) |
-
-Live ticket tracking is in Linear (GAI board, authoritative) mirrored to a Notion database. The backlog
-markdown is a snapshot, not a source of truth.
-
-## Quickstart
-
-```bash
-cd htn-concord
-python -m venv .venv && source .venv/bin/activate    # Python 3.12
-pip install -r requirements.txt
-pytest -q
-```
-
-Commands run from `htn-concord/` — tests import `engine.*`, `pipelines.*` and `vocab` as top-level
-modules, which only resolve from there.
-
-## Layout
+整理日期：2026-10-23。研究主线：以心血管风险方程和高血压指南为试验台，研究大语言模型如何执行可计算的临床规则。
 
 ```
-vocab.py      shared controlled vocabulary: med classes, comorbidity and
-              contraindication flags, HTN ICD anchor sets, BP thresholds
-schemas/      patient_profile.schema.json, llm_output.schema.json      (both built)
-engine/       types, citations, evaluate + rules/aha_acc_2025/
-              {staging, initiation_intensification}                    (2 rules built;
-              drug-class / comorbidity / contraindication / abstention /
-              citation-linker / trace-emitter rules NOT BUILT — HC-34..39)
-pipelines/    nhanes/  cohort builder, derive, PREVENT, QA             — BUILT
-              mimic/   config, feasibility, omr_bp                     — partial
-leakage.py    forbidden-token scanner shared by renderer + Task-B gate — BUILT (HC-46)
-renderer/     phrasing, render — 3-level facts-only vignettes          — BUILT (HC-50)
-tasks/        profiles, splits, spotcheck, task_b — Task-B builder + leakage audit — BUILT (HC-53)
-runner/       providers, run_case — JSON-mode runner + transcript replay — BUILT (HC-60;
-              AnthropicProvider authored but not yet run against the live API)
-evaluator/    metrics, score — all 9 plan metrics + aggregation         — BUILT (HC-70)
-tests/        one module per rule
+PhD GenAI/
+├── 01_data/
+│   ├── raw/                 原始数据（只读，约 60 GB）
+│   └── nhanes_IJ/           NHANES I+J 清理流程、清理结果、模型输入、PREVENT 风险
+├── 02_htn-concord/          HTN-Concord：指南引擎、数据管线、benchmark（完整 git 历史保留）
+├── 03_cv-llm/
+│   ├── rulebench/           LLM 研究主线：proposal v2、先导实验 pilot、幻灯片
+│   ├── invariance/          候选方向①：同义改写下的一致性
+│   ├── risk-extraction/     候选方向②：病历抽取与风险计算（含 MIMIC 可行性检查）
+│   └── probing/             候选方向③：模型内部表征的探针分析
+├── 04_literature_review/
+│   └── 2026-10-19/          研究方向与科研缺口核查
+└── _archive/                已过期、但暂时保留的文件
 ```
 
-Present tense describes verified-existing code only; anything planned is tagged `NOT BUILT`. This
-convention exists because a doc that described an *intended* repo in the present tense produced a phantom
-"1 worked rule + 9 tests" claim that cost a full spec cycle to disprove. *(Synced 2026-07-23 against
-Linear + the working tree: renderer / tasks / runner / evaluator and `llm_output.schema.json` are now
-built — the earlier `NOT BUILT` block had itself gone stale, the very failure this convention guards.)*
+## 01_data
 
-## Data
+**raw/**：原始数据只放在这里，所有代码都从这里读取。
 
-**No data is committed, and none should be.** `Data/` holds ~60 GB of credentialed PhysioNet sources
-(MIMIC-IV, MIMIC-IV-ED, MIMIC-IV-Note, eICU-CRD) whose licences forbid redistribution, plus NHANES, which is
-public but produces patient-level derived rows. Obtain them yourself:
+| 文件夹 | 内容 |
+| :--- | :--- |
+| `NHANES/` | 2017–2018 周期 J：32 个 XPT 文件、CDC codebook、死亡链接文件 |
+| `NHANES_I/` | 2015–2016 周期 I：30 个 XPT 文件、codebook、死亡链接文件 |
+| `NHANES_L_separate/` | 2021–2023 周期 L，单独存放，不参与 I+J 合并；附 J↔L 变量对照表 |
+| `NHANES_J_I_variable_crosswalk.csv` | J↔I 变量对照表，说明见同名 README |
+| `mimic-iv-3.1/`、`mimic-iv-ed-2.2/`、`mimic-iv-note-…/`、`eicu-…/`、`hospitalized-patients-with-heart-failure…/` | PhysioNet 受限数据（每个文件夹都有对应的原始 zip）。只能在本机使用，不能上传到第三方服务 |
 
-- **NHANES 2017–2018 (cycle J)** — public: <https://wwwn.cdc.gov/nchs/nhanes/>
-- **MIMIC-IV / -ED / -Note, eICU-CRD** — credentialed: <https://physionet.org/> (training + DUA required)
+**nhanes_IJ/**：唯一的一份清理版本，2026-10-20 按你确认的逻辑生成。
 
-The Khan 2024 PREVENT paper and supplements are likewise not committed (copyright). The coefficients
-transcribed from Supplemental Table S12A stay verifiable without them: the transcription is unit-tested
-against the paper's published worked example (women 14.684%, men 16.317%).
+- 清理逻辑：`CLEANING_LOGIC.md`；文件说明：`README.md`。
+- 一键重建：`sh 01_data/nhanes_IJ/scripts/run.sh`，依次完成清理、独立核对、导出模型输入、计算 PREVENT。
+- 主要输出：
+  - `output/`：19,225 人的原值表和派生表；
+  - `output/analysis/`：分析集 7,107 人，其中 complete 5,816 人、incomplete 1,291 人；
+  - `model_input/`：5,816 人的模型输入表和 PREVENT 风险。
+- `review-2026-10-20/`：独立复核报告。其中列出的待处理问题包括糖尿病定义、吸烟证据冲突、透析和他汀分类。
 
-> ✅ **HC-56 resolved 2026-09-20 — no credentialed data remains in any committed file.**
-> `tests/test_mimic_omr_bp.py` previously carried **three** verbatim rows from the credentialed
-> MIMIC-IV `omr` table (the ticket named only one), and this README quoted one of them in full.
-> **Determination: they were not license-cleared.** The ODbL *demo* subset was not confirmed as their
-> source, and PhysioNet's DUA forbids redistributing MIMIC-IV data, so they were replaced rather than
-> justified — the conservative reading, since a wrong call here is a licence breach and the cost of
-> replacing a fixture is nil.
->
-> The fixture is now wholly synthetic. Fixture `subject_id`s live in the `9xxxxxxx` range, which is
-> provably disjoint from the real MIMIC-IV range `10000032`–`19999987` (verified against
-> `hosp/patients.csv.gz`), so no fixture line can be a verbatim record. A regression test,
-> `test_fixture_contains_no_credentialed_subject_id`, pins that invariant so the problem cannot
-> return silently. Adopt the same `9xxxxxxx` convention for every new MIMIC fixture.
+## 02_htn-concord
 
-## CI
+- HTN-Concord 是与 cv-llm 平行的另一个项目。
+- `02_htn-concord/Data` 是指向 `01_data/raw` 的符号链接，所以 pipeline 里原有的 `Data/` 路径照常可用；`.gitignore` 已排除它。
+- 运行测试：在 `02_htn-concord/htn-concord` 里执行 `uv run --no-project --python 3.12 --with-requirements requirements.txt python -m pytest -q`。CI 会在每次推送时自动运行同样的测试。
 
-`.github/workflows/ci.yml` runs the suite on every push and pull request against pinned Python 3.12.
+## 03_cv-llm
 
-**Active and green.** First run: [`29642244912`](https://github.com/AriaCong/htn-concord/actions/runs/29642244912)
-— all 8 steps succeeded, 123 collected / 123 passed on Python 3.12.13, pytest 9.0.2, matching local exactly.
+- `rulebench/` 的现行方案是 `docs/proposal_v2_2026-09-25.md`；先导实验的结论见 `docs/pilot_2026-09-23.md`。
+- `pilot/code_export_2026-09-25/` 和 `code_export_2026-09-25/` 是 9 月 25 日的代码快照。快照里注释写的“原始位置”是当时的路径，没有改。
 
-> **Repository visibility: private.** The badge therefore renders only for authenticated collaborators;
-> anonymous viewers see nothing until the repo is made public at HC-90. See "Data" below for why private is
-> the correct default here, and `docs/` for the open-sourcing plan.
+## 2026-10-23 整理记录
 
-Two guards exist because "tests pass" was previously unverifiable:
+**删除**：
 
-1. **Collection integrity.** A test importing a not-yet-written module aborts collection, so the rest of the
-   suite never runs. Measured: with one broken import, **zero** of 123 collectible tests execute. `pytest`
-   does exit non-zero, but as "Interrupted", which reads like infrastructure noise — the explicit gate names
-   it instead. **Never add `--continue-on-collection-errors`**; it downgrades a structural break to an
-   ordinary failure.
-2. **Silent test-count collapse.** The failure no exit code catches: a module-level `try/except ImportError`
-   or a stray `importorskip` makes tests vanish rather than fail, and the suite goes green with fewer tests.
-   The collected count is published to the run summary so a drop is visible between runs.
+| 内容 | 删除前的核实 |
+| :--- | :--- |
+| `htn-concord-main/Data/`（60 GB） | 105 个文件与 `Raw data/` 逐个比对 SHA256，全部相同 |
+| HTN-Concord 的 `.venv`、各处 `__pycache__`、`.pytest_cache`、`.DS_Store` | 均可重建 |
+| `cv-llm-rulebench/code_export_2026-09-25.zip` | 解压后与同名文件夹内容完全相同 |
+| `cv-llm-rulebench/pilot/data/MCQ_J.xpt` | 与 `01_data/raw/NHANES/MCQ_J.XPT` 的 SHA256 相同；引用它的代码已改为读取 raw |
 
-**Never quote a test count in prose.** Nine different counts (9 / 23 / 28 / 37 / 46 / 83 / 84 / 113 / 123)
-have circulated through these documents, every one stale within days — including, at one point, the sentence
-warning about stale counts. Run `pytest -q`; let the badge answer the question.
+**移入 `_archive/`**：
+
+- `PREVENT 风险计算分析集.docx`
+- `数据是否足够与计算准确性.md`
+
+两份文件依据的都是已删除的旧清理结果：旧 eGFR 上限 140，样本数 2,771。
+
+**路径修改**：
+
+- 修改了 13 个仍在使用的脚本里的路径引用；
+- 修复了 pilot-gate 的 worktree 链接，并把它原来的绝对符号链接改成相对链接；
+- 搬家后重跑 `01_data/nhanes_IJ/scripts/run.sh`：134 项检查全部通过，12 个输出 CSV 与搬家前逐字节相同。
+
+## 2026-10-23 GitHub 更新
+
+- 仓库从 `htn-concord` 改名为 `phd-genai`，仓库根目录就是本文件夹。HTN-Concord 的全部内容移到了 `02_htn-concord/`，git 历史完整保留。
+- 合并了 PR #13（difficulty ladder K2），并把 pilot-gate 分支上没推送的交接文档提交了上去。之后移除了 pilot-gate worktree，因为它的分支已经合并。
+- **仓库只放代码和文档，不放数据**，规则写在 `.gitignore` 里：
+  - 原始数据不上传，MIMIC 和 eICU 受 PhysioNet 数据使用协议约束，绝不上传；
+  - 个人级的清理结果和样本不上传；
+  - 有版权的论文、补充材料和指南全文不上传；
+  - `.env` 等密钥文件不上传。
+
+## 从零复现 NHANES I+J 的结果
+
+```sh
+python 01_data/download_nhanes.py      # 从 CDC 下载 I/J 原始文件，逐个核对 SHA256（加 --all 会同时下载 L）
+sh 01_data/nhanes_IJ/scripts/run.sh    # 依次运行清理、核对、导出模型输入、计算 PREVENT（需要 uv）
+```
+
+`01_data/nhanes_manifest.csv` 记录了每个文件的官方下载地址和 SHA256。

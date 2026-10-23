@@ -1,0 +1,21 @@
+{
+  "hba1c_positive": {
+    "input_changed": 200,
+    "cross_up_7_5": 63,
+    "cross_down_7_5": 0,
+    "max_risk_change_pct_points": 14.235828932258787
+  },
+  "recent_cigarettes_positive": {
+    "input_changed": 69,
+    "cross_up_7_5": 7,
+    "cross_down_7_5": 0,
+    "max_risk_change_pct_points": 7.134311121991839
+  },
+  "BP_excluding_first_if_others_available": {
+    "input_changed": 4995,
+    "cross_up_7_5": 15,
+    "cross_down_7_5": 9,
+    "max_risk_change_pct_points": 2.2088699404689045
+  },
+  "L_aged_30_79_no_prescription_medication": 1861
+}

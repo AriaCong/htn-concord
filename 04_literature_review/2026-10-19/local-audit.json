@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-19",
+  "scope": "Aggregate audit of stored local artifacts; no model calls or label regeneration",
+  "input_sha256": {
+    "cv-llm-rulebench/pilot/out/cases.jsonl": "a0152033123c444fab7e077ef1d5d7015df4cb39bd3ffc0fb26549a4ad8b8bdb",
+    "cv-llm-rulebench/pilot/out/calls.jsonl": "c60d1a65f81a0734927f6b3ecb84cddad6cc48d881c3900426be7c8204e6cbb2"
+  },
+  "A_case_sources": {
+    "conflict/nhanes": 14,
+    "agree/nhanes": 30,
+    "conflict/synthetic": 36
+  },
+  "B_cases": 60,
+  "B_diabetes_true": 19,
+  "B_on_bp_meds_true": 22,
+  "B_either_true": 31,
+  "B_stored_calls": 420,
+  "B_calls_diabetes_contradiction": 133,
+  "B_calls_medication_contradiction": 154,
+  "B_calls_either_contradiction": 217
+}

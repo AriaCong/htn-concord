@@ -1,0 +1,26 @@
+{
+  "rows": 5816,
+  "by_cycle": {
+    "I": 3018,
+    "J": 2798
+  },
+  "predictors": [
+    "age_years",
+    "sex",
+    "total_chol_mgdl",
+    "hdl_mgdl",
+    "sbp_mean",
+    "egfr",
+    "diabetes",
+    "on_bp_meds",
+    "current_smoker",
+    "statin"
+  ],
+  "missing_in_predictors": 0,
+  "missing_in_extra_columns": {
+    "dbp_mean": 8,
+    "bmi": 36,
+    "uacr_mg_g": 36,
+    "hba1c_pct": 3
+  }
+}

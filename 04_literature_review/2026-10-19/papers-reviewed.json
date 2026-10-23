@@ -1,0 +1,164 @@
+{
+  "10.18653/v1/2025.emnlp-main.548": {
+    "title": "From Scores to Steps: Diagnosing and Improving LLM Performance in Evidence-Based Medical Calculations",
+    "url": "https://aclanthology.org/2025.emnlp-main.548/",
+    "verification_level": "正文相关章节",
+    "relevance_score": 10,
+    "assessment": "计算分解与工具修复已有直接前作",
+    "implication": "限制旧 P1 与 P2 的宽泛新颖性",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2602.22771": {
+    "title": "ClinDet-Bench: Beyond Abstention, Evaluating Judgment Determinability of LLMs in Clinical Decision-Making",
+    "url": "https://arxiv.org/html/2602.22771v1",
+    "verification_level": "正文相关章节",
+    "relevance_score": 10,
+    "assessment": "缺失信息下可判定性已有直接基准",
+    "implication": "候选一必须超过单纯三分类",
+    "full_code_and_supplements_audit": false
+  },
+  "10.1038/s41746-025-01475-8": {
+    "title": "Large language model agents can use tools to perform clinical calculations",
+    "url": "https://www.nature.com/articles/s41746-025-01475-8",
+    "verification_level": "正文相关章节",
+    "relevance_score": 9,
+    "assessment": "医学计算工具比较，未纳入缺失或异常输入",
+    "implication": "需要强工具对照",
+    "full_code_and_supplements_audit": false
+  },
+  "10.1093/ehjdh/ztag124": {
+    "title": "Development of an LLM pipeline exceeding physician-documented cardiovascular risk scores under routine clinical conditions",
+    "url": "https://academic.oup.com/ehjdh/article/7/7/ztag124/8746371",
+    "verification_level": "正文相关章节",
+    "relevance_score": 10,
+    "assessment": "真实心血管文本到确定性计分已有研究",
+    "implication": "真实文本扩展本身不足以形成新贡献",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2607.02879": {
+    "title": "MedCalc-Pro: Solving Complex Medical Calculations with LLM Agents",
+    "url": "https://arxiv.org/html/2607.02879v1",
+    "verification_level": "正文相关章节",
+    "relevance_score": 9,
+    "assessment": "多计算器和嵌套调用；未评测不完整输入下主动多轮交互",
+    "implication": "依赖链本身不新；缺失信息扩展有明确依据",
+    "full_code_and_supplements_audit": false
+  },
+  "10.18653/v1/2025.findings-emnlp.38": {
+    "title": "Assessing and Mitigating Medical Knowledge Drift and Conflicts in Large Language Models",
+    "url": "https://aclanthology.org/2025.findings-emnlp.38/",
+    "verification_level": "官方摘要及正文检索片段",
+    "relevance_score": 10,
+    "assessment": "指南知识冲突、RAG、DPO已有",
+    "implication": "候选二需聚焦可验证版本依赖",
+    "full_code_and_supplements_audit": false
+  },
+  "10.2196/95877": {
+    "title": "Assessing Eligibility for Anticancer Drug Health Insurance Reimbursement Using Large Language Models: Benchmark Development and Comparative Study",
+    "url": "https://www.jmir.org/2026/1/e95877",
+    "verification_level": "正文相关章节",
+    "relevance_score": 9,
+    "assessment": "医疗保险资格三值规则及信息填补错误评测",
+    "implication": "三分类和虚假不确定性不是独有方法",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2406.00922": {
+    "title": "MediQ: Question-Asking LLMs and a Benchmark for Reliable Interactive Clinical Reasoning",
+    "url": "https://arxiv.org/abs/2406.00922",
+    "verification_level": "官方摘要",
+    "relevance_score": 9,
+    "assessment": "临床主动问询与停止策略已有",
+    "implication": "候选一需验证信息必要性而非仅增加提问",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2601.12661": {
+    "title": "MedConsultBench: A Full-Cycle, Fine-Grained, Process-Aware Benchmark for Medical Consultation Agents",
+    "url": "https://arxiv.org/abs/2601.12661",
+    "verification_level": "官方摘要",
+    "relevance_score": 9,
+    "assessment": "临床信息获取效率及过程评测",
+    "implication": "问询效率本身不是新指标",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2610.20832": {
+    "title": "Amortizing Sequential Experimental Design in Reasoning LLMs",
+    "url": "https://arxiv.org/abs/2610.20832",
+    "verification_level": "官方摘要",
+    "relevance_score": 9,
+    "assessment": "信息增益训练与迁移到 Medi-Q",
+    "implication": "训练问询策略须与新近方法比较",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2610.07226": {
+    "title": "Minimal Witness Reinforcement Learning",
+    "url": "https://arxiv.org/abs/2610.07226",
+    "verification_level": "官方摘要",
+    "relevance_score": 9,
+    "assessment": "使用验证器反馈学习最小充分见证族",
+    "implication": "最小证据加 RL 也有方法前作",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2607.01440": {
+    "title": "FaithMed: Training LLMs For Faithful Evidence-Based Medical Reasoning",
+    "url": "https://arxiv.org/abs/2607.01440",
+    "verification_level": "官方摘要",
+    "relevance_score": 8,
+    "assessment": "医学过程奖励与强化学习",
+    "implication": "P3 不能只主张过程训练提高准确率",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2605.29889": {
+    "title": "Where Do Apparent LLM Clinical Triage Failures Arise? Localizing the Multiple-Choice Format Effect",
+    "url": "https://arxiv.org/abs/2605.29889",
+    "verification_level": "官方摘要 v2",
+    "relevance_score": 8,
+    "assessment": "临床分诊内部表示与输出格式效应",
+    "implication": "旧文献题名已变化；输入可读不等于计算能力",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2602.07812": {
+    "title": "LLMs Know More About Numbers than They Can Say",
+    "url": "https://arxiv.org/abs/2602.07812",
+    "verification_level": "官方摘要",
+    "relevance_score": 8,
+    "assessment": "隐藏状态数值可读性",
+    "implication": "候选三需关注推导量及探针自算混杂",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2507.12379": {
+    "title": "Probing for Arithmetic Errors in Language Models",
+    "url": "https://arxiv.org/abs/2507.12379",
+    "verification_level": "官方摘要",
+    "relevance_score": 8,
+    "assessment": "算术错误探针已有",
+    "implication": "临床迁移不能被当作全新探针方法",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2605.05715": {
+    "title": "Decodable but Not Corrected by Fixed Residual-Stream Linear Steering: Evidence from Medical LLM Failure Regimes",
+    "url": "https://arxiv.org/abs/2605.05715",
+    "verification_level": "官方摘要",
+    "relevance_score": 8,
+    "assessment": "可解码信号与可干预修复不同",
+    "implication": "候选三需限制因果主张",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2406.12036": {
+    "title": "MedCalc-Bench: Evaluating Large Language Models for Medical Calculations",
+    "url": "https://arxiv.org/abs/2406.12036",
+    "verification_level": "官方摘要",
+    "relevance_score": 8,
+    "assessment": "医学计算基准基础工作",
+    "implication": "继承的任务背景",
+    "full_code_and_supplements_audit": false
+  },
+  "10.48550/arXiv.2608.28592": {
+    "title": "A collective capability boundary in frontier large language models on guideline-conformant and case-specific oncology decision-making",
+    "url": "https://arxiv.org/abs/2608.28592",
+    "verification_level": "官方摘要",
+    "relevance_score": 8,
+    "assessment": "肿瘤决策确定性评分与人工验证",
+    "implication": "确定性评分本身已有",
+    "full_code_and_supplements_audit": false
+  }
+}

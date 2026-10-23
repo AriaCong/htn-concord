@@ -41,7 +41,7 @@ defaults:
     # Tests import `engine.*`, `pipelines.*` and `vocab` as top-level modules,
     # which resolve relative to this directory. Running from the repo root
     # collects nothing.
-    working-directory: htn-concord
+    working-directory: 02_htn-concord/htn-concord
 
 jobs:
   test:
@@ -62,7 +62,7 @@ jobs:
           # nobody actually runs.
           python-version: '3.12'
           cache: pip
-          cache-dependency-path: htn-concord/requirements.txt
+          cache-dependency-path: 02_htn-concord/htn-concord/requirements.txt
 
       - name: Install pinned dependencies
         run: |
