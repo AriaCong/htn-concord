@@ -3,7 +3,7 @@ import sys,json
 import pandas as pd
 import numpy as np
 ROOT=Path(__file__).resolve().parents[3]; BASE=ROOT/'01_data/nhanes_IJ'; DST=Path(__file__).parent
-sys.path.insert(0,str(ROOT/'02_htn-concord/htn-concord'))
+sys.path.insert(0,str(ROOT/'00_shared'))
 from pipelines.common.prevent import PreventInputs,prevent_10yr_cvd_risk
 kw=dict(keep_default_na=False,na_values=['__SOURCE_MISSING__'],float_precision='round_trip',low_memory=False)
 t=pd.read_csv(BASE/'model_input/nhanes_IJ_model_input.csv',**kw); o=pd.read_csv(BASE/'output/nhanes_IJ_original_values.csv',**kw).set_index('SEQN').loc[t.SEQN].reset_index(); risk=pd.read_csv(BASE/'model_input/nhanes_IJ_prevent.csv',**kw).prevent_10yr_total_cvd_pct

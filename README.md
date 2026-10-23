@@ -2,23 +2,29 @@
 
 GitHub：https://github.com/AriaCong/phd-genai（原 `AriaCong/htn-concord`，旧链接会自动跳转到这里）。整个文件夹就是这个 git 仓库的工作目录。
 
-整理日期：2026-10-23。研究主线：以心血管风险方程和高血压指南为试验台，研究大语言模型如何执行可计算的临床规则。
+整理日期：2026-10-23。**研究对象是 LLM 本身**：它们能不能可靠地执行可计算的临床规则，包括计算、缺失信息下的判断，以及出错后能否修复。心血管风险方程（PREVENT、PCE）和高血压指南只是实验情境，标准答案全部由程序算出，不需要临床医生裁定。现行方案见 `02_cv-llm/rulebench/docs/proposal_v2_2026-09-25.md`。
 
 ```
 PhD GenAI/
+├── 00_shared/               共用模块：PREVENT、eGFR 等派生计算、MIMIC 管线（CI 测试的就是这里）
 ├── 01_data/
-│   ├── raw/                 原始数据（只读，约 60 GB）
-│   └── nhanes_IJ/           NHANES I+J 清理流程、清理结果、模型输入、PREVENT 风险
-├── 02_htn-concord/          HTN-Concord：指南引擎、数据管线、benchmark（完整 git 历史保留）
-├── 03_cv-llm/
-│   ├── rulebench/           LLM 研究主线：proposal v2、先导实验 pilot、幻灯片
+│   ├── raw/                 原始数据（只读，约 60 GB，不进 git）
+│   └── nhanes_IJ/           NHANES I+J 清理流程、模型输入、PREVENT 风险
+├── 02_cv-llm/
+│   ├── rulebench/           主项目：proposal v2、先导实验 pilot、幻灯片
 │   ├── invariance/          候选方向①：同义改写下的一致性
-│   ├── risk-extraction/     候选方向②：病历抽取与风险计算（含 MIMIC 可行性检查）
+│   ├── risk-extraction/     候选方向②：病历抽取与风险计算（MIMIC 可行性）
 │   └── probing/             候选方向③：模型内部表征的探针分析
-├── 04_literature_review/
+├── 03_literature_review/
 │   └── 2026-10-19/          研究方向与科研缺口核查
-└── _archive/                已过期、但暂时保留的文件
+└── _archive/
+    ├── htn-concord/         原 HTN-Concord（已归档；完整可运行版本：git tag htn-concord-final）
+    └── …                    过期文档
 ```
+
+## 00_shared
+
+见 `00_shared/README.md`。MIMIC 病人档案（`00_shared/data/mimic/`）和 PREVENT 论文（`00_shared/references/`）只在本机，不进 git。
 
 ## 01_data
 
@@ -30,9 +36,9 @@ PhD GenAI/
 | `NHANES_I/` | 2015–2016 周期 I：30 个 XPT 文件、codebook、死亡链接文件 |
 | `NHANES_L_separate/` | 2021–2023 周期 L，单独存放，不参与 I+J 合并；附 J↔L 变量对照表 |
 | `NHANES_J_I_variable_crosswalk.csv` | J↔I 变量对照表，说明见同名 README |
-| `mimic-iv-3.1/`、`mimic-iv-ed-2.2/`、`mimic-iv-note-…/`、`eicu-…/`、`hospitalized-patients-with-heart-failure…/` | PhysioNet 受限数据（每个文件夹都有对应的原始 zip）。只能在本机使用，不能上传到第三方服务 |
+| `mimic-iv-3.1/`、`mimic-iv-ed-2.2/`、`mimic-iv-note-…/`、`eicu-…/`、`hospitalized-patients-with-heart-failure…/` | PhysioNet 受限数据（每个文件夹都附有原始 zip）。只能在本机使用，不能上传到第三方服务 |
 
-**nhanes_IJ/**：唯一的一份清理版本，2026-10-20 按你确认的逻辑生成。
+**nhanes_IJ/**：唯一的一份清理版本，2026-10-20 按确认过的逻辑生成。
 
 - 清理逻辑：`CLEANING_LOGIC.md`；文件说明：`README.md`。
 - 一键重建：`sh 01_data/nhanes_IJ/scripts/run.sh`，依次完成清理、独立核对、导出模型输入、计算 PREVENT。
@@ -40,18 +46,22 @@ PhD GenAI/
   - `output/`：19,225 人的原值表和派生表；
   - `output/analysis/`：分析集 7,107 人，其中 complete 5,816 人、incomplete 1,291 人；
   - `model_input/`：5,816 人的模型输入表和 PREVENT 风险。
-- `review-2026-10-20/`：独立复核报告。其中列出的待处理问题包括糖尿病定义、吸烟证据冲突、透析和他汀分类。
+- `review-2026-10-20/`：独立复核报告。待处理的问题包括糖尿病定义、吸烟证据冲突、透析和他汀分类。
 
-## 02_htn-concord
+## 02_cv-llm
 
-- HTN-Concord 是与 cv-llm 平行的另一个项目。
-- `02_htn-concord/Data` 是指向 `01_data/raw` 的符号链接，所以 pipeline 里原有的 `Data/` 路径照常可用；`.gitignore` 已排除它。
-- 运行测试：在 `02_htn-concord/htn-concord` 里执行 `uv run --no-project --python 3.12 --with-requirements requirements.txt python -m pytest -q`。CI 会在每次推送时自动运行同样的测试。
+- `rulebench/pilot/` 是已经结束的先导实验，输入是旧的 NHANES J 档案（在 `_archive/htn-concord/htn-concord/data/`）。用 pandas 2.2.3 重跑 `build_cases.py`，可以逐字节复现原来的 `cases.jsonl`。
+- `pilot/code_export_2026-09-25/` 和 `code_export_2026-09-25/` 是 9 月 25 日的代码快照。快照注释里的“原始位置”是当时的路径，没有改。
 
-## 03_cv-llm
+## 2026-10-23 HTN-Concord 拆分与归档
 
-- `rulebench/` 的现行方案是 `docs/proposal_v2_2026-09-25.md`；先导实验的结论见 `docs/pilot_2026-09-23.md`。
-- `pilot/code_export_2026-09-25/` 和 `code_export_2026-09-25/` 是 9 月 25 日的代码快照。快照里注释写的“原始位置”是当时的路径，没有改。
+研究对象明确为 LLM 本身之后，HTN-Concord 不再作为独立项目开发：
+
+- PREVENT、eGFR 等派生计算、MIMIC 管线及其测试，用 `git mv` 移到 `00_shared/`，历史保留；
+- 其余部分移到 `_archive/htn-concord/`：规则引擎、renderer、runner、evaluator、tasks、benchmark 文档；
+- nhanes_IJ 改用共用的 eGFR 实现，删掉旧输出后重新生成，12 个文件与之前逐字节相同；
+- 共用模块的测试全部通过；
+- tag `htn-concord-final` 保存了归档前完整、可运行的 HTN-Concord。
 
 ## 2026-10-23 整理记录
 
@@ -79,7 +89,7 @@ PhD GenAI/
 
 ## 2026-10-23 GitHub 更新
 
-- 仓库从 `htn-concord` 改名为 `phd-genai`，仓库根目录就是本文件夹。HTN-Concord 的全部内容移到了 `02_htn-concord/`，git 历史完整保留。
+- 仓库从 `htn-concord` 改名为 `phd-genai`，仓库根目录就是本文件夹。HTN-Concord 的全部内容先移到了 `02_htn-concord/`，git 历史完整保留；同一天之后又拆分归档，见上一节。
 - 合并了 PR #13（difficulty ladder K2），并把 pilot-gate 分支上没推送的交接文档提交了上去。之后移除了 pilot-gate worktree，因为它的分支已经合并。
 - **仓库只放代码和文档，不放数据**，规则写在 `.gitignore` 里：
   - 原始数据不上传，MIMIC 和 eICU 受 PhysioNet 数据使用协议约束，绝不上传；

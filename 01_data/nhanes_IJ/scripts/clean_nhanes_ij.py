@@ -11,12 +11,16 @@ import hashlib
 import json
 import platform
 
+import sys
+
 import numpy as np
 import pandas as pd
 
 BASE = Path(__file__).resolve().parents[1]
 ROOT = BASE.parents[1]  # project root (PhD GenAI)
 RAW = {'I': ROOT / '01_data/raw/NHANES_I', 'J': ROOT / '01_data/raw/NHANES'}
+sys.path.insert(0, str(ROOT / '00_shared'))
+from pipelines.common import derive as shared_derive  # noqa: E402
 OUT = BASE / 'output'
 AUDIT = BASE / 'audit'
 TOKEN = '__SOURCE_MISSING__'
@@ -179,10 +183,8 @@ def derive(d, rx):
     out['creatinine_J_scale'] = scr.where(d.cycle.eq('J'), a * scr + b)
     method('creatinine_J_scale', 'LBXSCR, cycle', f'J unchanged; I = {a} * LBXSCR + {b} (mg/dL)', 'LBXSCR missing')
     s, age = out.creatinine_J_scale, out.age_years
-    fem = out.sex.eq('female')
-    k = np.where(fem, .7, .9); al = np.where(fem, -.241, -.302)
-    egfr = 142 * np.minimum(s / k, 1) ** al * np.maximum(s / k, 1) ** -1.2 * .9938 ** age * np.where(fem, 1.012, 1)
-    out['egfr'] = pd.Series(egfr, index=d.index).where(s.gt(0) & age.between(18, 79) & out.sex.notna())
+    egfr = shared_derive.egfr_ckdepi_2021(s, age, out.sex, decimals=None)  # shared implementation, unrounded
+    out['egfr'] = egfr.where(s.gt(0) & age.between(18, 79) & out.sex.notna())
     method('egfr', 'creatinine_J_scale, age, sex', 'CKD-EPI 2021 creatinine (race-free), no rounding', 'creatinine missing/<=0, age <18 or 80 (top-code), sex missing')
     out['total_chol_mgdl'] = v('TCHOL', 'LBXTC')
     out['hdl_mgdl'] = v('HDL', 'LBDHDD')

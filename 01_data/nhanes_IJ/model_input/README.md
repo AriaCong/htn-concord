@@ -29,7 +29,7 @@
 ## PREVENT 计算
 
 - **模型**：PREVENT 基础版 10 年总 CVD 风险（Khan 2024，Circulation，补充表 S12A）。
-- **实现**：调用 `02_htn-concord/htn-concord/pipelines/common/prevent.py`，只读调用，不复制、不修改。每次运行都会记录这个文件的 SHA256。
+- **实现**：调用共用模块 `00_shared/pipelines/common/prevent.py`（原为 HTN-Concord 编写）。每次运行都会记录这个文件的 SHA256。
 - **计算前的两项核对**（任何一项不符，运行就会停止）：
   1. 20 个系数（含常数项）与 S12A 原表逐项完全相同；
   2. 用 S12A 的示例输入计算，结果与原表一致：女性 14.684%，男性 16.317%。

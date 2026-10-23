@@ -1,7 +1,7 @@
 """PREVENT base 10-year total-CVD risk for the model-input table.
 
-Uses HTN-Concord's validated implementation (pipelines/common/prevent.py),
-imported read-only. Before computing, it is re-checked against the original
+Uses the shared, validated implementation (00_shared/pipelines/common/prevent.py),
+originally written for HTN-Concord. Before computing, it is re-checked against the original
 source: every coefficient vs Khan 2024 Supplemental Table S12A, and the table's
 worked example (Women 14.684%, Men 16.317%). Any mismatch stops the run.
 """
@@ -15,9 +15,9 @@ import pandas as pd
 
 BASE = Path(__file__).resolve().parents[1]
 ROOT = BASE.parents[1]  # project root (PhD GenAI)
-HTN = ROOT / '02_htn-concord/htn-concord'
-SUPPLEMENT = ROOT / '02_htn-concord/NIHMS1953934-supplement-Supplemental_Tables.xlsx'
-sys.path.insert(0, str(HTN))
+SHARED = ROOT / '00_shared'
+SUPPLEMENT = ROOT / '00_shared/references/NIHMS1953934-supplement-Supplemental_Tables.xlsx'
+sys.path.insert(0, str(SHARED))
 from pipelines.common import prevent  # noqa: E402
 
 DST = BASE / 'model_input'
@@ -96,8 +96,8 @@ def main():
     q = out.prevent_10yr_total_cvd_pct.describe(percentiles=[.1, .25, .5, .75, .9]).round(3).to_dict()
     by = out.groupby('cycle').prevent_10yr_total_cvd_pct.median().round(3).to_dict()
     summary = dict(model='PREVENT base 10-year total CVD (Khan 2024, Table S12A)', unit='percent',
-                   implementation=str((HTN / 'pipelines/common/prevent.py').relative_to(ROOT)),
-                   implementation_sha256=sha(HTN / 'pipelines/common/prevent.py'),
+                   implementation=str((SHARED / 'pipelines/common/prevent.py').relative_to(ROOT)),
+                   implementation_sha256=sha(SHARED / 'pipelines/common/prevent.py'),
                    supplement_sha256=sha(SUPPLEMENT) if SUPPLEMENT.exists() else None,
                    coefficients_exactly_matching_s12a=len(checks),
                    worked_example=example, rows=len(out), distribution=q, median_by_cycle=by,

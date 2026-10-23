@@ -1,7 +1,7 @@
 {
   "model": "PREVENT base 10-year total CVD (Khan 2024, Table S12A)",
   "unit": "percent",
-  "implementation": "02_htn-concord/htn-concord/pipelines/common/prevent.py",
+  "implementation": "00_shared/pipelines/common/prevent.py",
   "implementation_sha256": "bc18dffd593fe34a0c3d15a427f0652132029e8d61875e345fa35374c0dcb789",
   "supplement_sha256": "64c0853148769fae8bd20179bd497ec9415bc4146dd95314ca346475d3938872",
   "coefficients_exactly_matching_s12a": 20,
